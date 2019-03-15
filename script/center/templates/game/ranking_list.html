@@ -1,0 +1,459 @@
+<style>
+.equipitem{
+    display: block;
+    margin-left: 50px
+}
+.span{
+    font-size: 15px;
+    font-weight: bold;
+}
+.items {
+     border: 1px solid rgb(218, 207, 207);
+     padding: 5px;
+     margin: 2px;
+     width: 400px;
+     border-radius: 3px;
+     margin-left: auto;
+     margin-right: auto;
+ }
+</style>
+
+
+<script id="ranking-setting-tpl" type="text/template">
+    <%var data=it.data;%>
+    <div class="ranking-activity-cont">
+	    <table class="form">
+            <tr>
+                <th>活动ID</th>
+                <td><input type="text" name="id" class="input input-sm" readonly="readonly" value="<%=data.id ? data.id : '1' %>"> </td>
+            </tr>
+            <tr>
+                <th>显示时间</th>
+                <td><input type="text" class="Wdate" name="bt" value="<%=data.time[0] ? it.w.timestamp_to_datetime_str(data.time[0] ? data.time[0] : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+            </tr>
+            <tr>
+                <th>开始时间</th>
+                <td><input type="text" class="Wdate" name="rbt" value="<%=data.time[1] ? it.w.timestamp_to_datetime_str(data.time[1] ? data.time[1] : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+            </tr>
+            <tr>
+                <th>结束时间</th>
+                <td><input type="text" class="Wdate" name="ret" value="<%=data.time[2] ? it.w.timestamp_to_datetime_str(data.time[2] ? data.time[2] : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+            </tr>
+            <tr>
+                <th>消失时间</th>
+                <td><input type="text" class="Wdate" name="et" value="<%=data.time[3] ? it.w.timestamp_to_datetime_str(data.time[3] ? data.time[3] : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+            </tr>
+            <tr>
+                <th>活动规则链接</th>
+                <td><input type="text" style="width: 360px;" class="" readonly="readonly" name="tx_url" allow_empty="1" value="<%=data.tx_url%>">
+                </td>
+            </tr>
+            <tr>
+                <th>活动规则</th>
+                <td><textarea name="tx"><%=data.tx%></textarea>
+                </td>
+            </tr>
+            <tr>
+                <th>排行榜类型</th>
+                <td>
+                    <select name="ty" onclick="" <%? data.key!=-1 %> disabled="disabled" <%?%>>
+                        <option  value="0" <%? data.key==0 %> selected = "selected" <%?%> >战力</option>
+                        <option  value="1" <%? data.key==1 %> selected = "selected" <%?%> >充值</option>
+                        <option  value="2" <%? data.key==2 %> selected = "selected" <%?%> >消费</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>名次条件</th>
+                <td><a href="javascript:void(0)" onclick="add_ranking_rewards('ranking')">[添加名次条件]</a></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td id="ranking-cont">
+                    <%var items=data.part;%>
+
+                    <%for (var i in items){%>
+                        <%=it.w.get_ranking_html(items[i],'ranking')%>
+                    <%}%>
+                </td>
+            </tr>
+            <tr>
+                <th>名次奖励</th>
+                <td><a href="javascript:void(0)" onclick="add_ranking_rewards('rw')">[添加名次奖励]</a></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td id="rw-cont">
+                    <%var items=data.rank;%>
+
+                    <% for (var i in items){%>
+                        <%=it.w.get_ranking_html(items[i],'rw')%>
+                    <%}%>
+                </td>
+            </tr>
+            <tr>
+                <th>达成奖励</th>
+                <td><a href="javascript:void(0)" onclick="add_ranking_rewards('getrw')">[添加达成奖励]</a></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td id="getrw-cont">
+                    <%var items=data.reach;%>
+
+                    <% for (var i in items){%>
+                        <%=it.w.get_ranking_html(items[i],'getrw')%>
+                    <%}%>
+                </td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+
+<script id="ranking-item" type="text/template">
+<%var data=it.data;%>
+<div class="items">
+    <span class="span">
+    名次：
+    </span>
+    <input type="text" value="<%=data[2]%>" name="sr" class="input-small input-number not-empty" >
+    到<input type="text" value="<%=data[0]%>" name="er" class="input-small input-number not-empty" >
+    <a href="javascript:void(0)" onclick="$(this).parent().remove()" style="float:right">[删除]</a><br>
+    上榜条件：<input type="text" value="<%=data[1]%>" name="tj" class="input-small input-number not-empty" ><br>
+
+    <a href="javascript:void(0)" onclick="insert_ranking_rewards(this.parentElement,'ranking')">[插入排名]</a>
+</div>
+</script>
+
+
+<script id="rw-item" type="text/template">
+<%var data=it.data;%>
+<div class="items">
+    <span class="span">
+    名次：
+    </span>
+    <input type="text" value="<%=data[2]%>" name="sr" class="input-small input-number not-empty" >
+    到<input type="text" value="<%=data[0]%>" name="er" class="input-small input-number not-empty" >
+    <a href="javascript:void(0)" onclick="$(this).parent().remove()" style="float:right">[删除]</a><br>
+
+    <div class="rw-cont">
+        奖励:<a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a>
+    <% for (var i in data[1]){%>
+        <%=it.w.pi.get_item_html(data[1][i],null)%>
+    <%}%>
+    </div>
+
+    <a href="javascript:void(0)" onclick="insert_ranking_rewards(this.parentElement,'rw')">[插入排名]</a>
+</div>
+</script>
+
+<script id="getrw-item" type="text/template">
+<%var data=it.data;%>
+<div class="items">
+    <a href="javascript:void(0)" onclick="$(this).parent().remove()" style="float:right">[删除]</a><br>
+    达到条件：<input type="text" value="<%=data[0]%>" name="dd" class="input-small input-number not-empty" ><br>
+    <div class="rw-cont">
+        奖励:<a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a>
+    <% for (var i in data[1]){%>
+        <%=it.w.pi.get_item_html(data[1][i],null)%>
+    <%}%>
+    </div>
+</div>
+</script>
+
+
+<!-- 这里重写参数打折的参数配置 -->
+<script type="text/javascript">
+
+var default_msg = {
+    id:0,
+    tx_url:'',
+    key: -1,             //0战力排行版 1充值 2消费
+    time: [0,0,0,0],   //[显示开始时间, 活动生效时间, 活动失效时间, 显示结束时间]
+    part:[['','','']],
+    rank:[['',[{"aID":1,"v":1}],'']],
+    reach:[['',[{"aID":1,"v":1}]]]
+}
+
+var pi = new ResourceInput()
+
+function get_ranking_html(array,$name){
+    if ($name == 'ranking'){
+        return get_views('ranking-item',array)
+    }
+    if ($name == 'rw'){
+        return get_views('rw-item',array)
+    }
+    if ($name == 'getrw'){
+        return get_views('getrw-item',array)
+    }
+}
+
+//插入排名
+function insert_ranking_rewards(ele,$name){
+    if ($name == 'ranking'){
+        var obj = default_msg.part[0]
+    }else if ($name == 'rw'){
+        var obj = default_msg.rank[0]
+    }
+    var html = get_ranking_html(obj,$name)
+    $(ele).after(html)
+}
+
+//添加排名
+function add_ranking_rewards(name){
+    var $name = name
+    if ($name == 'ranking'){
+        var obj = default_msg.part[0]
+    }else if ($name == 'rw'){
+        var obj = default_msg.rank[0]
+    }else if ($name == 'getrw'){
+        var obj = default_msg.reach[0]
+    }
+
+    var html = get_ranking_html(obj,$name)
+    $('#'+ $name +'-cont').append(html)
+}
+
+//添加奖励
+function add_rewards(ele){
+        var obj = {"aID":1,"v":1}
+        var html = pi.get_item_html(obj)
+        $(ele).parents('.items').find('.rw-cont').append(html)
+}
+
+activitySetting.check_msg = function(obj) {
+    var msg = obj
+    var stop = false
+
+    if (msg.time[0] >= msg.time[1]) {
+        inputTooltip($('[name="bt"]'), '<b class="red">显示时间不能大于等于开始时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.time[0] >= msg.time[3]) {
+        inputTooltip($('[name="bt"]'), '<b class="red">显示时间不能大于等于消失时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.time[0] >= msg.time[2]) {
+        inputTooltip($('[name="bt"]'), '<b class="red">显示时间不能大于等于结束时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.time[1] >= msg.time[2]) {
+        inputTooltip($('[name="rbt"]'), '<b class="red">开始时间不能大于等于结束时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.time[1] >= msg.time[3]) {
+        inputTooltip($('[name="rbt"]'), '<b class="red">开始时间不能大于等于消失时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.time[2] >= msg.time[3]) {
+        inputTooltip($('[name="ret"]'), '<b class="red">结束时间不能大于等于消失时间!</b>', 3000)
+        stop = true
+    }
+
+    var rwl = [{'sr':0,'er':0}]
+    $('#ranking-cont').find('.items').each(function(i,ele){
+        var g = {}
+        var $item = $(ele)
+        g.sr = parseInt($item.find('[name="sr"]').val())
+        g.er = parseInt($item.find('[name="er"]').val())
+        if (g.sr > g.er){
+            inputTooltip($item.find('[name="er"]'),'<b class="red">有未设置或重复的排名</b>',3000)
+            $item.find('[name="er"]').focus()
+            stop = true
+        }
+        var num = g.sr - rwl[i].er
+        if (num !=1){
+            inputTooltip($item.find('[name="sr"]'),'<b class="red">有未设置或重复的排名</b>',3000)
+            $item.find('[name="sr"]').focus()
+            stop = true
+        }
+        rwl.push(g)
+        var array = msg.part.length - 1
+        if (msg.part[array][0] > 50){
+            inputTooltip($item.find('[name="er"]'),'<b class="red">设置的排名不能超过最大人数50</b>',3000)
+            $item.find('[name="er"]').focus()
+            stop = true
+        }
+    })
+    var rwl = [{'sr':0,'er':0}]
+    $('#rw-cont').find('.items').each(function(i,ele){
+        var g = {}
+        var $item = $(ele)
+        g.sr = parseInt($item.find('[name="sr"]').val())
+        g.er = parseInt($item.find('[name="er"]').val())
+        if (g.sr > g.er){
+            inputTooltip($item.find('[name="er"]'),'<b class="red">有未设置或重复的排名</b>',3000)
+            $item.find('[name="er"]').focus()
+            stop = true
+        }
+        var num = g.sr - rwl[i].er
+        if (num !=1){
+            inputTooltip($item.find('[name="sr"]'),'<b class="red">有未设置或重复的排名</b>',3000)
+            $item.find('[name="sr"]').focus()
+            stop = true
+        }
+        rwl.push(g)
+        var array = msg.rank.length - 1
+        if (msg.rank[array][0] > 50){
+            inputTooltip($item.find('[name="er"]'),'<b class="red">设置的排名不能超过最大人数50</b>',3000)
+            $item.find('[name="er"]').focus()
+            stop = true
+        }
+    })
+    var rwl = [0]
+    $('#getrw-cont').find('.items').each(function(i,ele){
+        var $item = $(ele)
+        var dd = parseInt($item.find('[name="dd"]').val())
+        if (dd < rwl[i]){
+            inputTooltip($item.find('[name="dd"]'),'<b class="red">设置的值不能少于上一个条件</b>',3000)
+            $item.find('[name="dd"]').focus()
+            stop = true
+        }
+
+        rwl.push(dd)
+    })
+
+    var tx = this.contEle.find('[name="tx"]').val()
+    if (tx != ''){
+        var tx_list = tx.split('\n')
+        var tx_list = JSON.stringify(tx_list)
+        var se = location.search.replace(/\?activity_id\=/g,'ranging_')
+        var filename = se + '.json'
+        var msg = {'data':tx_list,'filename':filename}
+        $.ajax({
+        url: '/game/server/save_ranging_msg',
+        type: 'POST',
+        dataType: 'html',
+        data: msg,
+        async: false
+        })
+            .done(function (data) {
+                console.dir(data)
+            })
+            .fail(function (o, x, text) {
+                $.dialog('活动规则保存失败!')
+                stop = true
+            })
+    }
+
+
+    return stop
+}
+
+
+$.ajaxSetup({cache:false});
+
+activitySetting.get_json = function(){
+    if (!this.check_empty_input()) {
+        return false
+    }
+
+    var msg = {
+        id:'',
+        tx_url:'',
+        key: '',   //0战力排行版 1充值 2消费
+        time: [], //[显示开始时间, 活动生效时间, 活动失效时间, 显示结束时间]
+        part:[],
+        rank:[],
+        reach:[]
+    }
+    msg.id = parseInt(location.search.replace(/\?activity_id\=/g,''))
+    var se = location.search.replace(/\?activity_id\=/g,'ranging_')
+    msg.tx_url = location.origin + '/static/activity/' + se + '.json'
+    msg.key = parseInt(this.contEle.find('[name="ty"]').val())
+    var rbt = datetime_str_to_timestamp(this.contEle.find('[name="rbt"]').val())
+    var ret = datetime_str_to_timestamp(this.contEle.find('[name="ret"]').val())
+    var bt = datetime_str_to_timestamp(this.contEle.find('[name="bt"]').val())
+    var et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+    msg.time.push(bt,rbt,ret,et)
+
+    var part = []
+    $('#ranking-cont').find('.items').each(function(i,ele){
+        var $ele = $(ele)
+        var li = []
+        var n1 = parseInt($ele.find('[name="sr"]').val())
+        var n2 = parseInt($ele.find('[name="er"]').val())
+        var n3 = parseInt($ele.find('[name="tj"]').val())
+        li.push(n2,n3,n1)
+        part.push(li)
+    })
+    msg.part = part
+
+    var rank = []
+    $('#rw-cont').find('.items').each(function(i,ele){
+        var $ele = $(ele)
+        var li = []
+        var n1 = parseInt($ele.find('[name="sr"]').val())
+        var n2 = parseInt($ele.find('[name="er"]').val())
+        var n3 = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            n3.push(pi.to_json(ele))
+        })
+        li.push(n2,n3,n1)
+        rank.push(li)
+    })
+    msg.rank = rank
+
+    var reach = []
+    $('#getrw-cont').find('.items').each(function(i,ele){
+        var $ele = $(ele)
+        var li = []
+        var n1 = parseInt($ele.find('[name="dd"]').val())
+        var n2 = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            n2.push(pi.to_json(ele))
+        })
+        li.push(n1,n2)
+        reach.push(li)
+    })
+    msg.reach = reach
+
+
+    if (this.check_msg(msg)) {
+        return false
+    }
+    //console.dir(msg)
+    return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    var This = this
+    if (msg.tx_url != ''){
+        $.get(msg.tx_url,function(data){
+            msg.tx = data.join('\n')
+            var html = get_views('ranking-setting-tpl',msg)
+            This.contEle.html(html)
+        })
+    }else{
+        var html = get_views('ranking-setting-tpl',msg)
+        this.contEle.html(html)
+    }
+
+    console.dir(msg)
+
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+    console.dir(data)
+    var bt = data.time[1]
+    var et = data.time[2]
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if ($.isEmptyObject(data)) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }else if (!in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data.time[1])+'- '+ timestamp_to_datetime_str(data.time[2])+'">未开始</span>'
+    }
+    return status
+}
+
+</script>

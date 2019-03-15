@@ -1,0 +1,71 @@
+<script>
+
+  //流失等级,流失人数,流失比例,等级段,等级段流失数,等级段流失比例
+  //等级段为总流水人数
+dataTableOption.page_size=100
+dataTableOption.page_size_list=[100,200]
+dataTableOption.convertOutputDataFuncs = [function(data){
+  var list_data = data.list_data 
+  var tol_num = NaN
+  var level_map = {
+					1:{max:9,tol:0},
+					10:{max:20,tol:0},
+					21:{max:30,tol:0},
+					31:{max:40,tol:0},
+					41:{max:60,tol:0},
+					61:{max:80,tol:0},
+					81:{max:100,tol:0}
+  				   }
+  
+  for(var i in list_data){
+	var row = list_data[i]
+	var level = parseInt(row[TH['流失等级']])
+	var lost_num = parseInt(row[TH['流失人数']])
+	tol_num = !tol_num? parseInt(row[TH['等级段']]) : tol_num 
+	for (var k in level_map){
+		var level_item = level_map[k]
+		if (level>=k && level<=level_item.max){
+			level_item.tol += lost_num
+		}
+	}
+	row[TH['等级段']] = ''
+  }
+										  
+  for(var i in list_data){
+	var row = list_data[i]
+	var level = parseInt(row[TH['流失等级']])
+	var lost_num = parseInt(row[TH['流失人数']])
+	
+	for (var k in level_map){
+	  var level_item = level_map[k]
+	  
+	  if(level==k){
+			row[TH['等级段']] = k + '-' + level_item.max + '级'
+			row[TH['等级段流失数']] = level_item.tol
+			var bili = parseFloat(level_item.tol/tol_num*100)
+			row[TH['等级段流失比例']] = bili.toFixed(2) + '% 总数:(' + tol_num + ')'
+	  } 
+	}
+  }					
+				  
+  //console.dir(level_map)
+  
+  return data
+
+}] 
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+

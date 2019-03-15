@@ -1,0 +1,227 @@
+<!-- 导出的页面-->
+<div id="export_cont" style="display:none;min-width:600px">
+	<div class="row">
+		<div class="col-sm-5">
+			<div class="progress progress-striped" data-percent="(0%)">
+				<div class="progress-bar" style="width:0%;"></div>
+			</div>
+			
+		</div>
+		<div class="col-sm-1">
+			<span id="download_cont"></span>
+		</div>
+		<div class="col-sm-6">
+				类型:
+				<select name="export_type">
+				<!-- 	<option value="1">excel</option> -->
+					<option value="2">csv</option>
+					<option value="3">txt</option>
+				</select>
+
+				<input type="button" class="btn btn-xs btn-success btn-app" id="export-btn-sure" value="开始" >
+		</div>
+		<div class="col-sm-12">
+			{% if is_center_query %}
+				<input type="hidden" value="" name="export_server_id">
+			{%else%}
+				<div class="hr"></div>
+				{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict name_prefix="export_" not_grouping=True%}
+			{% endif %}
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+$(function(){
+	function Export(){
+		this.cont = $('#export_cont')
+		this.progressEle = $('.progress')
+		this.downloadEle = $('#download_cont')
+		this.data = this.cont.serializeArray()
+		this.server_id_list = []
+		this.tol_server = 0
+		this.maxThead = 30
+		this.first_server_id = 0
+		this.runing = false
+		this.switchEle = $('#export-btn-sure')
+		
+		var This = this
+
+		this.get_condition_data = function() {
+            {% if is_center_query %}
+			return $SEARCH_FORM.find('[name]').serialize() + '&is_export=true&export_type=' + This.cont.find('[name="export_type"]').val()
+            {% else %}
+            return $SEARCH_FORM.find('[name]').not('[name="server_id"]').serialize() + '&is_export=true&export_type=' + This.cont.find('[name="export_type"]').val()
+            {% endif %}
+        }
+
+		this.get_server_id_list = function() {
+			This.server_id_list = []
+			this.cont.find('[name="export_server_id"]').each(function(i,ele){
+				var Ele = $(ele) 
+				var value = null
+				if ( Ele.is(':checkbox')) {
+					if (Ele.is(':checked')){
+						value = parseInt(Ele.val())
+					}
+					Ele.parent('label').removeClass('label-warning').removeClass('label-success')
+				} else {
+					value = Ele.val()
+				}
+				if ($.inArray(value, This.server_id_list)<0 && value!==null) {
+					This.server_id_list.push(value)
+				}
+			})
+
+			This.tol_server = This.server_id_list.length
+		}
+
+		this.changeProgress = function(num,text){
+			text = text ? text : ''
+			This.progressEle.attr('data-percent',text + '(' +num+'%)' )
+			This.progressEle.find('.progress-bar').css('width',num+'%')
+		}
+
+		this.init = function() {
+			This.downloadEle.html('')
+			This.changeProgress(0)
+			This.get_server_id_list()
+			This.runing = true
+			this.switchEle.val('停止')
+		}
+
+		this.stop = function () {
+			This.runing = false
+			this.switchEle.val('开始')
+		}
+		this.start = function() {
+			This.init()
+			if ( This.tol_server  > 0 ) {
+				var jobLength = parseInt(This.tol_server / This.maxThead )
+				jobLength = jobLength==0 ? 1 : jobLength
+				var condition_data = This.get_condition_data()
+				condition_data += '&export_key=' + QUERY_NAME + new Date().getTime()
+				var first_data = condition_data
+				This.first_server_id = parseInt(This.server_id_list[0])
+				var tmp_sid_list = This.server_id_list.concat() //复制
+				while (tmp_sid_list.length>0) {
+					var group_server_ids = tmp_sid_list.splice(0,jobLength)
+					This.batchDo(group_server_ids,condition_data)
+				}
+
+			} else {
+				This.stop()
+				alert('没有选择服务器!')
+			}
+		}
+
+		this.change_done_server_status = function(sever_id) {
+			This.cont.find('[name="export_server_id"][value="'+sever_id+'"]:checked').prop('checked',false).parent('label').addClass('label-success')
+		}
+		this.change_err_server_status = function(sever_id) {
+			This.cont.find('[name="export_server_id"][value="'+sever_id+'"]:checked').parent('label').addClass('label-warning')
+		}
+		// 任务分组执行
+		// todo 貌似没啥意义,chrome firefox 默认并发限制为 6 , IE为10
+		this.batchDo = function(server_list,condition_data){
+			var sid_list = server_list
+
+			function ajaxDo(server_id,other_condition_data,err_count) {
+				if (typeof(server_id) == "undefined" || !This.runing) {
+					return
+				}
+				var ajax_data = condition_data 
+				var err_count = err_count ? err_count : 0
+				if (other_condition_data) {
+					ajax_data += '&' + other_condition_data         //增加条件参数
+				}
+				ajax_data +=  '&server_id=' + server_id             //增加服务器参数
+				
+				$.ajax({
+					url: '',
+					type: 'POST',
+					dataType: 'json',
+					timeout:60000,//超时60秒
+					data:ajax_data,
+				})
+				.done(function(data) {
+					if (data.has_next) { 
+						var next_data = '&page_num=' + data.page_num   //分页
+						ajaxDo(server_id,next_data)
+					} else {         //完成一个服务器
+						This.server_id_list.pop(server_id) 
+						This.change_done_server_status(server_id)
+						ajaxDo(sid_list.pop())
+					}
+				})
+				.fail(function(o,x,text) {
+					if (err_count>=3) {
+						This.server_id_list.pop(server_id) // 错误跳过
+						This.change_err_server_status(server_id)
+						ajaxDo(sid_list.pop())
+					} else {
+						ajaxDo(server_id,'',err_count+1)
+					}
+				})
+				.always(function() {
+					if (This.server_id_list.length==0) { //全部完成
+						finisHandle()
+					}
+					var already_num = This.tol_server-This.server_id_list.length
+					var num = parseInt(already_num /This.tol_server*100)
+					This.changeProgress(num,already_num+'/'+This.tol_server)
+				});
+			}
+			//完成处理
+			function finisHandle() {
+				This.stop()
+				$.ajax({
+					url: '',
+					type: 'POST',
+					dataType: 'json',
+					data: condition_data+'&is_finish=true',
+				})
+				.done(function(data) {
+					if (data.code == 0) {
+						This.downloadEle.html('<a href="'+data.url+'" target="_blank">下载</a>  '+
+											  '<a href="?query_name='+QUERY_NAME+'&is_export=true&is_summary=true&export_key='+data.export_key+'&export_type='+data.export_type+'" target="_blank">汇总</a>'
+							)
+					}
+				})
+				.fail(function(o,x,text) {
+					art.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>')})
+				})
+				.always(function() {
+					console.log("complete");
+				});
+				
+			}	
+			ajaxDo(sid_list.pop())
+		}
+	}
+
+	var exportObj = new Export()
+	//导出全部
+	$EXPORT_ALL.click(function(){
+		$('#export_cont').dialog({"title":"导出选择","lock": true})
+	})
+
+	//导出确定
+	$('#export-btn-sure').click(function(){
+		if (exportObj.runing) {
+			exportObj.stop()
+		} else {
+			exportObj.start()
+		}
+	})
+	
+	//导出当前
+	$EXPORT_CURRENTLY.click(function(){
+		 tableToExcel('query_table', QUERY_NAME)
+	})
+
+
+})
+</script>
+
+
+

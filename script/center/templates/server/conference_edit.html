@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>公会编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	<a href="/server/channel/channel_list">渠道管理</a> -> 公会资料编辑 {{model.alias}}
+	<div class="buttons">
+		<a class="btn btn-app btn-grey btn-xs radius-4 pull-right submit">保存</a>
+	</div>
+</div>
+
+<form action="/server/conference/conference_save?conference_id={{model.id}}" method="post" class="ajax">
+
+	<table class="form">
+		<tr>
+			<th>公会KEY：</th><td><input type="text" name="name" value="{{model.name}}" /> *此渠道所属的公会英文字符,不能乱修改</td>
+		</tr>
+
+		<tr>
+			<th>公会别名：</th><td><input type="text" name="alias" value="{{model.alias}}" /></td>
+		</tr>
+
+		<tr>
+			<th>游戏APPKEY：</th><td><input type="text" name="game_app_key" value="{{model.game_app_key}}" style="width:300px;"/></td>
+		</tr>
+
+		<tr><th>拥有渠道：</th>
+			<td>
+					{%for c in model.channel.all %}
+					<label>
+						<input type="checkbox" value="{{c.id}}" checked="checked" name="channel_id">{{c.name}}
+					</label>
+					{%endfor%}
+                *此处渠道只做显示，修改无效
+			</td>
+		</tr>
+
+{#		<tr><th>服务器:</th>#}
+{#			<td>* 如果勾选了分区 即有分区下的所有服务器权限,如需限制服务器,请单独勾服务器,不勾分区#}
+{##}
+{#		</td>#}
+{#		</tr>#}
+{#		<tr><th></th>#}
+{#			<td>#}
+{#				{%include "widgets/group_server.html" with group_servers_dict=group_servers_dict %}#}
+{#			</td>#}
+{#		</tr>#}
+	</table>
+</form>
+{% endblock %}

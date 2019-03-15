@@ -1,0 +1,203 @@
+<!-- 加载highcharts -->
+<script type="text/javascript" src="/static/assets/echarts/echarts-all.js"></script>
+
+<div id="charts-div" >
+
+</div>
+
+<script type="text/javascript">
+var $charts_cont = $('#charts-div')
+$charts_cont.insertBefore($QUERY_TABLE)
+
+
+dataTableOption.page_size = 25
+dataTableOption.page_size_list = [8,25,50,90]
+
+var datetime_cache = {}
+function convert_datetime(_str){
+		var _r = _str
+		var _date_time = new Date(_str)
+		if ( _date_time != 'Invalid Date' ) {
+			var date_str = _date_time.format('yyyy-MM-dd')
+			if ( datetime_cache[date_str] ){
+
+				_r = datetime_cache[date_str] == _str ?  _str : _date_time.getHours()
+			} else {
+				datetime_cache[date_str] = _str
+			}
+		}
+		return _r 
+}
+
+function Echarts(ele_id) {
+	var _this = this
+
+	var ele = ele_id ? document.getElementById(ele_id) : document.createElement('div')
+	
+	$(ele).height('400px')
+
+	
+    this.series_type = {
+    					type:"line",
+    					smooth:true,
+						itemStyle: {normal: {
+							// areaStyle: {type: 'default'},
+							//label : {show: true}
+						}},
+						markPoint : {
+			                data : [
+			                    {type : 'max', name: '最大值'},
+			                    {type : 'min', name: '最小值'}
+			                ]
+			            },
+			            markLine : {
+			                data : [
+			                    {type : 'average', name: '平均值'}
+			                ]
+			            }
+	}
+
+
+    this.opt = {
+	    title : {
+	        text: '',
+	        subtext: ''
+	    },
+	    tooltip : {
+	        trigger: 'axis',
+			axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+            	type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        	}
+	    },
+	    legend: {
+	        data:[]
+	    },
+	    toolbox: {
+	        show : true,
+	        feature : {
+	            mark : {show: true},
+	            dataZoom : {show: true},
+	            dataView : {show: true, readOnly: false, lang : ['数据视图', '关闭', '更新']},
+	            magicType : {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+	            restore : {show: true},
+	            saveAsImage : {show: true},
+
+	        }
+	    },
+	    calculable : true, //是否启用拖拽重计算特性，默认关闭
+	    dataZoom : {
+		        show : true,
+		        realtime : true,
+		        start : 00,
+		        end : 100
+    	},
+	    xAxis : {
+	            type : 'category',
+	            tickInterval:10,
+	            boundaryGap : true,
+	            data : []
+
+	    },
+	    yAxis : [
+	        {
+	            type : 'value'
+	        }
+	    ],
+	    series : []
+	}
+
+	this._getAvg = function(list){
+		var num = 0
+		for(i in list){num += list[i]}
+		return 	(num / list.length).toFixed(1)
+	}
+
+	this.push_data = function(list_data,fields,item_handle,first_item_handle){//增加数据
+		var data_list = []
+		var xAxis = [] //横轴项目，即第一列
+		var legend = [] //
+		var lines = list_data
+		var columns = fields    //数据项
+
+		for (var i=1;i<columns.length;i++){
+			var serie_obj = {
+				'name':columns[i],
+				'data':[],
+			}
+			serie_obj = $.extend(true,serie_obj, this.series_type);
+			data_list.push(serie_obj)
+		}
+
+		
+		for (var i = 0;i<lines.length;i++){//跳过第一行
+			var items = lines[i]
+			if (items[0].indexOf('合计')>=0) {
+				continue
+			}
+			xAxis.push( first_item_handle ? first_item_handle(items[0]) : items[0])//横轴增加第一项
+			for(var j=1;j<columns.length;j++){
+				var item = items.length>=j+1 ? items[j] : '0'
+				data_list[j-1]['data'].push( item_handle ? item_handle(item) : parseFloat(!isNaN(item) && item ? item : 0))
+			}
+		}
+		
+		_this.opt.xAxis.data = xAxis//增加横轴项目
+
+		for(var i in  data_list ){
+			 var o = data_list[i]
+			// o['name'] += ' (Min:'+ Math.min.apply(Math,o['data'])
+			// o['name'] += ' Max:'+ Math.max.apply(Math,o['data'])
+			// o['name'] += ' Avg:'+ _this._getAvg(o['data'])+')'
+			legend.push(o['name'])
+		}
+
+		_this.opt.legend.data = legend
+		_this.opt.series = data_list //增加序列数据
+		return [xAxis,data_list]
+	}
+
+	this.done = function(){
+		this.echarts_obj = echarts.init(ele)
+		_this.echarts_obj.setOption(_this.opt); 
+	}
+
+}
+
+</script>
+
+
+
+<script>
+	function item_handle(item){
+		if (item) {
+		var item = parseFloat(item.toString().split(/%/)[0])
+		item = !isNaN(item) ? item : 0
+		}else{
+			item=0
+		}
+		return item
+	}
+
+// 列 操作时间,管理员,服务器,操作类型,协议号,活动名,操作,结果,参数
+// 最后一列为活动ID,点击查看当时的参数配置
+var LIST_DATA = null
+
+
+dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+	if(data.list_data.length>0){
+		var e = new Echarts('charts-div')
+		e.opt.title.text = data.query_name
+		e.opt.title.subtext = $('[name="sdate"]').val() + ' - ' + $('[name="edate"]').val()
+		e.push_data(data.list_data,data.fields,item_handle)
+		e.done()
+	}
+  	return data
+}) 
+</script>
+
+
+
+
+

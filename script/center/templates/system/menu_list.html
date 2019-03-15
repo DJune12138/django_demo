@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>功能列表</title>
+{% endblock %}
+
+{% block content %}
+{% with model_name='Menu' url_prefix='/system/menu/menu_'  %}
+
+<script type="text/javascript">
+	function add{{model_name}}(ele){
+		art.dialog.open("{{url_prefix}}edit?&parent_id=" + selectId)
+	}
+	function edit{{model_name}}(ele){
+		if (selectId) {
+			art.dialog.open("{{url_prefix}}edit?id=" + selectId)
+		}
+	}
+	function remove{{model_name}}(ele){
+		if (confirmRandom('确定删除吗?')){
+			window.location.href = "{{url_prefix}}remove?"+$('#{{model_name}}_area :checkbox').serialize()
+		}
+	}
+
+$(function(){
+     $('#{{model_name}}_area tr').contextMenu('contextMenu',   
+     {  
+          bindings:   
+          {  
+            'c_edit': function(t) {  
+               edit{{model_name}}(t)
+            },   
+            'c_select_child': function(t) {  
+               var selectTr = $(t)
+               var parentId = selectTr.attr('data-tt-id')
+               $('[data-tt-parent-id^="'+parentId+'"]').find(":checkbox").prop({"checked":true})
+            },
+            'c_remove':function(t){
+            	console.dir(t)
+            	var url = '{{url_prefix}}remove?'+ $(t).find(':checkbox').serialize()
+
+            	$.get('{{url_prefix}}remove?'+$(t).find(':checkbox').serialize(),function(response,status,xhr){
+            		if (status == 'success') {
+            			$(t).remove()
+            		}
+            	})	
+            }  
+          }  
+  
+    });  
+})
+</script>
+
+
+<div class="bar"></div>
+<div  id="contextMenu" class="contextMenu">  
+	<ul>  
+		<li id="c_edit" class="btn no-border btn-white "><i class="icon-edit "></i>编辑</li> 
+		<li id="c_select_child" class="btn no-border btn-white "><i class="icon-check"></i>子项</li>   
+		{%if request.admin.is_root%}
+		<li id="c_remove"  class="btn no-border btn-white del"><i class="icon-trash "></i>删除</li>    
+		{%endif%}
+	</ul>  
+</div>
+<ul id="nav-list" class="nav nav-tabs">
+	  <li class="active">
+	  	<a href="{{url_prefix}}list" >模块列表</a>
+	  </li>
+</ul>
+
+<div class="treetable-toolbar">
+	<div class="row">
+			<div class="col-sm-3"></div>
+			<div class="col-sm-9">
+				<div class="table_toolbar">
+				<div class="btn-toolbar pull-right">
+					<div class="btn-group ">
+						<a class="btn btn-sm btn-success " onclick="add{{model_name}}(this)">
+							<i class="icon-plus-sign"></i>添加
+						</a>
+					</div>
+					<div class="btn-group">
+						
+						<a class="btn btn-sm btn-primary " onclick="edit{{model_name}}(this)">
+							<i class="icon-edit"></i>编辑
+						</a>
+						<a data-toggle="dropdown" class="btn btn-sm  btn-primary dropdown-toggle">
+							<span class="icon-caret-down icon-only"></span>
+						</a>
+						<ul class="dropdown-menu">
+							<li>
+								<a  onclick="remove{{model_name}}(this)">
+									<i class="icon-trash "></i>
+									删除
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+				</div>
+			</div>
+	</div>
+	<table id="{{model_name}}_table" class="table treetable" data-group-by-index='[4,5]'>
+		<thead>
+		<tr>
+			<th >
+				<input type="checkbox" checkbox-area='{{model_name}}_area'  >
+				<a href="javascript:;" onclick="$(this).closest('.treetable').treetable('expandAll'); return false;">展开</a> 
+				<a href="javascript:;" onclick="$(this).closest('.treetable').treetable('collapseAll'); return false;">收缩</a> 
+				模块名
+
+			</th>
+			<th>路径</th>
+			<th>排序</th>
+			<th>日志</th>
+
+		</tr>
+		</thead>
+		<tbody id="{{model_name}}_area">
+		{%for item in list_record %}
+			<tr data-tt-id="{{item.tt_id}}" data-tt-parent-id="{{item.tt_parent_id}}" trid='{{item.id}}' >
+				<td>
+					<input type="checkbox"  value="{{item.id}}" name="id">
+					{%if item.icon%}<i class="{{item.icon}}" /></i>{%endif%}
+					<b style="{{item.css}}" >
+					{{item.name}}
+					</b>
+				</td>
+				<td>{{item.url}}</td>
+				<td>{{item.order}}</td>
+				<td>
+					{{item.is_log}}
+				</td>
+
+			</tr>
+		{%endfor%}
+		</tbody>
+	</table>
+</div>
+{% endwith %}
+{% endblock %}

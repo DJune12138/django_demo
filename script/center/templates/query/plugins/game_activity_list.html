@@ -1,0 +1,103 @@
+<!-- 表功工具条 -->
+<div id="datatable_toolbar" class="row" >
+
+		<div class="btn-group pull-right">
+			
+			<a href="/game/activity/activity_edit" class="btn btn-sm btn-purple openDialog"><i class="icon-plus-sign"></i>添加活动</a>
+			
+		</div>
+
+</div>
+
+
+<script type="text/javascript">
+//标题为   -,ID,活动名称,类型,描述,状态,开启时间,关闭时间,操作(里面是活动的服务器ID)
+var LIST_DATA = null
+
+
+function make_server_parmas(server_ids){
+	var params_str = ''
+	for (var i in server_ids){
+		params_str += 'sid=' + server_ids[i] + '&'
+	}
+	return params_str
+}
+
+//输入处理
+dataTableOption.convertInputDataFuncs.push(function(data){
+	return data
+})
+
+
+//输出处理
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+    LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+	var new_list_data = []
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+		var caozuo_index = TH['操作']
+		var activity_id = row[TH['ID']]
+		var ulr_params = 'activity_id=' + row[TH['ID']] + '&sdate=' + row[TH['自动开启时间']] + '&edate=' +  row[TH['自动关闭时间']] 
+
+		var activity_server_ids_str = new_row[caozuo_index]
+
+		var server_params_str = make_server_parmas( activity_server_ids_str ? activity_server_ids_str.split(',') : '')
+		new_row[caozuo_index] = ''
+
+		server_params_str += ulr_params
+
+		new_row[TH['-']] = '<input type="checkbox" name="player_id" value="'+ row[TH['ID']] +'">'
+
+		new_row[TH['活动名称']] =  '<a href="/game/activity/activity_edit?activity_id='+ activity_id +'" class="openDialog">' + row[TH['活动名称']]+ '</a> ' 
+		new_row[caozuo_index] += '<a href="/game/activity/activity_setting?activity_id='+ activity_id +'" class="openDialog">[配置]</a> '
+							  + '<a href="/game/activity/activity_edit?activity_id='+ activity_id +'" class="openDialog">[服务器]</a> '
+							　+ '<a href="/game/activity/activity_status?activity_id='+ activity_id +'#auto_query" class="openDialog">[状态]</a> '
+							  + '<a href="/game/activity/activity_on?activity_id='+ activity_id +'&open=all" class="dialog">[开启]</a> '
+							  + '<a href="/game/activity/activity_off?activity_id='+ activity_id +'&close=all" class="dialog">[关闭]</a> '
+							  + '<a href="/query/view/活动数据统计报表?' + server_params_str +'" class="openDialog">[数据]</a> ' 
+							  + '<a href="/query/view/活动修改记录?' + server_params_str +'" class="openDialog">[记录]</a> ' 
+							  + '<a href="/game/activity/activity_edit?is_copy=1&activity_id='+ activity_id +'" class="openDialog">[复制]</a> ' 
+		                      + '<a href="/game/activity/activity_remove?activity_id='+ activity_id +'" class="del ">[删除]</a>'
+		new_list_data.push(new_row)
+	}
+    data.list_data = new_list_data
+	return data
+}
+)
+</script>
+
+<script type="text/javascript">
+$(function(){
+  //hideSearchToolbar()
+	
+		flushDataTable()
+	$('[name="off"]').click(function(){
+		flushDataTable()
+	});
+	$('[name="expired"]').click(function(){
+		flushDataTable()
+	});
+})
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

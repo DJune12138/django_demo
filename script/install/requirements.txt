@@ -1,0 +1,5 @@
+Django==1.11.17
+MySQL-python==1.2.5
+pymongo==2.5.2
+python-memcached==1.57
+Pillow==3.2.0

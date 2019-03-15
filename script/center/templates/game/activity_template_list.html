@@ -1,0 +1,96 @@
+
+
+<div id="activity_template_list_cont">
+<table  id=""  class="table table-bordered datatable" data-flag='data-list' >
+	 <thead>
+		<tr>
+		<th>模版名</th><th>模版类型</th><th>模版描述</th><th>模版操作</th><th>创建信息</th>
+		</tr>
+ 	</thead>
+ 	<tbody>
+		{%for item in list_data%}
+		<tr>
+
+
+			<td>{{item.name}}</td>
+			<td>{{item.type}}</td>
+			<td>{{item.info}}</td>
+			
+			<td>
+				<a class="load_activity_btn" href="javascript:void(0)" template_name="{{item.name}}" msg='{{item.msg}}' >[载入模版]</a>
+
+				<a href="/game/activity_template/remove?id={{item.id}}" class="dialog">[删除]</a>
+
+			</td>
+			<td>{{item.create_time|date:"Y-m-d H:i:s"}} | {{item.create_user_name}}</td>
+		</tr>
+		{%endfor%}
+	</tbody>
+	
+</table>
+</div>
+
+<script>
+$(function(){
+	var opt = {
+					//"sScrollY": '200px',//document.documentElement.clientHeight*0.6 + 'px',
+					//"bScrollCollapse": true,
+					//"sScrollX": "100%",
+                    //"sScrollXInner": "100%",
+                    "bSortClasses":false,
+					"bStateSave": false, 
+					"bProcessing": true, //是否显示正在处理的提示 
+					"iDisplayLength":-1,//默认每页显示的记录数
+					"bPaginate": false, // 是否使用分页
+					"aLengthMenu":[50,100,1000],
+					"bAutoWidth": false,//列的宽度会根据table的宽度自适应 
+					//"bSortClasses":true,
+					"bLengthChange": true,//分页栏
+					"oSearch":{
+						"sSearch": "",//默认的框文字
+						"bRegex":true,//支持正则搜索
+					},
+					"bInfo": true,
+					 "oLanguage": {
+					 "sSearch": "筛选:",//
+					 "sZeroRecords": "没有匹配记录",
+					  "sInfo":'当前 _START_ - _END_ 共 _TOTAL_ 条',
+					  "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
+					  "sLengthMenu": "每页显示 _MENU_条",
+					  "sProcessing":"正在加载数据...",
+					  "sInfoEmpty": "",
+					  "oPaginate": {
+                        "sFirst": "首页",
+                        "sPrevious": "前一页",
+                        "sNext": "后一页",
+                        "sLast": "尾页"
+                    	}
+
+					 },
+					 "aoColumnDefs":[],
+					 "aaSorting":[] //默认不排序
+				}
+
+	$('#activity_template_list_cont .datatable').dataTable(opt)
+
+
+	$('.load_activity_btn').click(function(){
+		var template_name = $(this).attr('template_name')
+		var msg = $(this).attr('msg')
+
+		art.dialog.confirm('确定载入 ' + template_name + '模版?', function(){
+			
+			var msg_obj = $.parseJSON(msg)
+			window.activitySetting.to_html(msg_obj)
+
+
+			art.dialog.tips('载入成功!');
+
+		}, function(){
+		    
+		});
+
+
+	})
+})
+</script>

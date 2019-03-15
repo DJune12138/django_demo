@@ -1,0 +1,1002 @@
+
+<style>
+.al-cont-act{
+    border: 1px solid #AAAAAA;
+    padding: 5px 5px 5px 15px;
+    border-radius: 4px;
+    margin-top: 5px;
+    width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.al-cont{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+    width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}.equipitem{
+    display: block;
+
+}
+
+.biaoshi{
+    float:right;
+}
+
+</style>
+
+<!-- 模版开始 -->
+
+<script id="day-setting-tpl" type="text/template">
+<%var data=it.data;%>
+<input type="hidden" name="sdid" value="<%=data.sdid ? data.sdid : '1'%>">
+<table class="form">
+    <tr>
+        <th>活动ID</th>
+        <td><input type="text" name="kid" class="input input-sm" readonly="readonly" value="<%=data.kid ? data.kid : parseInt(new Date().getTime()/1000)%>"> </td>
+    </tr>
+    <tr>
+        <th>活动名称</th>
+        <td><input type="text" name="kna" class="input input-sm" value="<%=data.kna ? data.kna : ''%>"> </td>
+    </tr>
+    <tr>
+        <th>活动主题</th>
+        <td>
+            <img id="pid_src_1" src="/static/activity/img/<%=data.p1? data.p1: '#'%>.png" width="150" height="50" />PS:图片大小不能超过400k<br>
+            <input type="hidden" name="p1" allow_empty="1" value="<%=data.p1 ? data.p1 : ''%>">
+            <input type="file" style="float:left" id="fileToUpload" allow_empty="1"/>
+            <input type="button" class="btn btn-xs" id="up1" onclick="uploadFile(this)" value="上传" />
+        </td>
+    </tr>
+    <tr>
+        <th>活动图标</th>
+        <td>
+            <img id="pid_src_2" src="/static/activity/img/<%=data.p2? data.p2: '#'%>.png" width="60" height="60" />
+            <img id="pid_src_3" src="/static/activity/img/<%=data.p3? data.p3: '#'%>.png" width="60" height="60" /><br>
+            <input type="hidden" name="p2" allow_empty="1" value="<%=data.p2 ? data.p2 : ''%>">
+            <input type="file" style="float:left" id="fileToUpload" allow_empty="1"/>
+            <input type="button" class="btn btn-xs" id="up2" onclick="uploadFile(this)" value="上传" /><br>
+            <input type="hidden" name="p3" allow_empty="1" value="<%=data.p3 ? data.p3 : ''%>">
+            <input type="file" style="float:left" id="fileToUpload" allow_empty="1"/>
+            <input type="button" class="btn btn-xs" id="up3" onclick="uploadFile(this)" value="上传" />
+        </td>
+    </tr>
+    <tr>
+        <th>开始时间</th>
+        <td><input type="text" class="Wdate" name="rbt" value="<%=data.rbt ? it.w.timestamp_to_datetime_str(data.rbt ? data.rbt : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        <th>结束时间</th>
+        <td><input type="text" class="Wdate" name="ret" value="<%=data.ret ? it.w.timestamp_to_datetime_str(data.ret ? data.ret : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+    </tr>
+    <tr>
+        <th>显示时间</th>
+        <td><input type="text" class="Wdate" name="sbt" value="<%=data.sbt ? it.w.timestamp_to_datetime_str(data.sbt ? data.sbt : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        <th>消失时间</th>
+        <td><input type="text" class="Wdate" name="set" value="<%=data.set ? it.w.timestamp_to_datetime_str(data.set ? data.set : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+    </tr>
+</table>
+
+
+<ul id="tab-ul" class="nav nav-tabs">
+    <%for (var i in data.al){%>
+        <li class="tab-li <%? i==0%> active<%?%>" day_id="<%=parseInt(i)+1%>">
+          <a href="#day_<%=parseInt(i)+1%>" data-toggle="tab"><b>第<span class="day_num"><%=parseInt(i)+1%></span>天</b></a>
+        </li>
+    <%}%>
+    <li style="float:right">
+        <a id="add_day" class="btn btn-xs  add_gift btn-primary" onclick="add_day()">+增加天数</a>
+    </li>
+    <li style="float:right">
+        <a id="del_day" class="btn btn-xs  del_day btn-danger" onclick="del_day()">减少天数</a>
+    </li>
+</ul>
+<div id="tab-cont" class="tab-content">
+<a href="javascript:void(0)" style="float:right" onclick="add_al(this)">[添加任务]</a>
+<a href="javascript:void(0)" style="float:left" onclick="export_al(this)">[导出任务]</a></br>
+<a href="javascript:void(0)" style="float:left" onclick="lead_al(this)">[导入任务]</a>
+    <%for (var i in data.al){%>
+        <div class="tab-pane <%? i==0%> active<%?%>" id="day_<%=parseInt(i)+1%>" day_id="<%=parseInt(i)+1%>">
+            <%=it.w.get_al_html(data.al[i])%>
+        </div>
+    <%}%>
+</div>
+<div id="mb-cont" class="mb-content">
+        <div class="mb-pane <%? i==0%> active<%?%>" id="mb_<%=parseInt(i)+1%>" mb_id="<%=parseInt(i)+1%>">
+
+            <table class="form">
+                <% var ar_obj = data.ar;%>
+                <tr>
+                    <th>全目标奖励:</th>
+                    <td>
+                        <select class="ar_sel" onclick="changear(this)">
+                            <option value="1" <%? ar_obj.ty==1 %> selected = "selected" <%?%> >实物奖励</option>
+                            <option value="2" <%? ar_obj.ty==2 %> selected = "selected" <%?%> >游戏奖励</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td id="ar-items">
+                        <%? ar_obj.ty == 1 %>
+                            <%=it.w.get_arsw_html(ar_obj)%>
+                        <%?%>
+                        <%? ar_obj.ty == 2 %>
+                            <%=it.w.get_arrw_html(ar_obj)%>
+                        <%?%>
+                    </td>
+                </tr>
+                <tr>
+                    <th>达成目标:</th>
+                    <td><a href="javascript:void(0)" onclick="add_mb_num(this)">[添加]</a></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td id="mb-items">
+                        <%for (var i in data.tl){%>
+                        <%=it.w.get_mb_html(data.tl[i])%>
+                        <%}%>
+                    </td>
+                </tr>
+            </table>
+        </div>
+</div>
+
+</script>
+
+
+<script id="al-tpl" type="text/template">
+<%var al_list=it.data;%>
+<%for (i in al_list) {%>
+    <div class="al-cont">
+    <hr>
+        <a href="javascript:void(0)" style="float:right" onclick="del_al(this)">[删除]</a>
+    <table class="form">
+        <tr>
+            <th>任务类型:</th>
+            <td class='ty_td'>
+            <input type="text" name='ty' select-key="days_task" onFocus='changelx(this)' value='<%=al_list[i].ty ? al_list[i].ty:''%>'>
+            任务名称：<input type="text" class='input-small' readonly="readonly" name='na' value='<%=al_list[i].na ? al_list[i].na:''%>'>
+            </td>
+        </tr>
+        <tr>
+            <th>目标:</th>
+            <td><a href="javascript:void(0)" onclick="add_tl(this)">[添加]</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="tl-items">
+                <%var tl_list=al_list[i].tl;%>
+                <%for (i in tl_list){%>
+                <%=it.w.get_tl_html(tl_list[i],null)%>
+                <%}%>
+            </td>
+        </tr>
+    </table>
+    </div>
+<%}%>
+</script>
+
+<script id="tl-tpl" type="text/template">
+<%var tl_list=it.data;%>
+<div class="tl-cont" style="border: 1px solid #AAAAAA; width: 650px;padding: 5px 5px 5px 5px; ">
+        <a href="javascript:void(0)" style="float:right" onclick="del_tl(this)">[删除]</a>
+        <div class="lx-cont">
+        <%=it.w.tc.get_item_html({'aID':tl_list.cnn.ty,'y':tl_list.cnn.arg[1],'x':tl_list.cnn.arg[0]},null)%>
+        </div>
+        奖励内容:<a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a>
+        <div class="rw-cont">
+            <%var items=tl_list.rw;%>
+            <% for (var i in items){%>
+                <%=it.w.pi.get_item_html(items[i],null)%>
+            <%}%>
+        </div>
+        <label class="biaoshi">唯一标识<input type="text" style="width:40px; height:18px;" name="did" readonly="readonly" value="<%=tl_list.id ? tl_list.id:1%>"></label>
+        <br>
+</div>
+</script>
+
+<script id="mb-tpl" type="text/template">
+<%var date=it.data;%>
+<div class="mbs-cont" style="border: 1px solid #AAAAAA;width: 350px;padding: 5px 5px 5px 5px;">
+    <a href="javascript:void(0)" style="float:right" onclick="del_mb_num(this)">[删除]</a>
+    达成目标个数:<input type="number" class="input-small input-number not-empty" name='cn' maxlength="3" value="<%=date.cn ? date.cn:1%>">
+    <br>
+    奖励内容:<a href="javascript:void(0)" onclick="add_mb_rewards(this)">[添加奖励]</a>
+    <div class="mbrw-cont">
+        <%var items=date.rw;%>
+        <% for (var i in items){%>
+            <%=it.w.pi.get_item_html(items[i],null)%>
+        <%}%>
+    </div>
+</div>
+</script>
+
+<script id="arsw-tpl" type="text/template">
+<div class="arsw-cont">
+    <table>
+    <tr>
+        <th style="width:100px">实物名称:</th>
+        <td><input type="text" maxlength="10" class="input-small" name="ana" value="<%=it.data.ana ? it.data.ana:''%>"></td>
+    </tr>
+    <tr>
+        <th>实物描述:</th>
+        <td><textarea name="tx" maxlength="30" placeholder="限定30字" class=""><%=it.data.tx ? it.data.tx:''%></textarea></td>
+    </tr>
+    </table>
+</div>
+</script>
+
+<script id="arrw-tpl" type="text/template">
+<div class="arrw-cont">
+    <table>
+    <tr>
+    <th style="width:100px">名称:</th>
+        <td><input type="text" class="input-small" name="ana" value="<%=it.data.ana ? it.data.ana:''%>"></td>
+    </tr>
+    <tr>
+        <th>描述:</th>
+        <td><textarea name="tx" maxlength="50" placeholder="限定50字" class=""><%=it.data.tx ? it.data.tx:''%></textarea></td>
+    </tr>
+    <tr>
+        <th style="width:100px">奖励内容:</th>
+        <td><a href="javascript:void(0)" onclick="add_ar_rewards(this)">[添加]</a></td>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            <div class="ar-cont">
+                <%var items=it.data.rw;%>
+                <% for (var i in items){%>
+                    <%=it.w.pi.get_item_html(items[i],null)%>
+                <%}%>
+            </div>
+        </td>
+    </tr>
+    </table>
+</div>
+</script>
+
+<!-- 导出json的 对话框 -->
+<div id="al-json-dialog" class="dialog-div">
+    <div class="row">
+    <button id="al-json-import-sure-btn" onclick="sure_btn()" class="btn  btn-grey btn-xs radius-4"><i class="icon-save"></i>确定</button><br>
+    <textarea name="msg" style="width:300px" class="check_json not-empty" placeholder=""></textarea>
+
+    </div>
+</div>
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+
+function uploadFile(ele) {
+var fd = new FormData();
+    fd.append('pid',$(ele).attr('id'))
+    fd.append("fileToUpload", $(ele).prev('#fileToUpload')[0].files[0]);
+    var size = $(ele).prev('#fileToUpload')[0].files[0].size
+    if (size > 400010){
+        alert('图片大小不能超过400k')
+        return
+    }
+    var xhr = new XMLHttpRequest();
+    //xhr.upload.addEventListener("progress", uploadProgress, false);
+    xhr.addEventListener("load", uploadComplete, false);
+    xhr.addEventListener("error", uploadFailed, false);
+    xhr.addEventListener("abort", uploadCanceled, false);
+    xhr.open("POST", "/game/activity/activity_upload/");
+    xhr.send(fd);
+}
+
+function uploadComplete(evt) {
+    /* This event is raised when the server send back a response */
+    // alert(evt.target.responseText);
+    var json_data = JSON.parse(evt.currentTarget.responseText)
+    alert(JSON.stringify(json_data));
+    if (json_data.key){
+        img_path = "/static/activity/img/" + json_data.key + ".png"
+        if (json_data.pid == 'up1'){
+            $('[name="p1"]').val(json_data.key)
+            $("#pid_src_1").attr("src", img_path)
+        }
+        else if (json_data.pid == 'up2'){
+            $('[name="p2"]').val(json_data.key)
+            $("#pid_src_2").attr("src", img_path)
+        }
+        else if (json_data.pid == 'up3'){
+            $('[name="p3"]').val(json_data.key)
+            $("#pid_src_3").attr("src", img_path)
+        }
+}
+alert(json_data.msg);
+}
+
+function uploadFailed(evt) {
+    alert("上传失败!");
+}
+
+function uploadCanceled(evt) {
+    alert("取消上传!");
+}
+
+$(document).on('focus','.lx-cont select',function(){
+   $('.lx-cont select').attr("disabled","disabled")
+})
+
+function setid(){
+    var _id = parseInt($('[name="sdid"]').val())
+    var id = $('[name="sdid"]').val(_id + 1).val()
+    $('.al-cont:last').find('[name="did"]').val(id)
+}
+
+function resize_level_num(){
+    $('.level_num').each(function(i,ele){
+        $(this).html(i+1)
+    })
+}
+
+function changelx(ele){
+    $(ele).parents(".al-cont").find('.tl-cont').remove()
+    $('.lx-cont select').attr("disabled","disabled")
+}
+
+function get_arsw_html(obj){
+    return get_views('arsw-tpl',obj)
+}
+
+function get_arrw_html(obj){
+    return get_views('arrw-tpl',obj)
+}
+
+function changear(ele){
+    var ty = parseInt($(ele).val())
+    if (ty == 1 && $('.arsw-cont').length < 1){
+        $('.arrw-cont').remove()
+        var obj_1 = {'ty':1,'ana':'','tx':''}
+        var html_1 = get_arsw_html(obj_1)
+        $(ele).parents('.mb-pane').find('#ar-items').append(html_1)
+
+    }
+    if (ty == 2 && $('.arrw-cont').length < 1){
+        $('.arsw-cont').remove()
+        var obj_2 = {'ty':2,'rw':[{"aID":1,"v":1}]}
+        var html_2 = get_arrw_html(obj_2)
+        $(ele).parents('.mb-pane').find('#ar-items').append(html_2)
+
+    }
+}
+
+var ch_dic = {"0":"老弱病残","1":"弱不忍视","2":"人见人欺","3":"没有威胁","4":"非常友善","5":"中立友好","6":"来犯敌人","7":"通缉要犯","8":"头号通缉","9":"穷凶极恶","10":"国家公敌","11":"天下首恶"
+}
+
+var x_default_input_attr = {"name":"x","type":"number","min":1,"class":"input-small input-number not-empty","maxlength":8}
+var y_default_input_attr = {"name":"y","type":"number","min":1,"class":"input-small input-number not-empty","maxlength":8}
+var yy_default_input_attr = {"name":"y","type":"number","min":0,"select-key":"colors","maxlength":8,"allow_zero":true}
+var tc_map = {
+1:{name:"充值元宝达到X", unit:[["数量",x_default_input_attr]]},
+2:{name:"VIP等级达到X", unit:[["数量",x_default_input_attr]]},
+3:{name:"消耗元宝总数达到X", unit:[["数量",x_default_input_attr]]},
+4:{name:"元宝消费总次数达到X", unit:[["数量",x_default_input_attr]]},
+5:{name:"获得银两总数量达到X", unit:[["数量",x_default_input_attr]]},
+6:{name:"获得军功总数量达到X", unit:[["数量",x_default_input_attr]]},
+7:{name:"获得威望总数量达到X", unit:[["数量",x_default_input_attr]]},
+8:{name:"获得粮草总数量达到X", unit:[["数量",x_default_input_attr]]},
+9:{name:"获得木材总数量达到X", unit:[["数量",x_default_input_attr]]},
+10:{name:"获得铁矿总数量达到X", unit:[["数量",x_default_input_attr]]},
+11:{name:"使用军令总数量达到X", unit:[["数量",x_default_input_attr]]},
+12:{name:"使用银两总数量达到X", unit:[["数量",x_default_input_attr]]},
+13:{name:"使用军功总数量达到X", unit:[["数量",x_default_input_attr]]},
+14:{name:"使用威望总数量达到X", unit:[["数量",x_default_input_attr]]},
+15:{name:"使用粮草总数量达到X", unit:[["数量",x_default_input_attr]]},
+16:{name:"使用木材总数量达到X", unit:[["数量",x_default_input_attr]]},
+17:{name:"使用铁矿总数量达到X", unit:[["数量",x_default_input_attr]]},
+18:{name:"主公等级达到X", unit:[["数量",x_default_input_attr]]},
+19:{name:"主公总战力达到X", unit:[["数量",x_default_input_attr]]},
+20:{name:"通关章节：X", unit:[["地图",{"name":"x","type":"text","min":0,"select-key":'warpath_map'}]]},
+21:{name:"征战获得总星数达到X", unit:[["数量",x_default_input_attr]]},
+22:{name:"获得X色装备总数达到X", unit:[["数量",x_default_input_attr],["品质",yy_default_input_attr]]},
+23:{name:"强化装备次数达到X", unit:[["数量",x_default_input_attr]]},
+24:{name:"打造装备次数达到X", unit:[["数量",x_default_input_attr]]},
+25:{name:"高级打造装备次数达到X", unit:[["数量",x_default_input_attr]]},
+26:{name:"打造X色装备次数达到X", unit:[["数量",x_default_input_attr],["品质",yy_default_input_attr]]},
+27:{name:"洗练装备次数达到X", unit:[["数量",x_default_input_attr]]},
+28:{name:"锁定洗练装备次数达到X", unit:[["数量",x_default_input_attr]]},
+29:{name:"转移装备次数达到X", unit:[["数量",x_default_input_attr]]},
+30:{name:"分解装备次数达到X", unit:[["数量",x_default_input_attr]]},
+31:{name:"获得武将数量达到X", unit:[["数量",x_default_input_attr]]},
+32:{name:"拥有X色以上的武将数量达到X", unit:[["数量",x_default_input_attr],["品质",yy_default_input_attr]]},
+33:{name:"武将的最高等级达到X", unit:[["数量",x_default_input_attr]]},
+34:{name:"使用经验书次数达到X", unit:[["数量",x_default_input_attr]]},
+35:{name:"进阶武将次数达到X", unit:[["数量",x_default_input_attr]]},
+36:{name:"培养武将次数达到X", unit:[["数量",x_default_input_attr]]},
+37:{name:"暂无任务", unit:[["数量",x_default_input_attr]]},
+38:{name:"获得原石总数达到X", unit:[["数量",x_default_input_attr]]},
+39:{name:"拥有X级宝石数量达到X", unit:[["数量",x_default_input_attr],["等级",y_default_input_attr]]},
+40:{name:"镶嵌装备次数达到X", unit:[["数量",x_default_input_attr]]},
+41:{name:"世界攻击玩家总次数达到X", unit:[["数量",x_default_input_attr]]},
+42:{name:"世界掠夺获得威望总数达到X", unit:[["数量",x_default_input_attr]]},
+43:{name:"世界获得称号：X", unit:[["称号",{"name":"x","type":"text","min":0,"allow_zero":"1","select-key":JSON.stringify(ch_dic)}]]},
+44:{name:"挑战玩家总次数达到：X", unit:[["数量",x_default_input_attr]]},
+45:{name:"群英会结算排名数高于:X", unit:[["数量",x_default_input_attr]]},
+46:{name:"群英会商店购买总次数达到X", unit:[["数量",x_default_input_attr]]},
+47:{name:"群英会商店重置总次数达到X", unit:[["数量",x_default_input_attr]]},
+48:{name:"讨伐兵团总次数达到X", unit:[["数量",x_default_input_attr]]},
+49:{name:"讨伐兵团获得图纸总数量达到X", unit:[["数量",x_default_input_attr]]},
+50:{name:"讨伐兵团购买讨伐总次数达到X", unit:[["数量",x_default_input_attr]]},
+51:{name:"建筑建造总次数达到X", unit:[["数量",x_default_input_attr]]},
+52:{name:"步兵营等级达到X", unit:[["数量",x_default_input_attr]]},
+53:{name:"骑兵营等级达到X", unit:[["数量",x_default_input_attr]]},
+54:{name:"弓兵营等级达到X", unit:[["数量",x_default_input_attr]]},
+55:{name:"机械营等级达到X", unit:[["数量",x_default_input_attr]]},
+56:{name:"策士营等级达到X", unit:[["数量",x_default_input_attr]]},
+57:{name:"辅助营等级达到X", unit:[["数量",x_default_input_attr]]},
+58:{name:"民居总级数达到X", unit:[["数量",x_default_input_attr]]},
+59:{name:"农田总级数达到X", unit:[["数量",x_default_input_attr]]},
+60:{name:"矿场总级数达到X", unit:[["数量",x_default_input_attr]]},
+61:{name:"林场总级数达到X", unit:[["数量",x_default_input_attr]]},
+62:{name:"拥有封地总数量达到X", unit:[["数量",x_default_input_attr]]},
+63:{name:"寻访总次数达到X", unit:[["数量",x_default_input_attr]]},
+64:{name:"寻访获得图纸总数达到X", unit:[["数量",x_default_input_attr]]},
+65:{name:"寻访获得X色图纸总数达到X", unit:[["数量",x_default_input_attr],["品质",yy_default_input_attr]]},
+66:{name:"军机处科技总等级达到X", unit:[["数量",x_default_input_attr]]},
+67:{name:"军机处战争科技总等级达到X", unit:[["数量",x_default_input_attr]]},
+68:{name:"军机处内政科技总等级达到X", unit:[["数量",x_default_input_attr]]},
+69:{name:"军机处阵法科技总等级达到X", unit:[["数量",x_default_input_attr]]},
+70:{name:"集市购买总次数达到X", unit:[["数量",x_default_input_attr]]},
+71:{name:"集市购买银两总次数达到X", unit:[["数量",x_default_input_attr]]},
+72:{name:"集市购买铁矿总次数达到X", unit:[["数量",x_default_input_attr]]},
+73:{name:"集市购买粮草总次数达到X", unit:[["数量",x_default_input_attr]]},
+74:{name:"集市购买木材总次数达到X", unit:[["数量",x_default_input_attr]]},
+75:{name:"集市获得银两总数量达到X", unit:[["数量",x_default_input_attr]]},
+76:{name:"集市获得铁矿总数量达到X", unit:[["数量",x_default_input_attr]]},
+77:{name:"集市获得粮草总数量达到X", unit:[["数量",x_default_input_attr]]},
+78:{name:"集市获得木材总数量达到X", unit:[["数量",x_default_input_attr]]},
+79:{name:"议事厅委任武将总数量达到X", unit:[["数量",x_default_input_attr]]},
+80:{name:"军衔等级达到X", unit:[["数量",x_default_input_attr]]},
+81:{name:"国家技能总等级达到X", unit:[["数量",x_default_input_attr]]},
+82:{name:"升级国家技能总次数达到X", unit:[["数量",x_default_input_attr]]},
+83:{name:"国家商店购买商品总次数达到X", unit:[["数量",x_default_input_attr]]},
+84:{name:"国家商店重置商品总次数达到X", unit:[["数量",x_default_input_attr]]},
+85:{name:"荣登国王职位次数达到X", unit:[["数量",x_default_input_attr]]},
+86:{name:"国家建设贡献总次数达到X", unit:[["数量",x_default_input_attr]]},
+87:{name:"国家建设贡献总值达到X", unit:[["数量",x_default_input_attr]]},
+88:{name:"国家等级达到X", unit:[["数量",x_default_input_attr]]},
+89:{name:"农业法令等级达到X", unit:[["数量",x_default_input_attr]]},
+90:{name:"民业法令等级达到X", unit:[["数量",x_default_input_attr]]},
+91:{name:"林业法令等级达到X", unit:[["数量",x_default_input_attr]]},
+92:{name:"矿业法令等级达到X", unit:[["数量",x_default_input_attr]]},
+93:{name:"威望法令等级达到X", unit:[["数量",x_default_input_attr]]},
+94:{name:"后宫秀女总数量达到X", unit:[["数量",x_default_input_attr]]},
+95:{name:"后宫已册封秀女数量达到X", unit:[["数量",x_default_input_attr]]},
+96:{name:"后宫选秀总次数达到X", unit:[["数量",x_default_input_attr]]},
+97:{name:"秀女最大等级达到X", unit:[["数量",x_default_input_attr]]},
+98:{name:"册封秀女组合总数达到X", unit:[["数量",x_default_input_attr]]},
+99:{name:"收编秀女总数量达到X", unit:[["数量",x_default_input_attr]]},
+100:{name:"宠幸秀女总次数达到X", unit:[["数量",x_default_input_attr]]},
+101:{name:"恩爱秀女总次数达到X", unit:[["数量",x_default_input_attr]]},
+102:{name:"强敌来袭中累积伤害值达到X", unit:[["数量",x_default_input_attr]]},
+103:{name:"鼓舞总次数达到X次", unit:[["数量",x_default_input_attr]]},
+104:{name:"全国鼓舞总次数达到X次", unit:[["数量",x_default_input_attr]]},
+105:{name:"获得尾刀奖励总次数达到X次", unit:[["数量",x_default_input_attr]]},
+106:{name:"国战中击杀敌方数量总数达到X", unit:[["数量",x_default_input_attr]]},
+107:{name:"国战中获得功勋总数达到X", unit:[["数量",x_default_input_attr]]},
+108:{name:"国战中消耗粮草数量达到X", unit:[["数量",x_default_input_attr]]},
+109:{name:"商城购买商品总次数达到X", unit:[["数量",x_default_input_attr]]},
+110:{name:"商城消耗元宝总数达到X", unit:[["数量",x_default_input_attr]]},
+111:{name:"累计签到天数达到X天", unit:[["数量",x_default_input_attr]]},
+112:{name:"击败X达到X星", unit:[["章节",{"name":"y","type":"text","min":0,"select-key":'warpath_map'}],["星数",x_default_input_attr]]},
+113:{name:"一次性分解X件装备", unit:[["数量",x_default_input_attr]]},
+114:{name:"任意科技的等级达到X级", unit:[["数量",x_default_input_attr]]},
+115:{name:"战争科技开启的个数达到X个", unit:[["数量",x_default_input_attr]]},
+116:{name:"内政科技开启的个数达到X个", unit:[["数量",x_default_input_attr]]},
+117:{name:"阵法科技开启的个数达到X个", unit:[["数量",x_default_input_attr]]},
+118:{name:"发起X次求助", unit:[["数量",x_default_input_attr]]},
+119:{name:"官职达到X军衔", unit:[["数量",x_default_input_attr]]},
+120:{name:"拥有指定武将:X", unit:[["武将",{"name":"x","type":"text","min":0,"select-key":"	pilots"}]]},
+121:{name:"装备强化到X等级", unit:[["数量",x_default_input_attr]]},
+122:{name:"在贸易港完成贸易任务X次", unit:[["数量",x_default_input_attr]]},
+123:{name:"镶嵌X级宝石X个", unit:[["数量",x_default_input_attr],["等级",y_default_input_attr]]},
+124:{name:"更换X次头像", unit:[["数量",x_default_input_attr]]},
+125:{name:"采纳朝市总次数达到X次", unit:[["数量",x_default_input_attr]]},
+126:{name:"采纳朝事次数达到X次", unit:[["数量",x_default_input_attr]]},
+127:{name:"使用任意加速令X次", unit:[["数量",x_default_input_attr]]},
+128:{name:"任意一个民居等级达到X", unit:[["数量",x_default_input_attr]]},
+129:{name:"任意一个农田等级达到X", unit:[["数量",x_default_input_attr]]},
+130:{name:"任意一个矿场等级达到X", unit:[["数量",x_default_input_attr]]},
+131:{name:"任意一个林场等级达到X", unit:[["数量",x_default_input_attr]]},
+132:{name:"引导操作", unit:[["数量",x_default_input_attr]]},
+133:{name:"在国战中城池发生战斗X次", unit:[["数量",x_default_input_attr]]},
+134:{name:"进入国战界面X次", unit:[["数量",x_default_input_attr]]},
+135:{name:"进入国家捐献X次", unit:[["数量",x_default_input_attr]]},
+136:{name:"进入国家贸易X次", unit:[["数量",x_default_input_attr]]},
+137:{name:"进入夏口封地升级民居次数达到X次", unit:[["数量",x_default_input_attr]]},
+138:{name:"后宫巡游X次", unit:[["数量",x_default_input_attr]]},
+139:{name:"武将进阶X次", unit:[["数量",x_default_input_attr]]},
+140:{name:"打造X次", unit:[["数量",x_default_input_attr]]},
+141:{name:"进入远征界面X次", unit:[["数量",x_default_input_attr]]},
+142:{name:"装备洗炼/洗出并替换X个黄色或更高品质的副属性", unit:[["数量",x_default_input_attr],["品质",yy_default_input_attr]]},
+143:{name:"普通寻访X次", unit:[["数量",x_default_input_attr]]},
+144:{name:"在寻访中至尊寻访X次", unit:[["数量",x_default_input_attr]]},
+145:{name:"将X个武将的所有资质培养满", unit:[["数量",x_default_input_attr]]},
+146:{name:"升级X科技到X级", unit:[["科技ID",{"name":"y","type":"text","min":0,"select-key":'keji'}],["级数",x_default_input_attr]]},
+147:{name:"兵营总等级达到X", unit:[["数量",x_default_input_attr]]},
+148:{name:"贸易中与水怪搏斗达到X次", unit:[["数量",x_default_input_attr]]},
+149:{name:"贸易中击败水贼达到X次", unit:[["数量",x_default_input_attr]]},
+150:{name:"贸易中捡取宝箱达到X次", unit:[["数量",x_default_input_attr]]},
+151:{name:"所有商店中购买次数达到X次", unit:[["数量",x_default_input_attr]]},
+152:{name:"所有商店中刷新次数达到X次", unit:[["数量",x_default_input_attr]]},
+153:{name:"主城建筑总等级达到X次", unit:[["数量",x_default_input_attr]]},
+154:{name:"国战中召唤城防军达到X次", unit:[["数量",x_default_input_attr]]},
+155:{name:"国战中召唤战神部队达到X次", unit:[["数量",x_default_input_attr]]},
+156:{name:"国战中召唤影子达到X次", unit:[["数量",x_default_input_attr]]},
+157:{name:"四大远征关卡通过第X关达到X次", unit:[["关卡",{"name":"y","type":"text","min":1,"max":16,"select-key":''}],["次数",x_default_input_attr]]},
+158:{name:"主城全收X次", unit:[["数量",x_default_input_attr]]},
+159:{name:"装备强化X次", unit:[["数量",x_default_input_attr]]},
+160:{name:"获得日常任务活跃点X点", unit:[["数量",x_default_input_attr]]},
+161:{name:"普通寻访X次", unit:[["数量",x_default_input_attr]]},
+162:{name:"至尊寻访X次", unit:[["数量",x_default_input_attr]]},
+163:{name:"群英会任意时候达到第X名", unit:[["数量",x_default_input_attr]]},
+164:{name:"世界击败战力高于自己的玩家达到X次", unit:[["数量",x_default_input_attr]]},
+165:{name:"国战击败敌方部队X次", unit:[["数量",x_default_input_attr]]},
+166:{name:"兵团作战次数达到X次", unit:[["数量",x_default_input_attr]]},
+167:{name:"兵团中击败X兵团达到X次", unit:[["名称",y_default_input_attr],["次数",x_default_input_attr]]},
+168:{name:"获得X官员职位达到X次", unit:[["关卡",{"name":"y","type":"text","min":0,"select-key":'national_office'}],["次数",x_default_input_attr]]},
+169:{name:"节日大转盘活动中获得元宝数量达到X", unit:[["数量",x_default_input_attr]]},
+170:{name:"节日大转盘活动中砸金蛋次数达到X", unit:[["数量",x_default_input_attr]]},
+171:{name:"节日大转盘活动中兑换宝箱次数达到X", unit:[["数量",x_default_input_attr]]},
+172:{name:"贸易商票金额累积X次达到X", unit:[["金额",y_default_input_attr],["次数",x_default_input_attr]]},
+173:{name:"锁定洗练装备次数达到X", unit:[["数量",x_default_input_attr]]},
+174:{name:"后宫选秀总次数达到X", unit:[["数量",x_default_input_attr]]},
+175:{name:"培养X名武将提高攻击资质达到X", unit:[["资质",y_default_input_attr],["数量",x_default_input_attr]]},
+176:{name:"武将情谊激活X次", unit:[["数量",x_default_input_attr]]},
+177:{name:"消耗缘分石数量达到X个", unit:[["数量",x_default_input_attr]]}
+
+}
+var tc = new ResourceInput(tc_map)
+var pi = new ResourceInput()
+
+//增加天数
+function get_max_day_id(){
+    var day_id_list = $('.tab-pane').map(function(){
+        return parseInt( $(this).attr('day_id') )
+    }).get()
+
+    return Math.max.apply(Math,day_id_list)
+}
+function add_day(){
+    if ($('.tab-li').length >=7){
+        alert('最多7天')
+        return
+    }
+    var new_day_id =  get_max_day_id() + 1
+    $('#tab-ul li:last').before(
+        '<li class="tab-li" day_id="'+ new_day_id +'">'+
+        '<a  href="#day_'+ new_day_id +'"data-toggle="tab"><b>第<span class="day_num">' + new_day_id + '</span>天</b></a>'+
+        '</li>'
+   )
+    var al_obj = default_msg.al[0]
+
+    $('#tab-cont').append(
+        '<div id="day_' + new_day_id + '" class="tab-pane"  day_id="'+ new_day_id +'">' +
+         get_al_html(al_obj) +
+        '</div>'
+        )
+    setid()
+}
+
+//删除天数
+function del_day(ele){
+    if (!confirm('要减少一天吗?')){return false}
+    var last_day_id = $('[day_id]:last').attr('day_id')
+    $('[day_id="'+last_day_id+'"]').remove()
+    active_day_tab(last_day_id)
+}
+function active_day_tab(day_id){
+    $('#tab-ul li').removeClass('active').filter('[day_id="'+day_id+'"]').addClass('active')
+    $('.tab-pane').removeClass('active').filter('[day_id="'+day_id+'"]').addClass('active')
+}
+function err_callback(input_ele){
+    var day_id = $(input_ele).closest('.tab-pane').attr('day_id')
+    active_day_tab(day_id)
+}
+
+//获取当前任务msg
+function get_al_msg(obj,ele){
+    $(ele).find('.al-cont').each(function(i,ele){
+        var a = {}
+        a.ty = parseInt($(ele).find('[name="ty"]').val())
+        a.na = $(ele).find('[name="na"]').val()
+        a.tl = []
+        $(ele).find('.tl-cont').each(function(i,ele){
+            var t = {}
+            t.id = parseInt($(ele).find('[name="did"]').val())
+            var cnn = {}
+            var a_x_y = tc.to_json($(ele).find('.lx-cont'))
+            cnn.ty = a_x_y.aID
+            var arg = []
+            arg[0] = a_x_y.hasOwnProperty('x') ? a_x_y.x : 1
+            arg[1] = a_x_y.hasOwnProperty('y') ? a_x_y.y : -1
+            cnn.arg = arg
+            t.cnn = cnn
+            t.rw = []
+            $(ele).find('.rw-cont .equipitem').each(function (i, _ele) {
+                t.rw.push(pi.to_json(_ele))
+            })
+            a.tl.push(t)
+        })
+        obj.push(a)
+    })
+}
+
+//导出任务
+function export_al(ele){
+    var msg = []
+    var This = $(ele).parents('#tab-cont').find('.active')
+    get_al_msg(msg,This)
+    //console.dir(msg)
+    for (var i in msg){
+        var obj = msg[i]
+        for (var j in obj.tl){
+            var tl_obj = obj.tl[j]
+            var _id = parseInt($('[name="sdid"]').val())
+            var id = $('[name="sdid"]').val(_id + 1).val()
+            tl_obj.id = id
+        }
+    }
+    msg = JSON.stringify(msg)
+    if(msg) {
+        $('[name="msg"]').val(msg)
+        $('#al-json-dialog').dialog({"title":"导出JSON:","lock":true})
+    }
+}
+//导入任务
+function lead_al(ele){
+     $('[name="msg"]').val('')
+     $('#al-json-dialog').dialog({"title":"导入JSON:","lock":true})
+}
+function sure_btn(){
+    var msg =  $('[name="msg"]').val()
+    if (typeof msg =='string') {
+        msg = $.parseJSON(msg)
+    }
+    if (typeof msg == 'object') {
+        $('.tab-pane.active').find('.al-cont').remove()
+        var html = get_al_html(msg)
+        $('.tab-pane.active').append(html)
+        $('#al-json-dialog').dialog().hide()
+    }
+}
+
+//添加任务
+function get_al_html(al_obj){
+    return get_views('al-tpl',al_obj)
+}
+function add_al(ele){
+    if ($('.tab-pane.active').find('.al-cont').length > 4){
+        alert('最多5个任务类型!')
+        return
+    }
+    var obj = default_msg.al[0]
+    //console.dir(obj)
+    var html = get_al_html(obj)
+    $(ele).parents('#tab-cont').find('.active').append(html)
+}
+function del_al(ele){
+    if (confirm("确定要删除类型吗？")){
+        $(ele).parent('.al-cont').remove()
+    }
+}
+
+//添加目标
+function get_tl_html(tl_obj){
+    return get_views('tl-tpl',tl_obj)
+}
+function add_tl(ele){
+    var ty = parseInt($(ele).parents('.al-cont').find('[name="ty"]').val())
+    var obj = default_msg.al[0][0].tl
+    if (!isNaN(ty)){
+        obj[0].cnn.ty = ty
+    }
+    var _id = parseInt($('[name="sdid"]').val())
+    var id = $('[name="sdid"]').val(_id + 1).val()
+    obj[0].id = id
+    console.dir(obj)
+    var html = get_tl_html(obj[0])
+    $(ele).parents('.al-cont').find('#tl-items').append(html)
+    $('.lx-cont select').attr("disabled","disabled")
+    var na_val = na_dic[ty]
+    $(ele).parents('.al-cont').find('[name="na"]').attr('value',na_val)
+}
+function del_tl(ele){
+    if (confirm("确定要删除吗？")){
+        $(ele).parent('.tl-cont').remove()
+    }
+}
+function add_rewards(ele){
+    if ($(ele).parent('.tl-cont').find('.rw-cont .equipitem').length > 4){
+        alert('最多5个奖励!')
+        return
+    }
+    var obj = default_msg.al[0][0].tl[0].rw[0]
+    var html = pi.get_item_html(obj)
+    $(ele).parent('.tl-cont').find('.rw-cont').append(html)
+}
+
+//添加达成目标个数
+function get_mb_html(mb_obj){
+    return get_views('mb-tpl',mb_obj)
+}
+function add_mb_num(ele){
+    var obj = default_msg.tl[0]
+    var html = get_mb_html(obj)
+    $(ele).parents('.mb-pane').find('#mb-items').append(html)
+}
+function del_mb_num(ele){
+    if (confirm("确定要删除吗？")){
+        $(ele).parent('.mbs-cont').remove()
+    }
+}
+function add_mb_rewards(ele){
+    if ($(ele).parent('.mbs-cont').find('.mbrw-cont .equipitem').length > 2){
+        alert('最多3个奖励!')
+        return
+    }
+    var obj = default_msg.tl[0].rw[0]
+    var html = pi.get_item_html(obj)
+    $(ele).parent('.mbs-cont').find('.mbrw-cont').append(html)
+}
+function add_ar_rewards(ele){
+    var obj = default_msg.ar[0]
+    var html = pi.get_item_html(obj)
+    $(ele).parents('.mb-pane').find('.ar-cont').append(html)
+}
+
+var na_dic = {"1":"大富之家","2":"高端玩家","3":"一掷千金","4":"挥金如土","5":"生财有道","6":"战功赫赫","7":"威震神州","8":"五谷丰登","9":"伐木大师","10":"采矿大师","11":"军令如山","12":"大富大贵","13":"青云直上","14":"位高权重","15":"地广粮足","16":"以木为材","17":"炼铁大师","18":"捷足先登","19":"战无不胜","20":"讨伐先锋","21":"完美作战","22":"神兵天降","23":"武器大师","24":"铸造大师","25":"铸造师匠","26":"鲁班再世","27":"精金洗沥","28":"精金洗沥","29":"移花接木","30":"化废为宝","31":"仁义之主","32":"精兵有道","33":"名将风流","34":"天元突破","35":"强将精兵","36":"洗筋沥骨","37":"暂无任务","38":"多多益善","39":"刨璞成玉","40":"流光溢彩","41":"先攻者胜","42":"军临天下","43":"天下无敌","44":"以一敌百","45":"力压群雄","46":"群英之杰","47":"回转有术","48":"百战百胜","49":"声威天降","50":"兵精财足","51":"建筑大师","52":"步兵精英","53":"骑兵精英","54":"弓兵精英","55":"机械精英","56":"谋士精英","57":"后勤精英","58":"藏富于民","59":"大地丰饶","60":"金石累累","61":"万顷林场","62":"裂土封侯","63":"名士风流","64":"隐者之友","65":"仙师为伴","66":"科技战争","67":"剑锋胄坚","68":"生产为先","69":"战阵无敌","70":"商贾本质","71":"钱币交易","72":"铁器交易","73":"粮饷交易","74":"木材交易","75":"钱币所得","76":"铁器所得","77":"粮饷所得","78":"木材所得","79":"人尽其才","80":"上国之柱","81":"强国之道","82":"匹夫有责","83":"国家宝库","84":"流转有道",
+    "85":"一国之君","86":"劳苦功高","87":"国家栋梁","88":"一等国民","89":"农业为先","90":"万民为本","91":"林业为重","92":"铁器为主","93":"威震天下","94":"宫娥妃嫔","95":"三千宠爱","96":"后宫大选","97":"力压群芳","98":"百合花开","99":"母仪天下","100":"宠爱有加","101":"烟雨巫山","102":"破军之刃","103":"鼓舞全军","104":"鼓舞全国","105":"致命一刀","106":"斩关杀将","107":"功勋无数","108":"连年征战","109":"千金难得","110":"金主之道","111":"勤能补拙","112":"完美战争","113":"砾石成金","114":"科技达人","115":"战争大师","116":"内政大师","117":"阵法大师","118":"寻根问底","119":"新生显贵","120":"用人唯才","121":"千锤百炼","122":"航海先驱","123":"镶嵌大师","124":"改头换面","125":"日理万机","126":"从谏如流","127":"加速世界","128":"藏富于民","129":"大地丰饶","130":"金石累累","131":"万顷林场","132":"当个新手吧","133":"攻城掠地","134":"国战","135":"国家","136":"贸易","137":"封地","138":"后宫","139":"武将","140":"打造","141":"远征","142":"千锤百炼","143":"普通寻访","144":"至尊寻访","145":"至尊培养","146":"科技奇迹","147":"百里连营","148":"航道畅通","149":"护航先驱","150":"藏宝时代","151":"买卖时节","152":"进货无碍","153":"罗马之城","154":"镇守军团","155":"战神降临","156":"如影随形","157":"远征异域","158":"丰收季节","159":"武器大师","160":"勤能补拙","161":"三顾之礼","162":"寻觅仙踪","163":"威震天下","164":"横扫六合","165":"斩关杀将","166":"百团大战","167":"兵团大战","168":"加官进爵","169":"财源广进","170":"时来运转","171":"取财有道","172":"商人本色","173":"精雕细琢","174":"后宫三千","175":"神将大成","176":"义薄云天","177":"桃园之义"
+}
+
+var default_msg = {
+    'kid':0,
+    'mdt':0,
+    'rbt':0,
+    'ret':0,
+    'sbt':0,
+    'set':0,
+    'kna':'',
+    'al':[      //任务信息
+            [
+                {
+                    'ty':'',
+                    'na':'',
+                    'tl':[
+                        {
+                            'id':1, //任务唯一ID
+                            'cnn':{
+                                'ty':1, //目标id
+                                'arg':[1],  //条件
+                                },
+                            'rw':[{"aID":1,"v":1}]
+                        },
+                    ]
+                },
+            ],
+        ],
+    'tl':[{
+        'cn':1,
+        'rw':[{"aID":1,"v":1}]
+    }],
+    'ar':{
+        'ty': 1,
+        'ana':'',
+        'tx':''
+    }
+}
+
+// 这里重写 从控件获取值的函数
+activitySetting.check_msg = function(obj) {
+    var msg = obj
+    var stop = false
+
+    if (msg.sbt >= msg.rbt) {
+        inputTooltip($('[name="sbt"]'), '<b class="red">显示时间不能大于等于开始时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.sbt >= msg.set) {
+        inputTooltip($('[name="sbt"]'), '<b class="red">显示时间不能大于等于消失时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.sbt >= msg.ret) {
+        inputTooltip($('[name="sbt"]'), '<b class="red">显示时间不能大于等于结束时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.rbt >= msg.ret) {
+        inputTooltip($('[name="rbt"]'), '<b class="red">开始时间不能大于等于结束时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.rbt >= msg.set) {
+        inputTooltip($('[name="rbt"]'), '<b class="red">开始时间不能大于等于消失时间!</b>', 3000)
+        stop = true
+    }
+    if (msg.ret >= msg.set) {
+        inputTooltip($('[name="ret"]'), '<b class="red">结束时间不能大于等于消失时间!</b>', 3000)
+        stop = true
+    }
+
+    for (var i in msg.al){
+        var obj_l = msg.al[i]
+        for (var j in obj_l){
+            var obj = obj_l[j]
+            if (obj.ty == 20){
+                var _url =  '/log/dict/interface?key=warpath_map'
+                $.ajax({
+                   type : "GET",
+                   url : _url,
+                   datatype : "json",
+                   cache : false,
+                   async:false,
+                })
+                .done(function (data) {
+                        localStorage["warpath_map"]=data
+                })
+                var warpath_map_dict = JSON.parse(localStorage['warpath_map'])
+                var tl = obj.tl
+                for (var k in tl){
+                    var obj_tl= tl[k]
+                    var _val = obj_tl.cnn.arg[0]
+                    if (_val in warpath_map_dict){
+                        continue
+                    }
+                    else{
+                        alert("类型20,通关章节ID不存在,请重新配置.")
+                        stop = true
+                    }
+                }
+            }
+        }
+    }
+
+    return stop
+}
+
+activitySetting.get_json = function(event_name){
+    localStorage.removeItem('warpath_map')
+    if (!this.check_empty_input(err_callback)){return false}
+    var msg = {
+            'kid':0,
+            'mdt':0,
+            'rbt':0,
+            'ret':0,
+            'sbt':0,
+            'set':0,
+            'kna':'',
+            'al':[      //任务信息
+                    [
+                        {
+                            'ty':1,
+                            'tl':[
+                                {
+                                    'id':999, //任务唯一ID
+                                    'cnn':{
+                                        'ty':1, //目标id
+                                        'arg':[1],  //条件
+                                        },
+                                    'rw':[{"aID":1,"v":1}]
+                                },
+                            ]
+                        },
+                    ],
+                ],
+            'tl':[{}],
+            'ar':{}
+    }
+    msg.sdid = parseInt(this.contEle.find('[name="sdid"]').val())
+    msg.mdt = parseInt(new Date().getTime()/1000)
+    msg.kid = parseInt(this.contEle.find('[name="kid"]').val())
+    msg.kna = this.contEle.find('[name="kna"]').val()
+    msg.pl1 = $('#pid_src_1').attr('src')
+    msg.pl2 = $('#pid_src_2').attr('src')
+    msg.pl3 = $('#pid_src_3').attr('src')
+    msg.p1 = $('[name="p1"]').val()
+    msg.p2 = $('[name="p2"]').val()
+    msg.p3 = $('[name="p3"]').val()
+    msg.rbt = datetime_str_to_timestamp(this.contEle.find('[name="rbt"]').val())
+    msg.ret = datetime_str_to_timestamp(this.contEle.find('[name="ret"]').val())
+    msg.sbt = datetime_str_to_timestamp(this.contEle.find('[name="sbt"]').val())
+    msg.set = datetime_str_to_timestamp(this.contEle.find('[name="set"]').val())
+    var al = []
+    $('.tab-pane').each(function(i,ele){
+        var al_l = []
+        $(ele).find('.al-cont').each(function(i,ele){
+            var a = {}
+            a.ty = parseInt($(ele).find('[name="ty"]').val())
+            a.na = $(ele).find('[name="na"]').val()
+            a.tl = []
+            $(ele).find('.tl-cont').each(function(i,ele){
+                var t = {}
+                t.id = parseInt($(ele).find('[name="did"]').val())
+                var cnn = {}
+                var a_x_y = tc.to_json($(ele).find('.lx-cont'))
+                cnn.ty = a_x_y.aID
+                var arg = []
+                arg[0] = a_x_y.hasOwnProperty('x') ? a_x_y.x : 1
+                arg[1] = a_x_y.hasOwnProperty('y') ? a_x_y.y : -1
+                cnn.arg = arg
+                t.cnn = cnn
+                t.rw = []
+                $(ele).find('.rw-cont .equipitem').each(function (i, _ele) {
+                    t.rw.push(pi.to_json(_ele))
+                })
+                a.tl.push(t)
+            })
+            al_l.push(a)
+        })
+        al.push(al_l)
+    })
+    msg.al = al
+    msg.tl = []
+    var tl = []
+    $('.mbs-cont').each(function(i,ele){
+        var t = {}
+        t.cn = parseInt($(ele).find('[name="cn"]').val())
+        t.rw = []
+        $(ele).find('.mbrw-cont .equipitem').each(function (i,ele) {
+            t.rw.push(pi.to_json(ele))
+        })
+        tl.push(t)
+    })
+    msg.tl = tl
+    var ar = {}
+    ar.ty = parseInt($('.ar_sel').val())
+    ar.ana = $('[name="ana"]').val()
+    ar.tx = $('[name="tx"]').val()
+    if (ar.ty == 2){
+        ar.rw = []
+        $('.ar-cont .equipitem').each(function(i,ele){
+            ar.rw.push(pi.to_json(ele))
+        })
+    }
+    msg.ar = ar
+
+    if (this.check_msg(msg)) {
+        return false
+    }
+    return JSON.stringify(msg)
+}
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    console.dir(msg)
+    var html = get_views('day-setting-tpl',msg)
+    this.contEle.html(html)
+}
+
+activitySetting.get_status = function(data){
+
+    var status = ''
+    console.dir(data)
+    var bt = data.rbt
+    var et = data.ret
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if ($.isEmptyObject(data)) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }else if (!in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data.rbt)+'- '+ timestamp_to_datetime_str(data.ret)+'">未开始</span>'
+    }
+    return status
+}
+
+activitySetting.to_template_json = function(data){
+    // 保存问模版的时候 id要删除
+    delete data['kid']
+    return data
+}
+
+</script>
+
+
+

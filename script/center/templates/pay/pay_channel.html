@@ -1,0 +1,18 @@
+[{%for item in list_record%}
+{"id":{{item.id}},
+"status":"{{item.status}}",
+"image":"{{item.icon}}",
+"card_key":"{{item.card_key}}",
+"type":{{item.pay_type}},
+"linkid":"{{item.link_id}}",
+"amount":{{item.amount}},
+"gold":{{item.gold}},
+"exchange":{{item.exchange_rate}},
+{%if item.first_rebate%}"first_rebate":{{item.first_rebate}},{%endif%}
+{%if item.get_config_dict.extra%}"extra":{{item.get_config_dict.extra}},{%endif%}
+{%if item.get_config_dict.sdate%}"sdate":{{item.get_config_dict.sdate}},{%endif%}
+{%if item.get_config_dict.edate%}"edate":{{item.get_config_dict.edate}},{%endif%}
+"name":"{{item.name}}",
+"about":"{% autoescape off %}{{item.remark}}{% endautoescape %}"}
+{%ifnotequal forloop.revcounter 1%},{%endifnotequal%}
+{%endfor%}]

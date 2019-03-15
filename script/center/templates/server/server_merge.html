@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>合服向导</title>
+
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	<h3>合服配置</h3>
+
+</div>
+<div style="min-width:600px">
+<form action="" method="post" >
+	<table class="form">
+
+		<tr>
+			<th>选择母服:</th>
+			<td>
+
+		<select name="master_server_id" class="dbl_server_list" >
+			{%for item in list_server%}
+                {% if item.id != -1 %}
+			        <option value="{{item.id}}"{%ifequal item.id server_id%} selected="selected" {%endifequal%}>{{item.name}}({{item.id}})</option>
+                {% endif %}
+			{%endfor%}
+		</select>
+		<input type="text" class="s_server" style="width:50px;" placeholder='搜索' onkeyup="javascript:search_dbl_list('dbl_server_list','s_server');" />
+			子服关服时间:
+
+			<input type="text" name="close_time" class="Wdate"  value=""  />
+			</td>
+		</tr>
+
+		<tr><th></th>
+			<td><hr></td>
+		</tr>
+		<tr><th>选择子服:</th>
+			<td>
+				{% include "widgets/group_server.html" %}
+			</td>
+		</tr>
+
+		<tr><th></th>
+			<td>
+				<input type="submit" value="确定"/>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+
+
+{% endblock %}

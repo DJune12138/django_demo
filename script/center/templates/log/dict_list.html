@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>字典类管理</title>
+
+<style>
+.dataTables_filter{text-align: center}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+字典类管理
+<div class="buttons">
+ 	<a href="/log/dict/edit/">添加</a>
+
+ </div>
+</div>
+
+
+<table class="table datatable" data-group-by-index="[2,5]">
+	<thead >
+		<tr >
+			<th >编号</th>
+			<th >名称</th>
+			<th> 分组</th>
+			<th>key</th>
+			<th>备注</th>
+			<th>类型</th>
+			<th>操作</th>
+		</tr>
+	</thead>
+	<tbody id="dict_area">
+		{%for item in list_record%}
+
+		<tr title="{{item.remark}}">
+			<td>
+				{{item.id}}
+			</td>
+
+			<td>
+				<a href="/log/dict/edit/{{item.id}}" class="openDialog">{{item.name}}</a>
+			</td>
+			<td>{{item.group}}</td>
+			<td><a title="点我查看字典" href="/log/dict/interface?key={{item.key}}" target="_blank"  key="{{item.key}}" >{{item.key}}</a>
+				<input type="text" select_key="{{item.key}}" value_format='__key__'>
+			</td>
+			<td>
+				{{item.remark}}
+			</td>
+			<td>
+				{{item.get_type_display}}
+			</td>
+			<td>
+			<!-- 	<a href="/log/dict/del/{{item.id}}" class="del">删除</a> -->
+
+				<a href="/log/dict/edit/{{item.id}}" class="openDialog">编辑</a>
+			 
+			</td>
+		</tr>
+		{%endfor%}
+	</tbody>
+</table>
+
+
+<div id="sync_dict_server_div" class="dialog-div">
+	<h3 class="row ">
+		<span class="col-sm-10">
+			写入字典到服务器:
+		</span><!-- /span -->
+
+		<span class="col-sm-2">
+		<buttion id="sync_dict_server_sure" class="btn btn-sm btn-success">确定</button>
+		</span><!-- /span -->
+	</h3>
+
+	<div>
+		{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict %}
+	</div>
+</div>
+
+
+<div class="sub-menu-1">
+	<div class="buttons">
+		<a href="javascript:;" id="sync_dict_server_btn">同步字典定义</a>
+	</div>
+</div>
+
+
+<script>
+$('#sync_dict_server_btn').click(function(){
+	$('#sync_dict_server_div').dialog({title:"选择器同步的服务器:"})
+})
+
+var server_process = new ServerProcess()
+var post_url = '/log/dict/sync_game_server'
+function ajaxDo(server_id,err_count){
+	var err_count = err_count ? err_count : 0
+	var data = {"server_id":server_id}
+	$.ajax({
+		url: post_url,
+		dataType:'json',
+		type: 'POST',
+		data: data,
+	})
+	.done(function(data) {
+			msg = data.msg ? data.msg : '成功!'
+			server_process.add_status_to_table(server_id,linebreaksbr(msg))
+	})
+	.fail(function(o,x,text) {
+		if (err_count<=1) {
+			ajaxDo(server_id,err_count + 1)
+		} else {
+			server_process.add_status_to_table(server_id,linebreaksbr(o.responseText))
+		}
+	})
+}
+
+$('#sync_dict_server_sure').click(function(){
+	if ( !confirm('确定开始写入字典吗?') ) {
+		return
+	}
+	var server_ids = get_server_ids(true) 
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!')
+		return 
+	}
+	server_process.show({"title":"字典写入状态:","top":0})
+	for (var i in server_ids) {
+		var server_id = server_ids[i]
+		server_process.make_tr_for_server_id(server_id)
+		ajaxDo(server_id,0)
+	}
+
+})
+</script>
+{% endblock %}

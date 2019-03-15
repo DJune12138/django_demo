@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+<title>设置限时抢购武将</title>
+
+<script type="text/javascript" >
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    <a href="/game/shop/flash_sale_pilot">限时抢购武将列表</a>
+    <div class="buttons">
+       <a href="/game/shop/flash_sale_pilot">返回</a>
+   </div>
+</div>
+
+<div class="sub-menu-1">
+{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=select_server_ids%}
+</div>
+
+
+<table class="form">
+    <tr>
+        <th>类型：</th>
+        <td>
+            <select name="ty">
+                {% ifequal ty 0 %}<option value="0" selected='selected'>新建</option>{% endifequal %}
+                {% ifequal ty 1 %}<option value="1" selected='selected'>修改</option>{% endifequal %}
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <th>开始时间：</th><td><input type="text" class="Wdate" name="st" value="{{ result.0 | timestamp2datetime }}"></td>
+    </tr>
+    <tr>
+        <th>结束时间：</th><td><input type="text" class="Wdate" name="et" value="{{ result.1 | timestamp2datetime }}"></td>
+    </tr>
+    <tr>
+        <th>销售武将ID：</th><td><input type="text" value="{{ result.2 }}" name="pilot_id" class="input-small" select-key="	pilots" maxlength="8" placeholder="选择"></td>
+    </tr>
+    <tr>
+        <th>销售金币价格：</th><td><input type="text" name="gold" value="{{ result.3 }}" /></td>
+    </tr>
+    <tr>
+        <th>图片名：</th><td><input type="text" name="pn" value="{{ result.4 }}" /></td>
+    </tr>
+
+    <tr>
+        <th></th>
+		<td>
+			<input type="button" id="send_btn" class="btn btn-app btn-xs" value="保存">
+		</td>
+    </tr>
+</table>
+
+
+<script>
+function get_server_msg(){
+	var st = datetime_str_to_timestamp($('[name="st"]').val())
+    var et = datetime_str_to_timestamp($('[name="et"]').val())
+    var pilot_id = parseInt($('[name="pilot_id"]').val())
+	var gold = parseInt($('[name="gold"]').val())
+    var pn = $('[name="pn"]').val()
+    var ty = parseInt($('[name="ty"]').val())
+
+    var msg = [ty,st,et,pilot_id,gold,pn]
+    msg = JSON.stringify(msg);
+    return msg
+}
+
+var post_url = '/game/shop/flash_sale_pilot_edit'
+var is_running = false
+var server_process = new ServerProcess()
+var running_server_ids = []
+function ajax_do(server_id,data){
+    var data = {"server_id":server_id,"msg":data};
+    var server_status_cont = server_process.get_server_status_cont(server_id)
+	server_status_cont.html('<img src="/static/skin/images/loading.gif">')
+    if (is_running) {
+        $.ajax({
+            url: post_url,
+            dataType: 'json',
+            type: 'POST',
+            data: data,
+            timeout: 10000
+        }).done(function (data) {
+            server_status_cont.html(linebreaksbr(data.msg))
+        })
+    }
+    else {
+		server_status_cont.html('停止!')
+	}
+}
+
+function stop_post(){
+	if(running_server_ids.length>0 && is_running==true) {
+		if ( confirm('是否停止发送!') ) {
+			is_running = false
+			return true
+		} else {
+			return false
+		}
+	}
+}
+
+$('#send_btn').click(function(){
+	var msg = get_server_msg()
+	var server_ids = get_server_ids(true)
+	running_server_ids = server_ids
+	if (! msg) {
+		return
+	}
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!')
+		return
+	}
+	server_process.show({"title":"发送状态:","top":'20%',"close":function(){
+		return stop_post()
+	}})
+
+	is_running = true
+	console.dir(msg)
+	for (i in server_ids) {
+		var server_id = server_ids[i]
+		server_process.make_tr_for_server_id(server_id)
+		ajax_do(server_id,msg)
+	}
+	if(running_server_ids.length>1){
+		server_process.process_bar.append(
+	$('<a>',{"id":"stop-post-btn","html":"停止","class":"btn btn-sm btn-primary pull-right","click":function(){
+		return stop_post()
+	}})
+)
+	}
+})
+</script>
+
+
+{% endblock %}

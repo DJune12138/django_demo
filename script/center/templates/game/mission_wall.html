@@ -1,0 +1,595 @@
+<style>
+.equipitem{
+    display: block;
+    margin-left: 50px
+}
+
+</style>
+
+<!-- 模版开始 -->
+<script id="taskwall-setting-tpl" type="text/template">
+<div id="taskwall-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+        <th>活动ID</th>
+        <td><input type="text" name="kid" class="input input-sm" readonly="readonly" value="<%=data.kid ? data.kid : parseInt(new Date().getTime()/1000)%>"> </td>
+    </tr>
+    <tr>
+        <th>活动名称</th>
+        <td><input type="text" name="nm"  value="<%=data.nm ? data.nm : ''%>"> </td>
+    </tr>
+    <tr>
+        <th>活动开始时间</th>
+         <td>
+            <input type="text" class="Wdate" name="bt" value="<%=data.bt ? it.w.timestamp_to_datetime_str(data.bt ? data.bt : parseInt(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+            活动结束时间
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : parseInt(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>任务墙设定</th>
+        <td>
+            <input type="button" onclick="add_pg()" value="添加任务墙">
+            <a href="javascript:void(0)" onclick="add_taskwall_template()">[添加到模版]</a>
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td id="item-cont">
+            <%var items=data.pg;%>
+
+            <% for (var i in items){%>
+                <%=it.w.get_item_html(items[i],null)%>
+            <%}%>
+        </td>
+    </tr>
+    <tr>
+        <th>积分宝箱设定</th>
+        <td>
+            <input type="button" onclick="add_bx()" value="添加积分宝箱">
+            <a href="javascript:void(0)" onclick="add_bx_template()">[添加到模版]</a>
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td id="bx-cont">
+            <%var items=data.bx;%>
+
+            <% for (var i in items){%>
+                <%=it.w.get_bx_html(items[i],null)%>
+            <%}%>
+        </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<script type="text/template" id="item-tpl">
+    <%var data=it.data;%>
+<div class="goods">
+    <hr />
+    <a href="javascript:void(0)" onclick="delete_pg(this)" style="float:right">[删除]</a>
+    <h3>任务墙页卡标题<input type="text" name="t" value="<%=data.t%>"></h3>
+    任务墙计量规则<select name="r">
+    <%? (data.r==0) %>
+        <option value="<%=data.r%>">持续任务</option>
+        <option value="1">日常任务</option>
+    <%?? (data.r==1) %>
+        <option value="<%=data.r%>">日常任务</option>
+        <option value="0">持续任务</option>
+    <%?%>
+                </select><br>
+    任务墙说明<input type="text" name="d" value="<%=data.d%>">
+    <br>
+    <div class="task">
+    任务设定
+    <input type="button" onclick="add_l(this)" value="添加任务">
+
+    <br>
+    <div class="task-cont" >
+            <%var items=data.l;%>
+
+            <% for (var i in items){%>
+                <%=it.w.get_task_html(items[i],null)%>
+            <%}%>
+    </div>
+    <br>
+    </div>
+</div>
+</script>
+
+
+<script type="text/template" id="task-tpl">
+    <%var data=it.data;%>
+<div class="task-l">
+    <br>
+    <a href="javascript:void(0)" onclick="delete_l(this)" style="float:right">[删除]</a>
+            <input type="hidden" class="iid" value="<%=data.i ? data.i : randomNum(parseInt(new Date()/10000))%>" >
+            <h4>任务<span name="i">1</span></h4>
+            <div class="tc">
+            任务内容:<%=it.w.tc.get_item_html({'aid':data.t,'h':data.h,'y':data.y,'x':data.x},null,false)%>
+            </div>
+            任务截至时间<input type="text" class="Wdate" name="e" value="<%=data.e ? it.w.timestamp_to_datetime_str(data.e ? data.e : parseInt(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:s"}}"%>">
+    <br>
+        奖励<input type="button" onclick="add_reward(this)" value="添加奖励"><br>
+    <div class="reward">
+            <%var items=data.r;%>
+
+            <% for (var i in items){%>
+                <%=it.w.pi.get_item_html(items[i],null)%>
+            <%}%>
+    </div>
+</div>
+</script>
+
+<script type="text/template" id="bx-tpl">
+    <%var data=it.data;%>
+    <div class="bx-list">
+    积分宝箱
+    <a href="javascript:void(0)" onclick="delete_bx(this)" style="float:right">[删除]</a>
+    <input type="button" onclick="add__bx_reward(this)" value="添加奖励">宝箱图片ID<input type="text" name="p" value="<%=data.p%>">任务积分需求<input type="text" name="i" value="<%=data.i%>">
+    <br>
+    <div class="bx-reward">
+            <%var items=data.r;%>
+
+            <% for (var i in items){%>
+                <%=it.w.pi.get_item_html(items[i],null)%>
+            <%}%>
+    </div>
+    </div>
+</script>
+
+<!-- 模版结束 -->
+
+<div id="template-dialog" class="dialog-div">
+    <table class="form2">
+        <tr>
+        <th>模版名:</th>
+        <td><input type="text"  name="name" value=""></td>
+        </tr>
+        <tr>
+        <th>描述:</th>
+        <td><textarea name="info" ></textarea></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="temp-mode">
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- 这里重写活动的参数配置 -->
+
+<script type="text/javascript">
+
+
+var pi = new ResourceInput()
+
+var task_default_input_attr = {"name":"x","type":"number","min":1,"class":"input-small input-number not-empty","maxlength":8}
+var tc_map = {
+    1:{name:"击败某（NPC）次数", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"征战前线","maxlength":10}],["NPCID",{"name":"y","class":"input-small","select-key":"npc","maxlength":8}],["任务值",task_default_input_attr]]},
+    2:{name:"获得某（装备）次数", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"装备收集","maxlength":10}],["物品ID",{"name":"y","class":"input-small","select-key":"equipment","maxlength":8}],["任务值",task_default_input_attr]]},
+    3:{name:"VIP等级达到多少级", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"尊贵身份","maxlength":10}],["任务值",task_default_input_attr]]},
+    4:{name:"充值达到多少钻石", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"充值达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    5:{name:"消费达到多少钻石", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"消费达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    6:{name:"钻石消费次数达到多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"有钱任性","maxlength":10}],["任务值",task_default_input_attr]]},
+    7:{name:"获得多少金币", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"金币达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    8:{name:"获得多少科技点", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"科技达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    9:{name:"获得多少荣誉", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"荣誉达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    10:{name:"获得多少星盟贡献", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星盟贡献","maxlength":10}],["任务值",task_default_input_attr]]},
+    11:{name:"使用多少星盟贡献", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星盟贡献","maxlength":10}],["任务值",task_default_input_attr]]},
+    12:{name:"使用多少金币", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"金币达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    13:{name:"使用多少科技点", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"科技达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    14:{name:"使用多少个燃料", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"燃料达人","maxlength":10}],["任务值",task_default_input_attr]]},
+    15:{name:"完成征收任务次数", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"征收达人","maxlength":10}],["任务值",task_default_input_attr]]},
+16:{name:"竞技场挑战多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"斗志昂扬","maxlength":10}],["任务值",task_default_input_attr]]},
+17:{name:"装备强化暴击多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"人品爆发","maxlength":10}],["任务值",task_default_input_attr]]},
+18:{name:"购买多少个晶核", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"晶核购买","maxlength":10}],["任务值",task_default_input_attr]]},
+19:{name:"设计多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"设计达人","maxlength":10}],["任务值",task_default_input_attr]]},
+20:{name:"主炮设计多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"主炮设计","maxlength":10}],["任务值",task_default_input_attr]]},
+21:{name:"护盾设计多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"护盾设计","maxlength":10}],["任务值",task_default_input_attr]]},
+22:{name:"激活高阶设计多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"高阶设计","maxlength":10}],["任务值",task_default_input_attr]]},
+23:{name:"作坊生产获得多少个产品", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"生产高手","maxlength":10}],["任务值",task_default_input_attr]]},
+24:{name:"英雄至尊培养多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"至尊培养","maxlength":10}],["任务值",task_default_input_attr]]},
+25:{name:"使用经验芯片多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"英雄升级","maxlength":10}],["任务值",task_default_input_attr]]},
+26:{name:"使用至尊训练多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"至尊训练","maxlength":10}],["任务值",task_default_input_attr]]},
+27:{name:"装备定向改造多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"装备改造","maxlength":10}],["任务值",task_default_input_attr]]},
+28:{name:"采集矿源多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"采矿达人","maxlength":10}],["任务值",task_default_input_attr]]},
+29:{name:"采集紫品矿源多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"紫品矿源","maxlength":10}],["任务值",task_default_input_attr]]},
+30:{name:"采集红品矿源多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"红品矿源","maxlength":10}],["任务值",task_default_input_attr]]},
+31:{name:"使用精准扫描多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"精准扫描","maxlength":10}],["任务值",task_default_input_attr]]},
+32:{name:"使用普通扫描多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"普通扫描","maxlength":10}],["任务值",task_default_input_attr]]},
+33:{name:"掠夺矿源多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"矿源掠夺","maxlength":10}],["任务值",task_default_input_attr]]},
+34:{name:"掠夺紫品矿源多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"掠夺紫矿","maxlength":10}],["任务值",task_default_input_attr]]},
+35:{name:"掠夺红品矿源多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"掠夺红矿","maxlength":10}],["任务值",task_default_input_attr]]},
+36:{name:"分解装备暴击多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"人品爆发","maxlength":10}],["任务值",task_default_input_attr]]},
+37:{name:"秘书甄选多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"选秀达人","maxlength":10}],["任务值",task_default_input_attr]]},
+38:{name:"普通秘书甄选多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"普通甄选","maxlength":10}],["任务值",task_default_input_attr]]},
+39:{name:"高级秘书甄选多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"高级甄选","maxlength":10}],["任务值",task_default_input_attr]]},
+40:{name:"神秘秘书甄选多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"神秘甄选","maxlength":10}],["任务值",task_default_input_attr]]},
+41:{name:"秘书调教多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"调教达人","maxlength":10}],["任务值",task_default_input_attr]]},
+42:{name:"秘书金币调教多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"金币调教","maxlength":10}],["任务值",task_default_input_attr]]},
+43:{name:"秘书钻石调教多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"钻石调教","maxlength":10}],["任务值",task_default_input_attr]]},
+44:{name:"获得多少个推荐信碎片", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"收藏专家","maxlength":10}],["任务值",task_default_input_attr]]},
+45:{name:"获得3星以上秘书多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"选秀达人","maxlength":10}],["任务值",task_default_input_attr]]},
+46:{name:"获得4星以上秘书多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"选秀达人","maxlength":10}],["任务值",task_default_input_attr]]},
+47:{name:"获得5星以上秘书多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"选秀达人","maxlength":10}],["任务值",task_default_input_attr]]},
+48:{name:"升级秘书多少级", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"调教达人","maxlength":10}],["任务值",task_default_input_attr]]},
+49:{name:"发出求助多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"求助达人","maxlength":10}],["任务值",task_default_input_attr]]},
+50:{name:"帮助盟友多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"当代雷锋","maxlength":10}],["任务值",task_default_input_attr]]},
+51:{name:"帮助盟友金币暴击多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"好人好报","maxlength":10}],["任务值",task_default_input_attr]]},
+52:{name:"星盟捐献星徽等级多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星盟捐献","maxlength":10}],["任务值",task_default_input_attr]]},
+53:{name:"星盟研究星盟科技多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星盟研究","maxlength":10}],["任务值",task_default_input_attr]]},
+54:{name:"领取星盟红利多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星盟红利","maxlength":10}],["任务值",task_default_input_attr]]},
+55:{name:"完成星盟贸易任务多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"贸易任务","maxlength":10}],["任务值",task_default_input_attr]]},
+56:{name:"使用贸易道具多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"贸易道具","maxlength":10}],["任务值",task_default_input_attr]]},
+57:{name:"进入多少有事件的贸易港口", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"多事之秋","maxlength":10}],["任务值",task_default_input_attr]]},
+58:{name:"寻宝多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"寻宝达人","maxlength":10}],["任务值",task_default_input_attr]]},
+59:{name:"使用单次寻宝多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"单次寻宝","maxlength":10}],["任务值",task_default_input_attr]]},
+60:{name:"使用十次寻宝多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"十次寻宝","maxlength":10}],["任务值",task_default_input_attr]]},
+61:{name:"活动的活跃度达到多少", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"活跃达人","maxlength":10}],["任务值",task_default_input_attr]]},
+62:{name:"攻击进击的巨舰多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"攻击巨舰","maxlength":10}],["任务值",task_default_input_attr]]},
+63:{name:"对进击的巨舰造成多少总伤害", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"攻击巨舰","maxlength":10}],["任务值",task_default_input_attr]]},
+64:{name:"星际战场通过征收累计获得多少金币", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"战场捞金","maxlength":10}],["任务值",task_default_input_attr]]},
+65:{name:"星际战场获得多少次战斗胜利", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星战胜利","maxlength":10}],["任务值",task_default_input_attr]]},
+66:{name:"星际战场累计使用多少次道具", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星战道具","maxlength":10}],["任务值",task_default_input_attr]]},
+67:{name:"星际战场攻占敌方星球多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"攻占星球","maxlength":10}],["任务值",task_default_input_attr]]},
+68:{name:"星际战场战斗多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"星战斗士","maxlength":10}],["任务值",task_default_input_attr]]},
+69:{name:"星际战场获得功勋多少点", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"获得功勋","maxlength":10}],["任务值",task_default_input_attr]]},
+70:{name:"星际战场使用瞬移多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"瞬移达人","maxlength":10}],["任务值",task_default_input_attr]]},
+71:{name:"进攻要塞多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"进攻要塞","maxlength":10}],["任务值",task_default_input_attr]]},
+72:{name:"扫荡要塞多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"扫荡要塞","maxlength":10}],["任务值",task_default_input_attr]]},
+73:{name:"发放多少红包", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"红包达人","maxlength":10}],["任务值",task_default_input_attr]]},
+74:{name:"领取多少红包", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"手气不错","maxlength":10}],["任务值",task_default_input_attr]]},
+75:{name:"攻击其他国家玩家星球多少次", unit:[['标题',{"name":"h","type":"text","class":"input-small","value":"东征西讨","maxlength":10}],["任务值",task_default_input_attr]]}
+}
+
+var tc = new ResourceInput(tc_map)
+
+var default_msg ={
+    "nm":"活动名称",
+    "bt":0,
+    "et":0,
+    "pg":[{         // 页卡
+        "t":"标题1",   // 页卡标题
+        "r":0,     // 规则, 0持续任务,1日常任务
+        "d":"说明",
+        "l":[{     // 任务列表
+            "h":'标题',
+            "i":"",  // 任务id
+            "t":1,  // 任务类型
+            "x":1,  // 任务参数X(没有则填-1)
+            "y":'',  // 任务参数Y(没有则填-1)
+            "e":0,  // 任务截止时间(如果是日常任务则不管该字段)
+            "r":[{"aid":1,"v":1}]  // 任务奖励(格式参照邮件)
+        }]
+    }],
+    "bx":[{
+        "p":1,  // 图片id
+        "i":1,  // 积分
+        "r":[{"aid":1,"v":1}]  // 宝箱奖励
+    }]
+}
+
+function randomNum(num){
+    return Math.floor(Math.random()*num);
+}
+
+
+
+//重置任务
+function set_t(){
+    $('.task').find('[name="i"]').each(function(i,ele){
+        $(ele).text(i+1)
+    })
+}
+
+//删除任务墙页卡
+function delete_pg(aEle){
+    if ( confirm('确定删除?') ) {
+        $(aEle).parents('.goods').remove()
+
+    }
+}
+
+//删除任务
+function delete_l(aEle) {
+    if (confirm('确定删除?')) {
+        $(aEle).parents('.task-l').remove()
+
+    }
+}
+
+//删除宝箱
+function delete_bx(aEle) {
+    if (confirm('确定删除?')) {
+        $(aEle).parents('.bx-list').remove()
+    }
+}
+
+//添加奖励
+function add_reward(ele){
+    $(ele).parents('.task-l').find('.reward').append( pi.get_item_html())
+}
+function add__bx_reward(ele){
+    $(ele).parents('.bx-list').find('.bx-reward').append( pi.get_item_html())
+}
+
+//添加任务墙 页卡
+function add_pg(){
+     if ($('.goods').length>=5) {
+        alert('最多配置5个任务墙!')
+        return
+     }
+    obj = default_msg.pg[0]
+    console.dir(obj)
+    var html = get_item_html(obj)
+
+    $('#item-cont').append(html)
+    set_t()
+}
+//添加宝箱
+function add_bx(){
+     if ($('.goods').length>=5) {
+        alert('最多配置5个宝箱!')
+        return
+     }
+    obj = default_msg.bx[0]
+    console.dir(obj)
+    var html = get_bx_html(obj)
+
+    $('#bx-cont').append(html)
+
+}
+
+
+//添加任务
+function add_l(obj_ele){
+     if ($(obj_ele).parents('.task').find('.task-l').length>=50) {
+        alert('最多配置50个任务!')
+        return
+     }
+    obj =  default_msg.pg[0]["l"][0]
+    console.dir(obj)
+    $(obj_ele).parents('.task').find(".task-cont").append(get_task_html(obj))
+
+    set_t()
+}
+
+
+function get_task_html(array){
+    return get_views('task-tpl',array)
+}
+
+function get_bx_html(array){
+    return get_views('bx-tpl',array)
+}
+
+function get_item_html(array){
+    return get_views('item-tpl',array)
+}
+
+function jsonpost(msg,typename){
+                var post_parmgs = {}
+                post_parmgs['msg'] = msg
+                post_parmgs['name'] = $('#template-dialog').find('[name="name"]').val()
+                post_parmgs['type'] = activity_type_name
+                post_parmgs['info'] = $('#template-dialog').find('[name="info"]').val()
+                console.dir(post_parmgs)
+                if (!post_parmgs['name']) {
+                    alert('模版名不能为空!')
+                    return
+                }
+                $.ajax({
+                    url: '/game/activity_template/save',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: post_parmgs
+                })
+                        .done(function (data) {
+                            $.dialog(data.msg)
+                        })
+                        .fail(function () {
+                            art.dialog.alert('发生错误!')
+                        })
+}
+
+//添加任务墙模版
+function add_taskwall_template(){
+         var type_name = '任务墙'
+         var activity_cont_ele = $('#template-dialog')
+         activity_cont_ele.dialog({"title": "保存 " + type_name + " 活动模版"})
+         activity_cont_ele.find('[name="info"]').val(type_name + "页卡模版")
+         $("#temp-mode").html('<button id="task-template-save" class="btn  btn-danger btn-xs radius-4"><i class="icon-save"></i>保存</button>')
+         $("#task-template-save").click(function (event) {
+                var pg = []
+                $('.goods').each(function(i,ele){
+                    var p = {}
+                    var $item = $(ele)
+                    p.t = $item.find('[name="t"]').val()
+                    p.r = parseInt($item.find('[name="r"]').val())
+                    p.d = $item.find('[name="d"]').val()
+                    var l = get_task_json($item)
+                    p.l = l
+                    pg.push(p)
+                 })
+                msg = {"pg":pg}
+                msg = JSON.stringify(msg)
+                jsonpost(msg,type_name)
+         })
+    }
+
+//添加宝箱模版
+function add_bx_template(){
+         var type_name = '积分宝箱'
+         var activity_cont_ele = $('#template-dialog')
+         activity_cont_ele.dialog({"title": "保存 " + type_name + " 活动模版"})
+         activity_cont_ele.find('[name="info"]').val(type_name + "模版")
+         $("#temp-mode").html('<button id="bx-template-save" class="btn  btn-danger btn-xs radius-4"><i class="icon-save"></i>保存</button>')
+         $("#bx-template-save").click(function (event) {
+                var bx = []
+                $('.bx-list').each(function (i, ele) {
+                    var b = {}
+                    var $item = $(ele)
+                    b.p = parseInt($item.find('[name="p"]').val())
+                    b.i = parseInt($item.find('[name="i"]').val())
+                    b.r = []
+                    $item.find('.bx-reward .equipitem').each(function (i, _ele) {
+                        b.r.push(pi.to_json(_ele))
+                    })
+                    bx.push(b)
+                })
+                msg = {"bx":bx}
+                msg = JSON.stringify(msg)
+                jsonpost(msg,type_name)
+         })
+}
+
+function get_task_json(good_cont_ele) {
+    var task_l = good_cont_ele.find('.task-l')
+    var l = []
+    task_l.each(function (i, ele) {
+        var ll = {}
+        var $item = task_l
+        var t_x_y = tc.to_json($(ele).find('.tc'))
+        ll.i = parseInt($(ele).find('.iid').val())
+        ll.t = t_x_y.aid
+        ll.h = t_x_y.h
+        ll.x = t_x_y.hasOwnProperty('x') ? t_x_y.x : 1
+        ll.y = t_x_y.hasOwnProperty('y') ? t_x_y.y : -1
+        ll.e = datetime_str_to_timestamp($(ele).find('[name="e"]').val())
+        ll.r = []
+        $(ele).find('.reward .equipitem').each(function (i, _ele) {
+            ll.r.push(pi.to_json(_ele))
+        })
+        l.push(ll)
+    })
+    return l
+}
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(event_name) {
+    if (!this.check_empty_input()) {
+        return false
+    }
+    var msg = {
+        "kid": 1,
+        "nm": "活动名称",
+        "bt": 0,
+        "et": 0,
+        "pg": [
+            {         // 页卡
+                "t": "标题1",   // 页卡标题
+                "r": 0,     // 规则, 0持续任务,1日常任务
+                "d": "说明",
+                "l": [
+                    {     // 任务列表
+                        "h":'标题',
+                        "i": 1,  // 任务id
+                        "t": 1,  // 任务类型
+                        "x": 1,  // 任务值X(没有则填-1)
+                        "y": -1,  // 任务参数Y(没有则填-1)
+                        "e": 0,  // 任务截止时间(如果是日常任务则不管该字段)
+                        "r": [
+                            {"aid": 1, "v": 0}
+                        ]  // 任务奖励(格式参照邮件)
+                    }
+                ]
+            }
+        ],
+        "bx": [
+            {
+                "p": 1,  // 图片id
+                "i": 1,  // 积分
+                "r": [
+                    {"aid": 1, "v": 0}
+                ]  // 宝箱奖励
+            }
+        ]
+    }
+
+    msg.kid = parseInt(this.contEle.find('[name="kid"]').val())
+    msg.nm = this.contEle.find('[name="nm"]').val()
+    msg.bt = datetime_str_to_timestamp(this.contEle.find('[name="bt"]').val())
+    msg.et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+
+    var pg = []
+    $('.goods').each(function(i,ele){
+        var p = {}
+        var $item = $(ele)
+        p.t = $item.find('[name="t"]').val()
+        p.r = parseInt($item.find('[name="r"]').val())
+        p.d = $item.find('[name="d"]').val()
+        var l = get_task_json($item)
+        p.l = l
+        pg.push(p)
+     })
+
+    var bx = []
+    $('.bx-list').each(function(i,ele){
+        var b = {}
+        var $item = $(ele)
+        b.p = parseInt($item.find('[name="p"]').val())
+        b.i = parseInt($item.find('[name="i"]').val())
+        b.r = []
+        $item.find('.bx-reward .equipitem').each(function(i,_ele){
+            b.r.push(pi.to_json(_ele))
+        })
+        bx.push(b)
+    })
+
+    msg.pg = pg
+    msg.bx = bx
+
+    console.dir(msg)
+    return JSON.stringify(msg)
+}
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg) {
+    msg = !$.isEmptyObject(msg) && msg ? msg : default_msg
+    try {
+        var source_json = $.parseJSON(this.get_json())
+    }catch(e){
+        var source_json = {}
+    }
+    msg = $.extend(source_json,msg)
+    console.dir(source_json)
+
+    var html = get_views('taskwall-setting-tpl', msg)
+    this.contEle.html(html)
+    set_t()
+}
+
+//状态
+activitySetting.get_status = function(data){
+    if ( $.isEmptyObject(data) || data.id==0 || !data) {
+
+        return '<span class="label label-danger">已关闭</span>'
+    }
+
+    var status = ''
+    console.dir(data)
+    var bt = data.bt
+    var et = data.et
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(bt)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    }
+
+    return status
+}
+
+activitySetting.to_template_json = function(data){
+    delete data['kid']
+    return data
+}
+
+
+
+</script>

@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>支付通道编辑</title>
+
+<style>
+.border1{
+	border: 1px solid gray;
+	padding:5px;
+}
+.extra_form div{
+	margin: 1px
+}
+
+</style>
+
+
+<script id="rebate-tpl" type="text/template">
+ <div class="extra_form">
+
+<div class="border1"> <h3>固定返利设置:</h3>
+首充奖励倍数:<input type="number" name="first_rebate" step="0.1" min=0 class="input-medium" value="<%=it.data.first_rebate%>"></br>
+</div>
+
+   <div class="border1"> <h3>阶段充值返利设置:</h3>
+	   开启时段:
+	   <input type="text" name="sdate" value="<%=it.data.sdate%>" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})" class="Wdate" />-
+	   <input type="text" name="edate" value="<%=it.data.edate%>" class="Wdate" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})" />
+	   <br />
+	   <br />
+	   <span style="color: #808080">注意: <i><b>添加规则</b></i> 后下面文本框的Json数据不会更新显示.</span>
+	   <br />
+	   <textarea id="json_conf" placeholder="Json格式配置"><%=it.data.json_data%></textarea>
+	   <div id="rebate-condition-cont">
+
+	   </div>
+	   <input type="button" id="add-rule-btn" onclick="" value="添加规则" />
+   </div>
+
+	<div id="extra_btn_container" style="text-align:right">
+	   <input type="button" id="save-btn" onclick="" value="保存规则" />
+  	</div>
+</div>
+</script>
+
+<script type="text/javascript">
+function timestamp_format(timestamp, format){
+	format = format?format:'yyyy-MM-dd hh:mm:ss'
+	var that = new Date(timestamp * 1000);
+	var o = {
+	"M+" : that.getMonth()+1, //month
+	"d+" : that.getDate(), //day
+	"h+" : that.getHours(), //hour
+	"m+" : that.getMinutes(), //minute
+	"s+" : that.getSeconds(), //second
+	"q+" : Math.floor((that.getMonth()+3)/3), //quarter
+	"S" : that.getMilliseconds() //millisecond
+}
+if(/(y+)/.test(format)) format=format.replace(RegExp.$1,
+	(that.getFullYear()+"").substr(4- RegExp.$1.length));
+	for(var k in o)if(new RegExp("("+ k +")").test(format))
+		format = format.replace(RegExp.$1,
+			RegExp.$1.length==1? o[k] :
+			("00"+ o[k]).substr((""+ o[k]).length));
+	return format;
+}
+
+var editExtra = {
+	extra_form : null,
+	sdate:timestamp_format(new Date().getTime()/1000),
+	edate:timestamp_format(new Date().getTime()/1000),
+	data:[],
+	msgbox:null,
+	extra_key:'extra',
+	show:function(){
+		var extra_data_str = $("textarea[name='pay_config']").val();
+		if($.trim(extra_data_str)=='')
+			extra_data_str = '{"extra":[]}';
+
+		var that = this;
+		var extra_data =  $.parseJSON(extra_data_str)
+
+		if(extra_data_str.indexOf('extra":')==-1){
+			this.extra_key = 'extra_off';
+		} else {
+			this.extra_key = 'extra';
+		}
+		this.data = extra_data[this.extra_key];
+		this.data = this.data ? this.data : []
+		var _sdate = extra_data.sdate
+		var _edate = extra_data.edate
+		this.sdate = _sdate?timestamp_format(_sdate):this.sdate;
+		this.edate = _edate?timestamp_format(_edate):this.edate;
+
+
+		var obj = {}
+		obj.sdate = this.sdate
+		obj.edate = this.edate
+		obj.json_data = JSON.stringify(this.data)
+		//obj.extra_rebate = extra_data.extra_rebate
+		obj.first_rebate = extra_data.first_rebate
+		var extra_form  = get_views('rebate-tpl',obj)
+
+		this.msgbox = $.dialog({title:'充值返利配置(各条件叠加)',content:extra_form,top:"50%"});
+
+		extra_form = $(".extra_form");
+
+		extra_form.find('#add-rule-btn').bind('click', function(){that.add(that);});
+
+		extra_form.find('#save-btn').bind('click', function(){that.save(that);});
+		var rebate_condition_cont = extra_form.find('#rebate-condition-cont')
+
+		for(var i=0;i<this.data.length;i++){
+			var item = this.data[i];
+			rebate_condition_cont.append(this.item(i,item))
+		}
+
+		this.extra_form = extra_form
+
+
+
+	},
+	add:function(entry){
+		entry.extra_form.find('#rebate-condition-cont').append(entry.item(entry.data.length));
+
+	},
+	save:function(entry){
+		var result = [];
+		var entry_form = entry.extra_form;
+		entry_form = $(entry_form);
+		for(var i=0;i< entry.extra_form.find("div").length;i++)
+		{
+			var item = {conditions:[],amount:0};
+			var extra_begin_num = parseInt(entry_form.find("input[name='extra_begin_"+i+"']").val()),
+				extra_end__num = parseInt(entry_form.find("input[name='extra_end_"+i+"']").val()),
+				extra_result_num = parseFloat($(entry_form.find("input[name='extra_result_"+i+"']")).val())
+
+			if(!extra_begin_num || !extra_end__num || !extra_result_num)
+				continue;
+			item.conditions[0] = extra_begin_num;
+			item.conditions[1] = extra_end__num;
+			item.amount = extra_result_num;
+			result[result.length] = item;
+		}
+		var extra_data = $("textarea[name='pay_config']").val();
+		if($.trim(extra_data)==''){
+			extra_data = '{"extra":[]}'
+		};
+		extra_data = $.parseJSON(extra_data);
+		extra_data[this.extra_key] = result;
+		extra_data.sdate = new Date(entry_form.find("input[name='sdate']").val().replace(/-/g,'/')).getTime()/1000
+		extra_data.edate = new Date(entry_form.find("input[name='edate']").val().replace(/-/g,'/')).getTime()/1000
+
+		extra_data.sdate = extra_data.sdate ? extra_data.sdate : 0
+		extra_data.edate = extra_data.edate ? extra_data.edate : 0
+
+		//extra_data.extra_rebate = entry_form.find('[name="extra_rebate"]').val()
+		extra_data.first_rebate = entry_form.find('[name="first_rebate"]').val()
+
+		//extra_data.extra_rebate = !isNaN(extra_data.extra_rebate) && extra_data.extra_rebate? parseFloat(extra_data.extra_rebate) : 0
+		extra_data.first_rebate = !isNaN(extra_data.first_rebate) && extra_data.first_rebate? parseFloat(extra_data.first_rebate) : 0
+
+		$("textarea[name='pay_config']").val(JSON.stringify(extra_data));
+		entry.msgbox.hide();
+	},
+	item:function(i,item){
+		if(item==null){
+			item = {conditions:[0,0],amount:0};
+			this.data[this.data.length]=item;
+		}
+		return '<div>充值:<input type="number" size="5" class="input-small" name="extra_begin_'+i+'" value="'+item.conditions[0]+'" />-<input type="number" class="input-small" size="5" name="extra_end_'+i+'" value="'+item.conditions[1]+'" />返利:<input type="number" class="input-small" step=0.1 size="5" name="extra_result_'+i+'" value="'+item.amount+'" /><a href="javascript:;" onclick="$(this).parent().remove()">x</a></div>';
+	},
+	init:function(){
+		var extra_data = $("textarea[name='pay_config']").val();
+		if(extra_data.indexOf('extra":')==-1){
+			$('.switch_extra').html('开启阶段充值返利');
+		}else{
+			$('.switch_extra').html('关闭阶段充值返利');
+		}
+	},
+	change:function(){
+		var extra_data = $("textarea[name='pay_config']").val();
+		if(extra_data.indexOf('extra_off":')!=-1){
+			extra_data = extra_data.replace('extra_off":','extra":');
+			$("textarea[name='pay_config']").val(extra_data)
+		}else if(extra_data.indexOf('extra":')!=-1){
+			extra_data = extra_data.replace('extra":','extra_off":')
+			$("textarea[name='pay_config']").val(extra_data)
+		}
+		editExtra.init();
+	},
+    oneKeySet:function(){   //一键设置充值返利
+    	var rebate = [
+    	{"conditions":[300,499],"amount":0.05},
+    	{"conditions":[500,999],"amount":0.07},
+    	{"conditions":[1000,2999],"amount":0.1},
+    	{"conditions":[3000,4999],"amount":0.12},
+    	{"conditions":[5000,9999],"amount":0.15},
+    	{"conditions":[10000,29999],"amount":0.17},
+    	{"conditions":[30000,999999],"amount":0.2}
+        ];  //固定返利数据
+        var configData = $("textarea[name='pay_config']").val(),
+        extra_data = configData.length > 0 ? $.parseJSON(configData) : {},
+        old_data;
+        if(typeof extra_data.extra === 'undefined'){
+        	old_data = extra_data.extra_off;
+        	if(typeof extra_data.extra_off !== 'undefined'){delete extra_data['extra_off']};
+        	extra_data.extra = typeof old_data === 'undefined' ? rebate : old_data;
+        }else{
+        	old_data = extra_data.extra;
+        	extra_data.extra_off = old_data;
+        	if(typeof extra_data.extra !== 'undefined'){delete extra_data['extra']}
+        }
+    $("textarea[name='pay_config']").val(JSON.stringify(extra_data));
+    editExtra.init();
+},
+	blur:function(entry){
+		var jsonConf = $(entry),
+		newData = jsonConf.val();
+		if(newData && JSON.stringify(editExtra.data) != newData){
+			var convJson;
+			try{
+				convJson = $.parseJSON(newData);
+			}catch(ex){
+				alert("非法Json数据, 无法解析.", false, false);
+				return;
+			}
+			jsonConf.nextAll().remove();
+			for(var i=convJson.length-1; i>=0; i--){
+				jsonConf.after(editExtra.item(i, convJson[i]));
+			}
+			this.data = convJson;
+		}
+	}
+}
+$(document).ready(function(){
+	editExtra.init();
+
+	/*全选*/
+	$('[checkbox-area="channel_area"],[name="channel_id"],[name="agent_name"],[name="agent_id"]').click(function(){
+		setTimeout(change_channel_ids,10)
+		//change_channel_ids();
+	});
+
+});
+
+function change_channel_ids(){
+	var target = $("input[name='channel_ids']");
+	var channel_ids = '';
+	var first = true;
+	$('input[name="channel_id"]:checked:visible').each(function(){
+		if(!first){
+			channel_ids +=',';
+		}
+		channel_ids += this.value;
+		first = false;
+	});
+	target.val(channel_ids);
+}
+</script>
+
+
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	<a href="/pay/channel/list">支付通道管理</a> -> 支付通道资料编辑
+	<div class="buttons">
+		<a href="/pay/channel/list">返回</a>
+	</div>
+</div>
+
+<form action="/pay/channel/save?model_id={{model_id}}" method="post">
+	<table class="form2">
+
+		<tr>
+
+			<th>通道状态：</th>
+			<td>
+				<select name="status">
+					{%for statusItem in model.STATUS_CHOICES%}
+					<option value="{{statusItem.0}}" {%ifequal model.status statusItem.0%}selected="selected"{%endifequal%}>{{statusItem.1}}</option>
+					{%endfor%}
+				</select>
+			</td>
+		</tr>
+
+		<tr>
+			<th>充值通道名：</th><td><input type="text" name="name" value="{{model.name}}" /></td>
+		</tr>
+
+		<tr>
+			<th>服务器编号：</th><td><input type="text" name="server_id" size="5" value="{{model.server_id}}" /> 0为不限制</td>
+		</tr>
+
+		<tr>
+			<th>充值渠道:</th>
+			<td>
+				<p>
+					<input type="text" value="{{channel_ids}}" name="channel_ids" style="width:50%;" />
+				</p>
+			</td>
+
+		</tr>
+		<tr>
+			<th></th>
+			<td>
+			{% include "widgets/agent_channel.html" with agent_channels_dict=agent_channels_dict select_channel_ids=select_channel_ids %}
+			</td>
+		</tr>
+
+	<tr>
+		<th>支付类型标识：<br>(关联第三方标识)</th><td><input type="text" name="link_id" size="50" value="{{model.link_id}}" /></td>
+	</tr>
+	<tr>
+		<th>月卡标识：</th><td><input type="text" name="card_key" size="50" value="{{model.card_key}}" />*客户端使用的标示,需要与关联第三方标识配合</td>
+	</tr>
+	<tr>
+		<th>验证类型地址：</th><td><input type="text" name="post_url" value="{{model.post_url}}"  size="50"/></td>
+	</tr>
+{#    <tr>#}
+{#		<th>验证类型地址：</th><td><input type="text" name="icon" value="{{model.icon }}" select-key='pay_ico'/></td>#}
+{#	</tr>#}
+	<tr>
+		<th>使用支付函数：</th><td><input type="text" name="func_name" value="{{model.func_name}}" /></td>
+	</tr>
+
+	<tr>
+		<th>支付类型：</th><td><input type="text" name="pay_type" value="{{model.pay_type}}" /></td>
+	</tr>
+
+	<tr>
+		<th>通道描述：</th><td><input type="text" name="remark" maxlength="10" size="14" value="{{model.remark}}" />*另赠10000钻石</td>
+	</tr>
+
+	<tr>
+		<th>显示数额:</th>
+		<td><input type="text" name="gold" size="10" value="{{model.gold}}" />*客户端显示用的,如果是月卡必须填写!</td>
+	</tr>
+
+	<tr>
+		<th>兑换汇率：</th><td> 1：<input type="text" name="exchange_rate" size="5" value="{{model.exchange_rate}}" />
+		* 回调1金额兑换的钻石数</td>
+	</tr>
+
+	<tr>
+		<th>币种:</th>
+		<td><input type="text" name="currency" size="5" value="{{model.currency}}" />* 人民币：RMB,
+			台币：TWD,
+			马币：MYR,
+			港币：HKD,
+			美元：USD,
+			韩元：KRW,
+			日元：YEN,
+			越南盾：VND,
+			欧元：EUR,
+			泰铢：THB,
+		</td>
+	</tr>
+	<tr>
+		<th>真实金额:</th>
+		<td><input type="text" name="amount" size="5" value="{{model.amount}}" />* 如果使用item的方式充值(充值金额为1),必须填写</td>
+	</tr>
+
+	<tr>
+		<th>单位：</th><td><input type="text" name="unit" size="5" value="{{model.unit}}" /></td>
+	</tr>
+
+	<tr>
+		<th>排序：</th><td><input type="number" name="order" class="input-mini" value="{{model.order}}" />数值越大越前(默认0)</td>
+	</tr>
+
+	<tr>
+		<th>接口的参数配置：<br/>
+			<a href="javascript:void(0)" onclick="editExtra.show()">配制充值返利</a><br/>
+			<a href="javascript:void(0)" onclick="editExtra.oneKeySet()" class="switch_extra red">开启</a>
+		</th>
+		<td>
+			<textarea name="pay_config" cols="10" rows="6"  class="check_json">{{model.pay_config}}</textarea>
+			<br/><span style=" color:gray;">
+			示例(返利):{"extra":[{"conditions":[100,200],"amount":0.1}]}
+			<p>说明：充值金币在100到200范围内得到的返利是 金币*0.1，支持数组添加多个。</p>
+			<p style="color: #ff0000;">注意: 首次开启时会设置默认值，重新开启不再重置为默认值，以原有数据为准。</p>
+		</span>
+	</td>
+</tr>
+<!--tr>
+<th>通道请求地址：</th><td><input type="text" name="post_url" size="50" value="{{model.post_url}}" /> <i>已废弃</i></td>
+</tr>
+
+<tr>
+<th>通知我们支付接口成功的地址：</th><td><input type="text" name="notice_url" size="50" value="{{model.notice_url}}" /> <i>已废弃</i></td>
+</tr-->
+
+<tr>
+	<th></th>
+	<td><input type="submit" value="保存" /></td>
+</tr>
+</table>
+</form>
+{% endblock %}

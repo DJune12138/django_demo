@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>游戏滚动公告</title>
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<script>
+var time_div = "<div>" +
+        "<input type='text' size='5' name='stime' onclick='WdatePicker({dateFmt:\"HH:mm\"})' placeholder='时分' />&nbsp;至&nbsp;" +
+        "<input type='text' size='5' name='etime' onclick='WdatePicker({dateFmt:\"HH:mm\"})' placeholder='时分' />&nbsp;" +
+        "<a href='javascript:;' onclick='$(this).parent().remove()'>删除</a>" +
+    "</div>"
+function add_times(){
+    $("#time_list").append($(time_div))
+}
+</script>
+<script type="text/javascript" src="/static/js/xheditor/xheditor-1.1.14-zh-cn.min.js" ></script>
+<h3>{{server_model.name}} </h3>
+
+<div class="sub-menu-1">
+{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=select_server_ids%}
+</div>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<!-- <div class="widget-box collapsed">
+			<div class="widget-header widget-header-small">
+				<h5>发送滚动公告</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-down"></i>
+					</a>
+				</div>
+			</div> -->
+		<div class="widget-box">
+			<div class="widget-header widget-header-small">
+				<h5>发送滚动公告</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+				<table class="table table-bordered roll_broadcast_table">
+                    <tr>
+                        <th>服务器当前时间</th>
+                        <td class="server_time">{{server_time|timestamp2datetime}}</td>
+                    </tr>
+					<tr>
+						<th>滚动时段:</th>
+						<td>
+							<div id="roll_date_range_cont">
+								<span>
+								<input type="text" name="sdate" class="not-empty Wdate" value="" placeholder="开始日期"> -
+								<input type="text" name="edate" class="not-empty Wdate" value="" placeholder="结束日期">
+								</span>
+							</div>
+                            <div id="time_list"></div>
+                            <div>
+                                间隔: <input type="number" name="interval" class="input-number input-mini not-empty" value="" >秒
+							    次数: <input type="number" name="nts" class="input-number input-mini not-empty" value="">(-1代表无限制)
+                            </div>
+						</td>
+					</tr>
+{#					<tr>#}
+{#						<th>显示位置:</th>#}
+{#						<td>#}
+{#                            <label><input type="checkbox" name='sp' value="1" checked="checked">聊天窗</label>#}
+{#                            <label><input type="checkbox" name='sp' value="2">顶部滚动条</label>#}
+{#                            <label><input type="checkbox" name='sp' value="4">中部滚动条</label>#}
+{#                        </td>#}
+{#					</tr>#}
+					<tr>
+						<th>消息内容:</th>
+						<td>
+						<textarea name="content" placeholder="限制为100个字符内"></textarea> (限制为100个字符内)
+						<!--这里空行，编辑器会多出字符-->
+						<script>
+								var Plugin = {
+									table_border:{c:"xheIcon xheBtnTable",t:'设置表格边框',h:1,e:function(){
+
+							            var _this=this;
+
+							            var jTest=$('<div><label><input type="checkbox" id="table_border_btn" >表格边框</label></div>');
+							            var table_border_btn=$('#table_border_btn',jTest);
+
+							            table_border_btn.click(function(){
+							            	_this.saveBookmark();
+							            	var html = _this.getSource()
+							            	var table_border_re = new RegExp(/<table.*border=['"'][\d]+["'"][\s]+([^>]+)>/g)
+							            	if (!table_border_re.test(html)) {
+							            		html = html.replace(/<table([^>]+)>/g,'<table border="1" $1>')
+							        		}
+							                var is_checked = $(this).is(':checked')
+							                var border = is_checked ? '1' : '0'
+							                html = html.replace(/border="[\d]+"/g,'border="'+border+'"')
+							                _this.setSource(html)
+							            });
+							            _this.showDialog(jTest);
+							            }
+
+							        }
+								}
+								// $('[name="content"]').xheditor({
+								// 	plugins:Plugin,
+								// 	upBtnText:'上传',
+								// 	upImgUrl:'/system/upload/img',
+								// 	internalScript:true,
+								// 	inlineScript:true,
+								// 	linkTag:true,
+								// 	// tools:'full'
+								// 	tools:'FontColor,Source,Fullscreen'
+								// 	}
+								// 	)
+						</script>
+						</td>
+		<!-- </tr> -->
+
+						<!-- <td><textarea name="content" class="not-empty" placeholder="限制为100个字符内"></textarea></td> -->
+					</tr>
+
+					<tr><th></th>
+						<td style="text-align: center">
+							<button id="send_roll_btn" class="btn btn-success btn-sm" >发送</button>
+						</td>
+                    </tr>
+				</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+
+<script>
+var server_process = new ServerProcess()
+post_url = ''
+function ajaxDo(server_id,data,err_count,post_timeout){
+	var err_count = err_count ? err_count : 0
+	var data = $.extend({"server_id":server_id}, data);
+	server_process.add_status_to_table(server_id,'发送中....')
+	$.ajax({
+		url: post_url,
+		dataType:'json',
+		type: 'POST',
+		data: data,
+        timeout: post_timeout,
+	})
+	.done(function(data) {
+			msg = data.msg ? data.msg : '成功!'
+			server_process.add_status_to_table(server_id,linebreaksbr(msg))
+			return msg
+	})
+	.fail(function(o,x,text) {
+		if (err_count<=1) {
+			ajaxDo(server_id,data,err_count + 1,5000)
+		} else {
+			server_process.add_status_to_table(server_id,linebreaksbr(o.responseText))
+		
+		}
+	})
+}
+function get_msg(){
+	var cont = $('.roll_broadcast_table')
+	var msg = []
+	
+	if (!check_input_empty(cont)) {
+		return
+	}
+
+	var roll = {};
+	roll.nid = parseInt(new Date().getTime()/1000);
+	roll.start_date = datetime_str_to_timestamp(cont.find('[name="sdate"]').val());
+	roll.end_date = datetime_str_to_timestamp(cont.find('[name="edate"]').val());
+	roll.interval = parseInt(cont.find('[name="interval"]').val());
+	roll.times = parseInt(cont.find('[name="nts"]').val());
+	roll.content = cont.find('[name="content"]').val().replace(/(\n|\r|;)/g,'');
+
+	if ( roll.content.length>400) {
+		alert('限制为100个字符内!');
+		return
+	}else if( roll.content.lenth == 0){
+		alert('请输入公告内容！');
+		return
+	}
+
+    var sp = 0
+    $("[name='sp']:checked").each(function(i,ele){
+        var _val = parseInt($(ele).val())
+        sp += _val
+    })
+    {#roll.sp = sp#}
+	{#msg.push(roll);#}
+	return {"msg":JSON.stringify(roll)}
+}
+
+$('#send_roll_btn').click(function(){
+	var msg = get_msg();
+
+	if (! msg) {
+		return 
+	}
+
+	var server_ids = get_server_ids(true) 
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!');
+		return 
+	}
+    var server_time = parseInt({{server_time}});
+    var et = datetime_str_to_timestamp($('[name="edate"]').val());
+    if (et <= server_time ){
+        alert("结束时间早于服务器当前时间！！")
+        return
+    }
+	server_process.show({"title":"滚动公告设置状态:"})
+
+	for (var i in server_ids) {
+		var server_id = server_ids[i];
+		server_process.make_tr_for_server_id(server_id)
+		ajaxDo(server_id,msg,0,5000)
+	}
+
+    //setTimeout("window.location.reload()",10000);
+})
+
+function get_broadcast(){
+	var server_ids = get_server_ids(true) 
+	if ( server_ids.length<=0 ) {
+		return 
+	}
+
+}
+
+// setInterval('get_broadcast()',1000);
+
+</script>
+
+
+<div class="hr"></div>
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box">
+			<div class="widget-header widget-header-small">
+				<h5>在滚公告</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered">
+						<thead>
+							<tr>
+								<th>编号</th>
+								<th>服务器名</th>
+								<th>开始日期</th>
+								<th>结束日期</th>
+                                <th>剩余广播次数</th>
+								<th>广播内容</th>
+                                <th>发送间隔</th>
+{#                                <th>显示位置</th>#}
+							</tr>
+							</thead>
+							<tbody>
+								{% for r in roll_broadcasts%}
+								<tr>
+									<td>{{r.nid}}
+{#										<a href="javascript:;" nid="{{r.nid}}" class="del_roll">[删除]</a>#}
+									</td>
+									<td class="serverInfo" data-serverid="{{ r.serverId }}">{{ r.serverName }}</td>
+									<td>{{r.start_date|timestamp2datetime}}</td>
+									<td>{{r.end_date|timestamp2datetime}}</td>
+									<td>{{r.times}}</td>
+									<td>{{r.content}}</td>
+                                    <td>{{r.interval}}</td>
+                                    <!-- <td>{{r.sp}}</td> -->
+{#                                    <td>聊天窗</td>#}
+								</tr>
+								{%endfor%}
+							</tbody>
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<script>
+
+$('.del_roll').click(function(){
+    var server_ids = get_server_ids(true)
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!');
+		return
+	}
+	// var server_id = parseInt($(this).parent().next().attr("data-serverid"))
+
+	var nid = parseInt($(this).attr('nid'))
+	var msg = JSON.stringify([nid])
+	var data = {msg:msg,req_type:"roll_broadcast_del"}
+
+	// server_process.show({"title":"滚动公告设置状态:"})
+	// server_process.make_tr_for_server_id(server_id)
+ //    ajaxDo(server_id,data,0,5000)
+ 	server_process.show({"title":"滚动公告设置状态:"})
+
+	for (var i in server_ids) {
+		var server_id = server_ids[i]
+        var data = {msg:msg,req_type:"roll_broadcast_del"}
+        server_process.make_tr_for_server_id(server_id)
+		ajaxDo(server_id,data,0,5000)
+	}
+
+   setTimeout("window.location.reload()",10000);
+});
+
+$(document).ready(function(){
+    $("[name='text']").keyup(function(e){
+        var txt = $(this).val();
+        if(txt.length > 100){
+			$("#str_limit").remove();
+            $(this).after("<span id='str_limit' class='red'>目前字符数是" + txt.length + "，不能超出100个字符</span>")
+        }else{
+            $("#str_limit").remove();
+        }
+    })
+
+    $("[name='sdate']").click(function(){WdatePicker({dateFmt:"yyyy-MM-dd"})});
+    $("[name='edate']").click(function(){WdatePicker({dateFmt:"yyyy-MM-dd"})});
+})
+</script>
+
+<div id="iframe_cont">
+<!-- <iframe id="player_iframe" frameborder='0' width='100%' height='100%' src=''  onload='$(this).height($(this).contents().find("body").height()+100)' ></iframe> -->
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,1 @@
+{"code":{%if list_server%}5{%else%}0{%endif%},"str":"获取服务器列表","msg":{"server_list":[{%for item in list_server%}{"s_id":{{item.id}},"s_name":"{{item.name}}"}{%if not forloop.last%},{%endif%}{%endfor%}]}}

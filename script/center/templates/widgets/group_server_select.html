@@ -1,0 +1,54 @@
+<!-- 服务器 单选-->
+
+<script type="text/javascript">
+
+    function change_server_select(gId){
+        if (gId < 0) return
+        var show_server_ids = []
+        $('.server_select option').each(function(i,ele){
+            var optionEle = $(ele)
+            var server_id = optionEle.val()
+            if ((optionEle.attr('gid') == gId || optionEle.attr('gid')<0 || gId<0 ) && $.inArray(server_id, show_server_ids)<0) {
+                optionEle.show()
+                show_server_ids.push(server_id)
+            } else {
+                optionEle.hide()
+            }
+
+        })
+
+    }
+</script>
+
+<div >
+        <div class="table-menu">
+                <a href="javascript:;"  class="active" onclick="change_server_select(-1);">全部</a>
+            {% for g in group_servers_dict%}
+                <a href="javascript:;" onclick="change_server_select({{g.0}});">{{g.1}}</a>
+            {%endfor%}
+        </div>
+        <div class="table_toolbar">
+            <select name="server_id" class="server_select" svalue="{{server_id}}">
+                {%if has_all%}
+                     <option value=0>全部服务器</option>
+                {%endif%}
+                {% for g,servers in group_servers_dict.items %}
+                    {% for s in servers%}
+                        {% if s.id != -1 %}
+                            <option gid="{{g.0}}" title="服务器id:{{s.id}} 开服时间:{{s.create_time|date:'Y-m-d h:i:s'}}" create_time="{{s.create_time|date:'Y-m-d h:i:s'}}" value="{{s.id}}">{{s.name}}({{s.id}})</option>
+                        {% endif %}
+                    {% endfor%}
+                {%endfor%}
+
+            </select>
+            <input placeholder="搜索" style="width:50px;" type="text" value="" class="server_select_input" onkeyup="search_dbl_list('server_select','server_select_input')">  
+        </div>
+
+
+</div>
+<script>
+$(function(){
+    change_server_select('{{group_id}}' ? '{{group_id}}' : -1)
+})
+</script>
+

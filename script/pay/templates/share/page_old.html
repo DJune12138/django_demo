@@ -1,0 +1,80 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name="apple-mobile-web-app-capable" content="yes" /> 
+<meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, user-scalable=no" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="format-detection" content="telephone=no">
+<title></title>
+<style>
+html {
+	text-align: left;
+	border: 0;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	color: white;
+	background-color: rgb(2, 42, 100);
+	font-family: "微软雅黑";
+	-moz-box-shadow: 0 0 20px black inset;
+	box-shadow: 0 0 20px black inset;
+}
+
+.share_div a{
+	font-weight:normal;
+	padding:2px;color: #FFFBCC;
+	display: table;
+	padding-left: 25%;
+	width: 60%;
+	font-size: 20px
+}
+.share_div a span {
+	margin-left:50%;
+}
+.share_div a:hover{
+	border: 1px solid #270c08;
+}
+</style>
+<script type="text/javascript" >
+var jiathis_config={
+	data_track_clickback:true,
+	url:"{{share_link}}",
+	summary:"{{msg}}",
+	title:"{{title}}",
+	pic:"{{pic_url}}",
+	appkey:{
+		"tsina":"1",
+		"tqq":"2",
+		"t163":"3",
+		"tsouhu":"4",
+		"tpeople":"5"
+	},
+	shortUrl:false,
+	hideMore:false
+}
+</script>
+</head>
+<body>
+<!-- JiaThis Button BEGIN -->
+<div class="jiathis_style_32x32 share_div">
+<!-- 	<a class="jiathis_button_weixin" type="weixin">微信</a> -->
+	<a class="jiathis_button_fb" type="fb">Facebook</a>
+	<a class="jiathis_button_qzone" type="qzone">QQ空间</a>
+	<a class="jiathis_button_tsina" type='tsina'>新浪微博</a>
+	<a class="jiathis_button_msn" type="msn">MSN</a>
+	<a class="jiathis_button_tqq" type='tqq'>腾讯微博</a>
+	<a class="jiathis_button_cqq" type="cqq">QQ好友</a>
+	<a class="jiathis_button_tsohu" type="tsohu">搜狐微博</a>
+	<a class="jiathis_button_douban" type="douban">豆瓣</a>
+	<a class="jiathis_button_renren" type="renren">人人网</a>
+	<a class="jiathis_button_twitter" type="twitter">Twitter</a>
+</div>
+<!-- JiaThis Button END -->
+<script type="text/javascript" >
+var XMLHttpReq;function createXMLHttpRequest(){try{XMLHttpReq=new ActiveXObject("Msxml2.XMLHTTP")}catch(E){try{XMLHttpReq=new ActiveXObject("Microsoft.XMLHTTP")}catch(E){XMLHttpReq=new XMLHttpRequest()}}}function processResponse(){if(XMLHttpReq.readyState==4){if(XMLHttpReq.status==200){var text=XMLHttpReq.responseText}}}function sendAjaxRequest(url){createXMLHttpRequest();XMLHttpReq.open("get",url,true);XMLHttpReq.onreadystatechange=processResponse;XMLHttpReq.send(null)}var a_list=document.getElementsByTagName("a");var f=function(){var type_str=this.type;if(jiathis_config.title==""){jiathis_config.title=type_str}try{sendAjaxRequest(jiathis_config.url)}catch(e){}};for(var i in a_list){if(a_list[i].addEventListener){a_list[i].addEventListener("click",f)}else{if(a_list[i].attachEvent){a_list[i].attachEvent("onclick",f)}}};
+</script>
+<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1976293" charset="utf-8"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>[{{filename}}]编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+[{{filename}}] 编辑
+<div class="buttons">
+    <a href="javascript:window.close()">关闭</a>
+ </div>
+</div>
+<div class="sub-menu">
+
+<form action="/query/edit?js={{filename}}&edit_type={{edit_type}}&action=save" method="post">
+<textarea  id="code" name="code">{{file_content}}
+</textarea>
+<br><hr>
+<input type="submit" value="保存" style="float:right">
+</form>
+</div>
+
+{% with '/static/js/codemirror' as URL %}
+<script src={{URL}}/lib/codemirror.js></script>
+<link rel="stylesheet" href="{{URL}}/lib/codemirror.css" />
+<script src="{{URL}}/mode/javascript/javascript.js"></script>
+<script type="text/javascript">
+window.onload = function() {
+  var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+    mode: 'javascript',
+    indentWithTabs: true,
+    smartIndent: true,
+    lineNumbers: true,
+    matchBrackets : true,
+    autofocus: true,
+    tabSize: 4,
+  });
+  editor.setSize('100%','100%')
+};
+</script>
+{%endwith%}
+{% endblock %}
+

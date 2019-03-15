@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+<title>{{model.name}} - 活动参数编辑</title>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-sm-6">
+     <strong>{{model.name}} </strong>- 活动参数编辑
+    </div>
+    <div class="col-sm-6"> 
+    <div class="pull-right">
+
+    <button id="on_btn" class="btn  btn-danger btn-xs radius-4"><i class="icon-save"></i>保存</button>
+    <button id="activity-json-edit" title="" class="btn btn-xs btn-primary"></i>导出JSON</button>
+    <button id="activity-json-import-btn" title="" class="btn btn-xs btn-success">导入JSON</button>
+
+    <a id="activity-template-list" href="/game/activity_template/list?type={{model.type}}"  class="btn btn-xs btn-info dialog"></i>查看活动模版</a>
+    <button id="activity-template-save" title="" class="btn btn-xs btn-pink"></i>保存为模版</button>
+
+    </div>
+    </div>
+</div>
+<div class="hr"></div>
+
+<div id="activity-params-cont" style="min-height:700px">
+  
+
+</div>
+
+<!-- 导出json的 对话框 -->
+<div id="activity-json-dialog" class="dialog-div">
+    <div class="row">
+    <button id="activity-json-import-sure-btn" class="btn  btn-grey btn-xs radius-4"><i class="icon-save"></i>确定</button><br>
+    <textarea name="msg" style="width:300px" class="check_json not-empty" placeholder=""></textarea>
+    
+    </div>
+</div>
+
+<div id="activity-template-dialog" class="dialog-div">
+    <table class="form2"> 
+
+        <tr>
+        <th>模版名:</th>
+        <td><input type="text"  name="name" value=""></td>
+        </tr>
+        <tr>
+        <th>描述:</th>
+        <td><textarea name="info" ></textarea></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td>
+                <button id="activity-template-save-sure" class="btn  btn-danger btn-xs radius-4"><i class="icon-save"></i>保存</button>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+
+<!-- 加载活动类配置模版 -->
+{% include "game/activity_base.html" with model=model%}
+
+
+<script type="text/javascript">
+
+var activity_type_name = "{{model.type}}"
+function onlyReadPage() {
+    if (window.location.href.search(/is_read=true/)>0) {
+        $('[name],a,button,:button,select').attr('disabled',true)
+        $('a').hide()
+
+    }
+}
+$(function(){
+        var $MSG_CONT = $('[name="msg"]')
+        var QUERY_URL = '/game/activity/activity_query'
+        var ON_URL = '/game/activity/activity_on'
+        var ACTIVITY_PARAMS = {"activity_id": {{model.id}},"server_id":{{server_id}}}
+
+        activitySetting.contEle = $('#activity-params-cont')
+
+        function padding_setting(obj){
+                    // try{
+                        if (typeof obj =='string') {
+                            obj = $.parseJSON(obj)
+                        }
+                        
+                        activitySetting.to_html(obj)
+                        return true
+                    // }catch(e)
+                    // {   
+                    //     console.dir(e)
+                    //     activitySetting.contEle.html('参数加载失败:<br>' +　JSON.stringify(obj))
+                    //     alert('配置JSON解析错误')
+                    //     return false
+                    // }
+        }
+
+        function reverse_to_json(){
+            return activitySetting.to_json($MSG_CONT)
+        }
+        activitySetting.contEle.html('<b>参数加载中</b>......<img src="/static/skin/images/loading.gif">')
+        //查询活动参数配置
+        $.ajax({
+            url: QUERY_URL,
+            type: 'POST',
+            dataType: 'json',
+            timeout:15000,
+            data: ACTIVITY_PARAMS,
+        })
+        .done(function(data) {
+            if (data.code==0){
+                var  msg = data.content[0]
+                padding_setting(msg)
+                if (data.server_name) {
+                    $('#on_btn').append(' -' + data.server_name)
+                }
+            } else {
+                $.dialog('获取参数配置错误!:' + data.msg )
+            }
+        })
+        .fail(function(o,x,text) {
+            var msg = o.responseText ? o.responseText : text
+           $.dialog( {"title":"错误","content":msg.replace(/\n/g,'<br>')})
+            activitySetting.contEle.html('<b>加载失败!</b>' + text)
+        }).always(function(){
+            onlyReadPage()
+        })
+
+
+        //保存
+        $('#on_btn').click(function(){
+            var msg = activitySetting.get_json()
+            if (msg) {
+                var _dialog =  $.dialog({"lock":true})
+                var post_data = $.extend({"msg":msg}, ACTIVITY_PARAMS)
+                $.ajax({
+                    url: ON_URL,
+                    type: 'POST',
+                    dataType: 'json',
+                    timeout:15000,
+                    data: post_data,
+                })
+                .done(function(data) {
+                    _dialog.content(linebreaksbr(data.msg))
+                })
+                .fail(function(o,x,text) {
+                    _dialog.content(linebreaksbr(o.responseText)).title("错误")
+                })
+            }
+        });
+
+
+        $('#activity-json-edit').click(function(){
+            var msg = activitySetting.get_json('json-output')
+            if(msg) {
+                $('[name="msg"]').val(msg)
+                $('#activity-json-dialog').dialog({"title":"导出JSON:","lock":true})
+            }
+        })
+
+
+        // 将json导入到html
+        $('#activity-json-import-btn').click(function(){
+             $('[name="msg"]').val('')
+             $('#activity-json-dialog').dialog({"title":"导入JSON:","lock":true})
+        })
+        $('#activity-json-import-sure-btn').click(function(){
+             var msg =  $('[name="msg"]').val()
+             if (padding_setting(msg)) {
+                $('#activity-json-dialog').dialog().hide()
+             }
+        })
+
+
+        //活动模版
+        var activity_cont_ele = $('#activity-template-dialog')
+        $('#activity-template-save').click(function(){
+            activity_cont_ele.dialog({"title":"保存 "+ activity_type_name +" 活动模版"})
+        })
+
+        $('#activity-template-save-sure').click(function(event) {
+            
+            var post_parmgs = {}
+            post_parmgs['msg'] = activitySetting.get_template_json('json-output')
+            post_parmgs['name'] = activity_cont_ele.find('[name="name"]').val()
+            post_parmgs['type'] = activity_type_name
+            post_parmgs['info'] = activity_cont_ele.find('[name="info"]').val()
+            console.dir(post_parmgs)
+            if(! post_parmgs['name']){
+                alert('模版名不能为空!')
+                return
+            }
+            $.ajax({
+                url: '/game/activity_template/save',
+                type: 'POST',
+                dataType: 'json',
+                data: post_parmgs,
+            })
+            .done(function(data) {
+                $.dialog(data.msg)
+            })
+            .fail(function() {
+                 art.dialog.alert('发生错误!')
+            })
+
+                
+
+        });
+})
+</script>
+
+
+{% endblock %}

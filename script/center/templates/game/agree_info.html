@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+<title>用户协议</title>
+<script type="text/javascript" src="/static/js/xheditor/xheditor-1.1.14-zh-cn.min.js" ></script>
+<script src="/static/js/doT2.min.js" type="text/javascript"></script>  <!--加载doT2模板-->
+
+<style type="text/css">
+    .text {
+        height: 500px;
+    }
+</style>
+
+<script type="text/javascript" >
+    $(document).ready(function(){
+        var url = 'http://' + location.host + '/static/argreeinfo/argreeinfo.html'
+        $("[name='link_url']").val(url)
+    });
+
+    $(document).ready(function(){
+        $("[name='submit']").click(function(){
+            if (confirm("文件会被覆盖，确定生成？")) {
+                var form = $('form:first')
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    dataType: 'html',
+                    data: $('form:first').serialize()
+                })
+                        .done(function (data) {
+                            $.dialog(data)
+                        })
+                        .fail(function (o, x, text) {
+                            $.dialog('保存失败!')
+                        })
+                return false
+            }else{
+				return false
+			}
+
+        })
+    });
+</script>
+
+{% endblock %}
+{% block content %}
+<form class="ajax" action="/game/agreeinfo/create_agreeinfo" method="post">
+<table class="form">
+    <tr>
+    <th>链接地址</th>
+    <td><input type="text" readonly="readonly" name="link_url" size="50"  value="/static/argreeinfo.html" />
+    </td>
+    <tr>
+			<th>协议内容：</th>
+			<td>
+				<textarea id="notice_content" name="content" class="text" style="width: 80%">{{content|safe}}</textarea><!--这里空行，编辑器会多出字符 -->
+				<script>
+						var Plugin = {
+							table_border:{c:"xheIcon xheBtnTable",t:'设置表格边框',h:1,e:function(){
+
+					            var _this=this;
+
+					            var jTest=$('<div><label><input type="checkbox" id="table_border_btn" >表格边框</label></div>');
+					            var table_border_btn=$('#table_border_btn',jTest);
+
+					            table_border_btn.click(function(){
+					            	_this.saveBookmark();
+					            	var html = _this.getSource()
+					            	var table_border_re = new RegExp(/<table.*border=['"'][\d]+["'"][\s]+([^>]+)>/g)
+					            	if (!table_border_re.test(html)) {
+					            		html = html.replace(/<table([^>]+)>/g,'<table border="1" $1>')
+					        		}
+					                var is_checked = $(this).is(':checked')
+					                var border = is_checked ? '1' : '0'
+					                html = html.replace(/border="[\d]+"/g,'border="'+border+'"')
+					                _this.setSource(html)
+					            });
+					            _this.showDialog(jTest);
+					            }
+
+					        }
+						}
+						$('[name="content"]').xheditor({
+							plugins:Plugin,
+							upBtnText:'上传',
+							upImgUrl:'/system/upload/img',
+							internalScript:true,
+							inlineScript:true,
+							linkTag:true,
+							tools:'full'
+							}
+							)
+				</script>
+			</td>
+    </tr>
+    <tr>
+        <th>&nbsp;</th>
+		<td>
+		<input type="submit" name="submit" value="保存" />
+		</td>
+	</tr>
+</table>
+</form>
+{% endblock %}

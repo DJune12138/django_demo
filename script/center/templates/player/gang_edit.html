@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>部族编辑</title>
+
+{% endblock %}
+
+{% block content %}
+
+<div id="bar">
+	<a href="/query/view/部族管理">部族管理</a> -> {{gang_name}} 部族资料编辑
+	<div class="buttons">
+		<a href="/server/channel/channel_list">返回</a>
+	</div>
+</div>
+<form action="/game/gang/modify_gang?gang_id={{gang_id}}&server_id={{server_id}}" method="post" class="ajax">
+
+	<table class="form2">
+		<tr>
+			<th>部族名：</th><td><input type="text"  name="gang_name" value="{{gang_name}}" /></td>
+		</tr>
+		<tr>
+			<th>部族宣言：</th><td><textarea type="text" name="declaration" rows="10" cols="30" style="width: 100%">{{declaration}}</textarea></td>
+		</tr>
+		<tr>
+			<th></th>
+			<td><input type="submit" value="保存" /></td>
+		</tr>
+	</table>
+</form>
+{% endblock %}

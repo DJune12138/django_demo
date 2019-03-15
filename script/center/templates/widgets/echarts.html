@@ -1,0 +1,362 @@
+<!-- 加载highcharts -->
+
+<script type="text/javascript" src="/static/assets/echarts/echarts-all.js"></script>
+
+
+<script type="text/javascript">
+var charts_obj_dict = {}
+var datetime_cache = {}
+function convert_datetime(_str){
+		var _r = _str
+		var _date_time = new Date(_str)
+		if ( _date_time != 'Invalid Date' ) {
+			var date_str = _date_time.format('yyyy-MM-dd')
+			if ( datetime_cache[date_str] ){
+
+				_r = datetime_cache[date_str] == _str ?  _str : _date_time.getHours()
+			} else {
+				datetime_cache[date_str] = _str
+			}
+		}
+		return _r 
+}
+function is_week_end(d){
+	if (strDate(d)){
+		var dd = new Date(d)
+		return dd.getDay() == 0 || dd.getDay() == 6
+	}
+	return false
+}
+function Echarts(ele_id) {
+	var _this = this
+	var This = this
+	this.cont_ele = ele_id ? document.getElementById(ele_id) : document.createElement('charts-div')
+	this.ele_id = ele_id
+	this.formatter = function(params, ticket, callback){
+		var r = ''
+		var item_date = params[0].name
+		if (is_week_end(item_date)){
+			item_date = '<b style="color:red">'+ item_date +'</b>'
+		}
+
+		r += item_date + '<br>'
+		for (var i in params){
+			var p = params[i]
+			var name = p.seriesName
+			var value = p.value
+			r += name + ':' + value + '<br>'
+		}
+
+
+		return r
+	}
+
+    this.series_type = {
+    					type:"line",
+    					smooth:true,
+						itemStyle: {normal: {
+							// areaStyle: {type: 'default'},
+							//label : {show: true}
+						}},
+						markPoint : {
+			                data : [
+			                    // {type : 'max', name: '最大值'},
+			                    // {type : 'min', name: '最小值'}
+			                ]
+			            },
+			            markLine : {
+			                data : [
+			                    // {type : 'average', name: '平均值'}
+			                ]
+			            }
+	}
+
+
+    this.opt = {
+	    title : {
+	        text: '',
+	        subtext: '',
+			textStyle:    {
+			    fontSize: 13,
+			    fontWeight: 'bolder',
+			    color: '#333'
+			} 
+	    },
+	    tooltip : {
+	        trigger: 'axis',
+	        formatter:This.formatter,
+			axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+            	type : 'line'        // 默认为直线，可选为：'line' | 'shadow'
+        	}
+	    },
+	    grid:{},
+	    legend: {
+	        data:[],
+	        'y':'bottom',
+	        'x':'center',
+	        selected:{}
+	    },
+	    toolbox: {
+	        show : true,
+	        feature : {
+	            // mark : {show: true},
+	            dataZoom : {show: true},
+	            dataView : {show: false, readOnly: false, lang : ['数据视图', '关闭', '更新']},
+	            magicType : {show: true, type: ['line', 'bar']},//type: ['line', 'bar', 'stack', 'tiled']
+	            restore : {show: true},
+	            saveAsImage : {show: true},
+
+	        }
+	    },
+	    calculable : true, //是否启用拖拽重计算特性，默认关闭
+	    dataZoom : {
+		        show : true,
+		        realtime : true,
+		        start : 00,
+		        end : 100,
+		        'y':380,
+		        'height': 20,
+    	},
+	    xAxis : {
+	            type : 'category',
+	            boundaryGap : true,
+	            data : []
+	    },
+	    yAxis : [
+	        {
+	            type : 'value',
+	            boundaryGap:[0,0.15],
+	            scale:true
+	        }
+	    ],
+	    series : []
+	}
+
+
+
+	this._getAvg = function(list){
+		var num = 0
+		for(i in list){num += list[i]}
+		return 	(num / list.length).toFixed(1)
+	}
+
+//   增加辅助线
+	this._cache_assist_data = {}
+	this.add_assist_data = function(xAxis_name,mark_list_data){
+		/*
+		@xAxis_name 项目名
+		@mark_list_data echarts的markLine参数
+		*/
+		var series_len = This.opt.series.length      //系列数据项目长度
+		
+		while (series_len--) {
+            if (This.opt.series[series_len].name == xAxis_name) {
+                This.opt.series[series_len].markLine.data = mark_list_data
+                if (mark_list_data && mark_list_data.length>0 ) {
+                	This._cache_assist_data[xAxis_name] = mark_list_data
+                }
+                break;
+            }
+        }
+
+	}
+
+	this.is_on_assist_switch = false
+	this.add_assist_switch = function(){
+		This.opt.toolbox.show = true
+		This.opt.toolbox.feature.assist_switch =  {
+								                show : true,
+								                title : '辅助线',
+								                icon : '/static/assets/artDialog/icons/succeed.png',
+								                onclick : function (a){
+
+								                    var selected = This.echarts_obj.chart.line.selectedMap
+								                    var is_clear = false
+
+								                    
+								                    This.is_on_assist_switch = !This.is_on_assist_switch
+
+								                    for (var select_name in selected) {
+								                    	This.opt.legend.selected[select_name] = selected[select_name]
+								                    
+
+								                    	if (selected[select_name] && This.is_on_assist_switch){
+								                    		var mark_list_data = This._cache_assist_data[select_name] 
+								                    		This.add_assist_data(select_name,mark_list_data)
+								                    		
+								                    	}else if (selected[select_name] && !This.is_on_assist_switch){
+								                    		This.add_assist_data(select_name,[])
+								                    		is_clear = true
+								                    	}else if (!selected[select_name] && This.is_on_assist_switch){
+
+								                    	}else if (!selected[select_name] && !This.is_on_assist_switch){
+
+								                    	}
+
+								                    }
+
+
+								                    
+								                    
+								                    is_clear ? This.echarts_obj.clear() : ''
+
+								                    This.done()
+								                    }
+								                 
+								                }
+          This.done()
+	}
+
+
+	this.push_data = function(list_data,fields,is_reverse,item_handle,first_item_handle,index_list,xAxis_handle){//增加数据
+		var data_list = []
+		var xAxis = [] //横轴项目，即第一列
+		var legend = [] //
+		var lines = list_data
+		var columns = fields    //数据项
+
+		var columns_length = columns.length
+		for (var i=1;i<columns_length;i++){
+			if (index_list) {
+				if ($.inArray(i,index_list)<0){
+
+					continue
+				}
+			}
+			var serie_obj = {
+				'name':columns[i],
+				'data':[],
+			}
+			serie_obj = $.extend(true,serie_obj, this.series_type);
+			data_list.push(serie_obj)
+		}
+
+
+		for (var i = 0;i<lines.length;i++){
+			var items = lines[i]
+			var first_item = items[0]
+			first_item = String(first_item)
+			if (first_item.indexOf('合计')>=0 || first_item.indexOf('总计')>=0 || first_item.indexOf('总共')>=0  || !first_item) { //不需要的
+				continue
+			}
+
+			xAxis.push( first_item_handle ? first_item_handle(items[0]) : items[0])//横轴增加第一项
+			if (index_list) {
+
+				for (var ii in index_list){
+					var index = index_list[ii]
+					var item = items[index]
+					data_list[ii]['data'].push( item_handle ? item_handle(item) : parseFloat(!isNaN(item) && item ? item : 0))
+				}
+
+			} else {
+				for(var j=1;j<columns_length;j++){
+						var item = items.length>=j+1 ? items[j] : '0'
+						data_list[j-1]['data'].push( item_handle ? item_handle(item) : parseFloat(!isNaN(item) && item ? item : 0))
+				}
+				
+			}
+
+		}
+		
+		
+		xAxis = is_reverse ? xAxis.reverse() : xAxis
+		for(var i in  data_list ){
+			 var o = data_list[i]
+			// o['name'] += ' (Min:'+ Math.min.apply(Math,o['data'])
+			// o['name'] += ' Max:'+ Math.max.apply(Math,o['data'])
+			// o['name'] += ' Avg:'+ _this._getAvg(o['data'])+')'
+			legend.push(o['name'])
+			if (is_reverse) {
+				o['data'] = o['data'].reverse()
+			}
+		}
+		if (xAxis_handle){
+			xAxis = xAxis_handle(xAxis)
+		}
+		_this.opt.xAxis.data = xAxis//增加横轴项目
+
+		_this.opt.legend.data = legend
+		_this.opt.series = data_list //增加序列数据
+		return [xAxis,data_list]
+	}
+
+	this.done = function(){
+		_this.echarts_obj.hideLoading();
+		_this.echarts_obj.setOption(_this.opt); 
+		_this.bind_resize()
+		
+	}
+	this.bind_resize = function(){
+		charts_obj_dict[_this.ele_id] = _this.echarts_obj
+
+		window.onresize = function(){
+			for (var k in charts_obj_dict){
+				charts_obj_dict[k].resize()
+			}
+
+		}
+	}
+	this.loading = function(text,type,height){
+		$(_this.cont_ele).height( (height ? height : 400 )+'px')
+		//_this.echarts_obj = echarts.init(_this.cont_ele,'infographic')
+		_this.echarts_obj = echarts.init(_this.cont_ele,'')
+		_this.echarts_obj.showLoading({
+	    text : text ? text :'数据读取中...',
+	    effect : type ? type :'spin',
+	    textStyle : {
+	        fontSize : 20
+	    }
+	});
+	}
+	this.on = function(event_name,func){
+		/*
+// -------全局通用
+REFRESH: 'refresh',
+RESTORE: 'restore',
+RESIZE: 'resize',
+CLICK: 'click',
+DBLCLICK: 'dblclick',
+HOVER: 'hover',
+MOUSEOUT: 'mouseout',
+// -------业务交互逻辑
+DATA_CHANGED: 'dataChanged',
+DATA_ZOOM: 'dataZoom',
+DATA_RANGE: 'dataRange',
+DATA_RANGE_HOVERLINK: 'dataRangeHoverLink',
+LEGEND_SELECTED: 'legendSelected',
+LEGEND_HOVERLINK: 'legendHoverLink',
+MAP_SELECTED: 'mapSelected',
+PIE_SELECTED: 'pieSelected',
+MAGIC_TYPE_CHANGED: 'magicTypeChanged',
+DATA_VIEW_CHANGED: 'dataViewChanged',
+TIMELINE_CHANGED: 'timelineChanged',
+MAP_ROAM: 'mapRoam',
+*/
+		_this.echarts_obj.on(event_name,func)
+	}
+
+}
+
+</script>
+
+
+
+<script>
+function keep_num_item_handle(item){
+	if (item) {
+	var item = parseFloat(item.toString().split(/%/)[0])
+	item = !isNaN(item) ? item : 0
+	}else{
+		item=0
+	}
+	return item
+}
+
+
+</script>
+
+
+
+
+

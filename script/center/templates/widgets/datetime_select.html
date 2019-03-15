@@ -1,0 +1,93 @@
+<!-- 时间选择组件 -->
+
+<style>
+.datetime_select_table{
+    width: 100%;
+  font-size: small;
+}
+.datetime_select_table th{
+    padding: 5px;
+    text-align: center;
+}
+.datetime_select_table td{
+    padding: 5px
+
+}
+.datetime_select_table span{
+    margin-left: 5px;
+    font-size: small;
+}
+</style>
+
+
+
+<table class="datetime_select_table">
+<tr>
+<th>
+    时间类型:
+</th>
+<td>
+
+    <span>
+    <label class="pointer">
+        <input name="{{space}}_timerange_type"  type="radio" class="ace" value="WdateY" >
+        <span class="lbl"> 年对比 </span>
+    </label>
+    </span>
+    <span>
+    <label class="pointer">
+        <input name="{{space}}_timerange_type"  type="radio" class="ace" value="WdateM" >
+        <span class="lbl"> 月对比 </span>
+    </label>
+    </span>
+    <span>
+    <label class="pointer">
+        <input name="{{space}}_timerange_type"  type="radio" class="ace" value="WdateW" checked="checked">
+        <span class="lbl"> 周对比 </span>
+    </label>
+    </span>
+    <span>
+    <label class="pointer">
+        <input name="{{space}}_timerange_type" type="radio" class="ace" value="WdateD">
+        <span class="lbl"> 连续天 </span>
+    </label>
+    </span>
+</td>
+</tr>
+<tr>
+<th>
+     时&nbsp;&nbsp;间&nbsp;&nbsp;段:
+</th>
+<td>
+       <input type="text" style="font-weight: bold;color: black;"  name="{{space}}_sdate" class="WdateW" value="">
+       到
+       <input type="text" style="font-weight: bold;color: black;"  name="{{space}}_edate" class="WdateW" value="">
+
+        <a id="{{space}}_search_btn"  class="btn btn-sm btn-success ">
+            <i class="icon-search "></i>查询
+        </a>
+
+</td>
+</tr>
+</table>
+
+<script>
+
+$('[name="{{space}}_timerange_type"]').click(function(event) {
+    var $this = $(this)
+    var datetime_format = $this.attr('value')
+    $('[name="{{space}}_sdate"]').attr('class',datetime_format)
+    $('[name="{{space}}_edate"]').attr('class',datetime_format)
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+

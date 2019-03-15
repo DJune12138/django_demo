@@ -1,0 +1,27 @@
+
+<div id="charts-div2" >
+
+</div>
+
+<script>
+if (window.dataTableOption) {
+	var LIST_DATA = null
+	var $charts_cont = $('#charts-div2')
+	$charts_cont.insertBefore($QUERY_TABLE)
+
+	dataTableOption.page_size=100
+	dataTableOption.page_size_list=[100,200]
+
+	dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+	dataTableOption.convertOutputDataFuncs.push(function(data) {
+		LIST_DATA = data.list_data
+		var h = new hightcharts('charts-div2')
+		h.opt.title.text = data.query_name
+		h.opt.subtitle.text='合计金额'
+		h.push_data(data.list_data,data.fields,3)
+
+		h.done()
+	  	return data
+	}) 
+}
+</script>

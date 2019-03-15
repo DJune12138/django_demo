@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>支付通道列表</title>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+支付通道列表
+<div class="buttons">
+ <a href="/pay/channel/edit/0" class="openDialog">添加</a>
+ </div>
+</div>
+
+
+<div class="sub-menu">
+	<a href="?"{%ifequal '' func_name%} class="active"{%endifequal%}>全部</a>
+	{%for item in list_func%}
+	<a href="?func={{item}}"{%ifequal item func_name%} class="active"{%endifequal%}>{{item}}</a>
+	{%endfor%}
+</div>
+
+<div class="sub-menu-1">
+	<label><input type="checkbox" id="edit_mode">编辑模式</label>
+	<div class="buttons" style="float:right">
+		<a id="extra_open" href="javascript:void(0)"  >批量修改返利</a>
+	</div>
+</div>
+<div style="overflow: auto">
+<table class="table table-bordered datatable"  id="pay_channel_table" data-group-by-index="[3,8,10]">
+	<thead>
+		<tr>
+		<th ><input type="checkbox" checkbox-area="select_channel_area"></th>
+		<th>ID</th>
+		<th>名称</th>
+		<th width="8%">支付函数</th>
+		<th>支付类型标识<br>月卡标识</th>
+		<th width="18%" >备注</th>
+		<th>数额</th>
+		<th>汇率</th>
+		<th>金额</th>
+		<th >币种</th>
+		<th >单位</th>
+		<th >状态</th>
+		<th >返利状态</th>
+		<th >操作</th>
+		</tr>
+	</thead>
+	<tbody id="select_channel_area">
+		{%for item in list_record%}
+		{%if item.is_show%}
+		<tr c_id="{{item.id}}">
+			<td ><lable><input type="checkbox" value="{{item.id}}" name="pay_channel_id"></lable></td>
+			<td>{{item.id}}</td>
+			<td><a href="/pay/channel/edit?model_id={{item.id}}" class="openDialog">{{item.name}}</a></td>
+			<td  >{{item.func_name}}</td>
+			<td>{{item.link_id}}
+				{%if item.card_key%}
+				<br>
+				{{item.card_key}}
+				{%endif%}
+			</td>
+			<td style="word-break : break-all; overflow:hidden;">{{item.remark}}</td>
+			<td name="amount">{{item.gold}}</td>
+			<td>1:{{item.exchange_rate|floatformat}}</td>
+			<td name="amount">{{item.amount}}</td>
+			<td name="currency">{{item.currency}}</td>
+			<td>{{item.unit}}</td>
+			<td>{{item.get_status_display}}</td>
+			{%if item.is_extra %}
+			<td class="green">开</td>
+			{%else%}
+			<td class="red">关</td>
+			{%endif%}
+			<td>
+			<a href="/pay/channel/remove?model_id={{item.id}}" class="del">[删除]</a>
+			<a href="/pay/channel/edit?model_id={{item.id}}" class="openDialog">[编辑]</a>
+			<a href="/pay/channel/edit?model_id={{item.id}}&is_copy=true" class="openDialog">[复制]</a>
+			</td>
+		</tr>
+		{%endif%}
+		{%endfor%}
+	</tbody>
+</table>
+</div>
+<script id="extra_condition_tml" type="text/template">
+	<div class="extra_condition">
+		充值金币
+		<input type="text" size="5" name="extra_begin" value=""  >
+		-
+		<input type="text" size="5" name="extra_end" value="" >
+		返利(比率)
+		<input type="text" size="5" name="extra_result" value="" >
+		<a href="javascript:" onclick="$(this).parent().remove()" > X</a>
+	</div>
+</script>
+
+<div id="extra_div" style="display:none" >
+	<label><input type="checkbox" name="extra_on" checked="checked">开启</label>
+	 <div id="extra_condition_container" style="text-align: center;">
+	 	<div>
+	        开启时段:
+	        <input type="text" name="extra_sdate" value="" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})" class="Wdate">
+	        -
+	        <input type="text" name="extra_edate" value="" onclick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})" class="Wdate">
+	        <input id="extra_add_btn" type="button"  value="添加规则">
+	     </div>
+	        <div id="extra_condition_div"> </div>
+    </div>
+    <div>
+    <hr>
+    <input id="extra_save_btn" type="button" value="批量保存规则">
+    </div>
+</div>
+
+<script type="text/javascript">
+//批量修改返利
+$('#extra_open').click(function(){
+	$('#extra_div').dialog({modal:false,title:"批量修改返利",top:"100px"})
+	$('#extra_add_btn').click(function(){
+		$('#extra_condition_div').append($('#extra_condition_tml').html())
+	})
+
+	$('[name="extra_on"]').click(function(){
+		if(!$(this).is(':checked')){
+			$('#extra_condition_container').hide()
+		}else{
+			$('#extra_condition_container').show()
+		}
+
+	})
+
+	function check_condition(condition_list){
+		var _r = true
+		condition_list.each(function(i,ele){
+			if(isNaN(ele.value)){_r=false;}
+		})
+		return _r
+	}
+
+	$('#extra_save_btn').click(function(){
+		if(!confirm('确定批量修改吗?')){return false}
+		var on  = $('[name="extra_on"]').is(":checked")
+	    var pay_channel_ids = $('#select_channel_area :checkbox').serialize()
+	    if(!pay_channel_ids){alert('没有选择充值通道!');return false}
+		var post_data = ''
+		post_data += 'extra_on=' + on
+		post_data += '&'+ pay_channel_ids
+
+		if (on) {
+			var sdate = new Date($("input[name='extra_sdate']").val().replace(/-/g,'/')).getTime()/1000
+			var edate =  new Date($("input[name='extra_edate']").val().replace(/-/g,'/')).getTime()/1000
+			if (!sdate||!edate){
+				alert('时间没有填写!')
+				return 
+			}
+			post_data += sdate?'&sdate=' + sdate:''
+			post_data += edate?'&edate=' + edate:''
+			post_data += '&extra='
+			var extra = []
+			var conditions = $('.extra_condition')
+			for(var i=0;i<conditions.length;i++){
+				var _c = {}
+				var condition_list = $(conditions[i]).find(':text')
+				if(!check_condition(condition_list)){
+					alert('第' + (parseInt(i)+1) + '个条件错误!' )
+					return
+				}
+				_c["conditions"] = [parseInt(condition_list[0].value),parseInt(condition_list[1].value)]
+				_c["amount"] = condition_list[2].value
+				extra.push(_c)
+			}
+			if (!extra.length>0){
+				alert('没有设置返利条件!')
+				return
+			}
+			post_data+=JSON.stringify(extra)
+		}
+		$.ajax({
+			url: '?action=batch_change_extra',
+			type: 'post',
+			data:post_data,
+		})
+		.done(function(data) {
+			var j_d = $.parseJSON(data)
+			if (j_d.code==0){
+				alert('批量修改成功!')
+				//window.location.reload()
+			}else{
+				alert(j_d.msg)
+			}
+		})
+		.fail(function() {
+			console.log("error");
+		})
+
+		console.log(post_data)
+
+	})
+
+
+
+})
+</script>
+
+<script>
+
+function make_ajax_input(_val,c_id,name){
+	var _input = $('<input>',{type:"text",value:_val,name:name,style:"width:50px",blur:function(){
+		var This = $(this)
+		var _text = This.val()
+		if (!_text.match(/[^a-zA-Z0-9\.]+/)){
+			$.ajax({
+		 			type:"post",
+		 			url:'/pay/channel/save',
+		 			data: 'id='+ c_id + "&"+ This.serialize() + '&action=ajax_save',
+		 			success:function(data){
+		 				var j_data = JSON.parse(data)
+		 				if (j_data["code"]==0){
+		 					 This.next().html('成功.')
+		 				}else{
+		 					This.next().html('失败.')
+		 				}
+		 			}
+		 		})
+
+		}else{
+			alert('不能中文啊~亲')
+		}
+	}})
+	return _input
+}
+
+
+$('#edit_mode').click(function(){
+	var index1=$('#pay_channel_table thead tr th:contains("金额")').index() 
+	var index2=$('#pay_channel_table thead tr th:contains("币种")').index() 
+	var checked = $(this).is(':checked')
+
+	$('#pay_channel_table tbody').find('tr').each(function(i,ele){
+			var c_id = $(ele).attr("c_id")
+			$(ele).find('td').each(function(ii,_ele){
+				var _name = $(_ele).attr('name')
+				if (ii==index2||ii==index1){
+					if (checked){
+							$(_ele).html(make_ajax_input($(_ele).text(),c_id,_name))
+							$(_ele).append('<span></span>')
+					}else{
+						$(_ele).html($(_ele).find('input:text').val())
+
+					}
+
+					
+				}
+			})
+
+		})
+
+})
+</script>
+{% endblock %}

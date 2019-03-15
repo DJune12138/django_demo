@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>服务器管理</title>
+<style>
+.action-cont{display: none}
+</style>
+{% endblock %}
+{% block content %}
+{% with model_name='Server' url_prefix='/server/server/server_' %}
+
+<script type="text/javascript">
+
+	function add{{model_name}}(ele){
+		art.dialog.open("{{url_prefix}}edit",{title:ele.innerText})
+	}
+	function edit{{model_name}}(ele){
+		if (selectId) {
+			art.dialog.open("{{url_prefix}}edit?sid=" + selectId,{title:ele.innerText})
+		}
+	}
+	function remove{{model_name}}(ele){
+		var sids = $('#{{model_name}}_area :checkbox').serialize()
+		if (sids) { 
+			if (confirmRandom('确定删除吗?')) {
+				window.location.href = "{{url_prefix}}remove?" + sids
+			}
+		}
+	}
+	function copy{{model_name}}(ele){
+		if (selectId) {
+			art.dialog.open("{{url_prefix}}edit?copy=true&sid=" + selectId,{title:ele.innerText})
+		}
+	}
+
+	function sync_table() {
+		openwindow('/log/log/log_syncdb','123123',0.8,0.8,$('#post_form').serialize())
+	}
+
+	function merge_server(){
+		if (confirm('确定合服配置吗!')){
+			$.ajax({
+				url: '/server/server/merge_server_json',
+				type: 'POST',
+				dataType:'json',
+				data: $('#post_form').serialize()
+			})
+			.done(function(data) {
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+	}
+
+
+
+
+	function change_server_status() {
+		var action_name = $("select[name='action']").val()
+		if(action_name == "auto_merge_server" || action_name == "back_merge_server"){
+			$.ajax({
+				url: '/server/server/auto_server_merge_info',
+				type: 'POST',
+				dataType:'json',
+				data: $('#post_form').serialize(),
+				// async: false
+			})
+			.done(function(data){
+				if(action_name == "auto_merge_server"){
+				// if(confirm(data.msg)){
+				// 	$.ajax({
+				// 		url: '/server/server/auto_server_merge',
+				// 		type: 'POST',
+				// 		dataType:'json',
+				// 		data: $('#post_form').serialize(),
+				// 		// async: false,
+				// 		beforeSend:function(){
+				// 			art.dialog('<img src="/static/skin/images/loading.gif">执行中...')
+				// 		}
+				// 	})
+				// 	.done(function(data){
+				// 		art.dialog(data.msg)
+				// 	})
+				// }
+				if(data.msg.search("存在多个母服") >= 0  || data.msg.search("不是顺畅") >= 0){
+					swal({
+						title:data.msg,
+						type:"warning",
+						showCancelButton: false,
+					})	
+				}else{
+					swal({ 
+					  title: data.msg, 
+					  text: "", 
+					  type: "info", 
+					  showCancelButton: true, 
+					  closeOnConfirm: false, 
+					  showLoaderOnConfirm: true,
+					  confirmButtonText: "确认执行！",
+					  cancelButtonText: "取消执行！",
+						},
+						function(){
+							 $.ajax({
+							 	url: '/server/server/auto_server_merge',
+							 	type: 'POST',
+							 	dataType:'json',
+							 	data: $('#post_form').serialize(),
+							 })
+							 .done(function(data){
+							 	swal({title:data.msg})
+							 })
+						});
+					}
+			}else if(action_name == "back_merge_server"){
+				// if(confirm(data.msg)){
+				// 	$.ajax({
+				// 		url: '/server/server/back_merge_server',
+				// 		type: 'POST',
+				// 		dataType:'json',
+				// 		data: $('#post_form').serialize(),
+				// 		async: false
+				// 	})
+				// 	.done(function(data){
+				// 		art.dialog(data.msg)
+				// 	})
+				// }
+				if(data.msg.search("存在多个母服") >= 0 || data.msg.search("不是顺畅") >= 0){
+					swal({
+						title:data.msg,
+						type:"warning",
+						showCancelButton: false,
+					})
+				}else{
+					swal({ 
+					  title: data.msg, 
+					  text: "", 
+					  type: "info", 
+					  showCancelButton: true, 
+					  closeOnConfirm: false, 
+					  showLoaderOnConfirm: true,
+					  confirmButtonText: "确认执行！",
+					  cancelButtonText: "取消执行！",
+						},
+						function(){
+							 $.ajax({
+							 	url: '/server/server/back_merge_server',
+							 	type: 'POST',
+							 	dataType:'json',
+							 	data: $('#post_form').serialize(),
+							 })
+							 .done(function(data){
+							 	swal({title:data.msg})
+							 })
+						});
+					}
+			}
+			})
+			.fail(function(){
+				art.dialog("超时失败！")
+			})
+		}else{
+		if (confirm('确定提交操作吗!')){
+			$.ajax({
+				url: '/server/server/server_status_edit',
+				type: 'POST',
+				dataType:'json',
+				data: $('#post_form').serialize()
+			})
+			.done(function(data) {
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+		}
+	}
+
+    function kill_player(par){
+        if (confirm('确定要踢所有玩家吗？')){
+            openwindow('/game/player/kill_all_players?server_id='+par,'kill_all_players',0.1,0.1)
+        }
+    }
+
+$(function(){
+     $('#{{model_name}}_area tr').contextMenu('contextMenu',   
+     {  
+          bindings:   
+          {  
+            'c_edit': function(t) {  
+              edit{{model_name}}(t)
+            },  
+            'c_settings': function(t) {  
+              alert('服务器参数配置!')
+            },
+            'c_copy': function(t){
+            	copy{{model_name}}(t)
+            }
+          }  
+    });  
+ })
+</script>
+
+
+<div class="bar">
+		<div class="buttons">
+{#			<a href="javascript:void(0)" id="reset" class="reset">首冲双倍重置</a>#}
+{#		    <a href="javascript:void(0)" id="offline" class="offline">全服下线</a>#}
+		    {% if request.allow_menu.合服配置 %}
+			<a href="/server/server/server_merge" class="openDialog">合服配置</a>
+			{% endif %}
+			<a href="/server/server/server_make" class="ask">生成服务器列表</a>
+		</div>
+</div>
+<div class="sub-menu">
+	<a href="/server/server/server_list"{%ifequal group_id 0%} class="active"{%endifequal%}>全部</a>
+	{%for item in list_group%}
+	<a href="/server/server/server_list?group_id={{item.id}}"{%ifequal item.id group_id%} class="active"{%endifequal%}>{{item.name}}</a>
+	{%endfor%}
+</div>
+<div  id="contextMenu" class="contextMenu hide">  
+	<ul>   
+		<li id="c_edit" class="btn no-border btn-white"><i class="icon-edit"></i>编辑</li>  
+		<li id="c_copy" class="btn no-border btn-white"><i class="icon-cogs"></i>复制</li>   
+	</ul>  
+</div> 
+
+<ul id="nav-list" class="nav nav-tabs" >
+	  <li class="active" >
+	  	<a href="{{url_prefix}}list" >游戏服管理</a>
+	  </li>
+</ul>
+
+<form id="post_form"  method="post" >
+		<!-- 按钮工具条 -->
+<div id='datatable_toolbar'>
+			<div class="btn-toolbar pull-right">
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-success " onclick="add{{model_name}}(this)">
+						<i class="icon-plus-sign"></i>添加
+					</a>
+				</div>
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-primary " onclick="edit{{model_name}}(this)" >
+						<i class="icon-edit"></i>编辑
+					</a>
+					<a data-toggle="dropdown" class="btn btn-sm btn-primary dropdown-toggle">
+						<span class="icon-caret-down icon-only"></span>
+					</a>
+
+					<ul class="dropdown-menu" >
+						{%if request.allow_menu.游戏服_删除%}
+						<li><a  class="gray" onclick="remove{{model_name}}(this)">删除</a></li>
+						{%endif%}
+					</ul>
+				</div>
+
+			</div>
+</div>
+<table  class="table table-bordered  datatable" data-group-by-index="[5]">
+			<thead>
+			<tr>
+				<th width="60">
+					<input type="checkbox"   checkbox-area='{{model_name}}_area'  >
+				</th>
+				<th >ID</th>
+				<th >服务器名(别名)</th>
+				<th >IP:端口</th>
+				<th >开服时间</th>
+				<th >状态</th>
+				<th>排序</th>
+				<!-- <th>操作</th> -->
+				<th>推荐标识</th>
+			</tr>
+			</thead>
+			<tbody id="{{model_name}}_area">
+			{%for item in list_record%}
+			<tr>
+				<td>
+				<input type="checkbox"  value="{{item.id}}" name="sid">
+				</td>
+				<td id="ssid"><a href="{{url_prefix}}msg?sid={{item.id}}" class="dialog">{{item.id}}</a></td>
+				<td><a href="{{url_prefix}}edit?sid={{item.id}}" class="openDialog">{{item.name}}({{item.alias}})</a>
+				</td>
+				<td>{{item.game_addr}}:{{item.game_port}}</td>
+				<td>{{item.create_time_str}}</td>
+				<td>{{item.get_status_display}}</td>
+				<td>{{item.order}}</td>
+				<td>
+					<!-- {% if  request.allow_menu.滚动公告%}
+					<a href="/game/server/roll_broadcast?server_id={{item.id}}" class="openDialog">[滚动公告]</a>
+					{%endif%}
+                    &nbsp;
+					{% if request.admin.is_root%}
+					  <a href="/game/server/server_time?server_id={{item.id}}" class="openDialog">[服务器时间]</a>
+					{%endif%}
+          &nbsp;
+
+	        {% if request.allow_menu.角色邮件信息%}
+            <a href="/game/player/mail_info?server_id={{ item.id }}" class="openDialog">[公共邮件信息]</a>
+          {%endif%}
+          &nbsp; -->
+          		{% for c in COMMEND_CHOICES %}
+          		{% if item.commend == c.0 %}
+          			{{c.1}}
+          		{% endif %}
+          		{% endfor %}
+				</td>
+			</tr>
+
+			{%endfor%}
+			</tbody>
+</table>
+
+{% if request.allow_menu.修改服务器状态 or request.allow_menu.修改版本号 %}
+<div class="sub-menu-1">
+	<label>选中操作：</label>
+	<select  name="action"   >
+		{% if request.allow_menu.修改服务器状态 %}
+		<option value="change_status">修改服务器状态</option>
+		{%endif%}
+		{% if request.allow_menu.修改版本号 %}
+		<option value="change_version">修改版本号</option>
+		{%endif%}
+		<option value="merge_server">合服配置</option>
+		<option value="clear_server">清档</option>
+		<option value="auto_merge_server">自动合服</option>
+		<option value="back_merge_server" style="color:red;font-weight:bold;">回滚合服</option>
+	</select> 
+	{% if request.allow_menu.修改服务器状态 %}
+	<span id="change_status" class="action-cont">
+		状态:
+		<select name="serv_status"  id="change_option" >
+			{% for item in STATUS_CHOICES %}
+			<option title="{{item.1}}" value="{{item.0}}">{{item.1}}</option>
+			{% endfor %}
+		</select>
+	</span> 
+	{%endif%}
+	{% if request.allow_menu.修改版本号 %}
+	<span id="change_version" class="action-cont">
+		版本:<input type="text" class="" name="ver" value="" />
+	</span> 
+	{%endif%}
+	
+	<input type="button" class="btn btn-xs btn-danger" title="提交" value="提交操作"  onclick="change_server_status()"/>
+	
+	{% if request.allow_menu.同步表 %}
+	<input type="button" class="btn btn-xs" value="同步表" id="btn_sync_table" onclick="sync_table()" />
+	{% endif %}
+	<span id="merge_server" class="action-cont">
+		<input type="button" class="btn btn-xs" value="合服配置" id="btn_merge_server" onclick="merge_server()" />
+	</span> 
+
+</div>
+{%endif%}
+
+<div class="sub-menu-1" id="tip_text" style="display: none;">
+	        <textarea name="weihuTip" placeholder="维护提示信息..."></textarea>
+</div>
+</form>
+<div id="sync_index_dialog" ></div>
+<div id="tip_box" title="提示框" ></div>
+
+<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="messageModalLabel">消息</h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function(){
+	$('[name="action"]').click(function(){
+		$('.action-cont').hide()
+		$('#'+$(this).val()).show()
+	})
+
+    $("#change_option").change(function(){
+            var option_id = $(this).find(":selected").val();
+            if(option_id == 1){
+                $("#tip_text").show()
+            }else{
+                $("#tip_text").hide();
+            }
+     })
+
+    $("#offline").click(function(){
+    	if(confirm('确定要踢所有玩家吗？')){
+    	var $table = $(".datatable");
+    	var allEle = $table.find("input[name='sid']");
+    	var ids = [];
+    	var messageModal = $("#messageModal");
+    	var ModalBody = messageModal.find(".modal-body");
+		for(i = 0;i<allEle.length;i++){
+			if(allEle.eq(i).is(":checked")){
+				console.log(allEle.eq(i).val())
+				ids.push(allEle.eq(i).val())
+			}
+		}
+		$.ajax({
+        url: '/server/server/server_offline',
+        type: 'POST',
+        data: "ids="+JSON.stringify(ids)
+    	})
+    	.done(function(msg){
+    		ModalBody.empty()
+    		ModalBody.append("<p style='text-align:center;font-size:16px;'>"+msg+"</p>")
+    		messageModal.modal("show")
+    	})
+    	}
+    })
+
+    $("#reset").click(function(){
+    	if(confirm('确定要重置首冲双倍吗？')){
+    	var $table = $(".datatable");
+    	var allEle = $table.find("input[name='sid']");
+    	var ids = [];
+    	var messageModal = $("#messageModal");
+    	var ModalBody = messageModal.find(".modal-body");
+		for(i = 0;i<allEle.length;i++){
+			if(allEle.eq(i).is(":checked")){
+				console.log(allEle.eq(i).val())
+				ids.push(allEle.eq(i).val())
+			}
+		}
+		$.ajax({
+        url: '/server/server/server_charge_reset',
+        type: 'POST',
+        data: "ids="+JSON.stringify(ids)
+    	})
+    	.done(function(msg){
+    		ModalBody.empty()
+    		ModalBody.append("<p style='text-align:center;font-size:16px;'>"+msg+"</p>")
+    		messageModal.modal("show")
+    	})
+    	}
+    })
+})
+</script>
+
+{% endwith %}
+{% endblock %}

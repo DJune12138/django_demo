@@ -1,0 +1,260 @@
+
+<style>
+.point-item{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+}
+.margin10{
+    margin: 10px
+}
+.equipitem{
+    display: block
+}
+.reward_cont{
+    display: inline-table;
+}
+</style>
+
+<!-- 模版开始 -->
+<script id="point-setting-tpl" type="text/template">
+<div id="point-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+        <th>活动时段:</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data.st ? it.w.timestamp_to_datetime_str(data.st ? data.st : Date.parse(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:30"}}" %>">
+            到
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : Date.parse(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>兑换奖励截止时间:</th>
+        <td>
+            <input type="text" name="rdt" class="Wdate" value="<%=data.rdt ? it.w.timestamp_to_datetime_str(data.rdt ? data.rdt : Date.parse(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>" >
+        </td>
+       
+    </tr>
+    <tr><th>积分条件:</th>
+    <td>
+     *当领取次数大于等于10000时，该礼包可无限兑换<br>
+     *兑换次数≤10的礼包为“限量兑换礼包”，且礼包的总数不能大于20。<br>
+     *兑换次数〉10的礼包为“重复兑换礼包”，且礼包的总数不能大于20。<br>
+      </td>
+    </tr>
+        <tr><th></th>
+        <td id="point-item-cont">
+
+            <%var pdls=data.pdls;%>
+            <% for (var i in pdls){%>
+                <%=it.w.get_point_item_html(pdls[i])%>
+            <%}%>
+
+        </td>
+    </tr>
+    <tr><th></th>
+    <td>
+     <a style="float:right" id="add-point-item-btn" href="javascript:;" onclick="add_point_item()">[增加积分条件]</a>
+    </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<script id="point-item-tpl" type="text/template">
+    <div class="point-item">
+    <div>
+    <b>礼包<span class="condition_num"></span>:</b>
+
+     <a style="float:right" href="javascript:;" onclick="$(this).closest('.point-item').remove();resize_condition_num()" class="gray">[删除]</a>
+    <br>
+    礼包名称:
+    <input type="text" name="pn" class="not-empty input-sm" maxlength=7 value="<%=it.data.pn ?it.data.pn :''%>">*最多7个汉字*
+    &nbsp&nbsp&nbsp
+    礼包图片ID:
+    <input type="text" name="ptid" class="input-number not-empty input-small" maxlength=8 allow_zero="true" value="<%=it.data.ptid ? it.data.ptid : 0%>">
+
+
+    <br>
+    礼包类型:
+    <select name="tp" disabled="disabled" style="font-weight :bold;background: #F7F7F7;" >
+        <option value=0 <%? it.data.tp==0 %> selected = "selected" <%?%> >限量兑换礼包</option>
+        <option value=1 <%? it.data.tp==1 %> selected = "selected" <%?%> >重复兑换礼包</option>
+    <select>
+
+    兑换次数 :
+    <input type="number" min=0  name="et" class="input-number not-empty input-small" value="<%=it.data.et%>">
+    
+     <br>
+
+    礼包所需积分:
+    <input type="number" min=0  name="co" class="input-number not-empty input-sm" value="<%=it.data.co%>">
+    
+    <br>
+
+     </div>
+
+    <b class="margin10">奖励列表:</b><a href="javascript:;" onclick="add_reward_item(this)">[添加]</a>
+    <div class="reward_cont margin10">
+            <%var ra=it.data.ra;%>
+            <% for (var i in ra){%>
+                <%=it.w.ri.get_item_html(ra[i])%>
+            <%}%>
+    </div>
+    </div>
+    </div>
+</script>
+<!-- 模版结束 -->
+
+
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+
+
+var ri = new ResourceInput()
+
+function get_point_item_html(pdl_obj){
+    return get_views('point-item-tpl',pdl_obj)
+}
+
+
+function add_reward_item(ele,reward_item){
+    var reward_cont = $(ele).next('.reward_cont')
+    reward_cont.append(ri.get_item_html())
+}
+
+// 每种不能超过8个，即最多配置限量礼包8个。重复兑换礼包8个
+function check_gift_type_num(){
+    if ($('[name="tp"][value=0]').length >=20 ){
+        alert('限量 兑换礼包不能大于20个')
+        return false
+    }
+    if ($('[name="tp"][value=1]').length >=20 ){
+        alert('重复 兑换礼包不能大于20个')
+        return false
+    }
+    return true
+}
+
+function add_point_item(pdl_obj){
+    var tol_point_item_num = $('.condition_num').length
+    if(!check_gift_type_num()){
+        return false
+    }
+    $('#point-item-cont').append(
+        get_point_item_html(pdl_obj ? pdl_obj : {})
+        )
+    resize_condition_num()
+}
+
+$(document).on('change','[name="et"]',function(){
+   var $this = $(this)
+   var $tp_ele = $this.prevAll('[name="tp"]')
+   var v = parseInt($this.val() )
+   if (v<=10 ){
+        $tp_ele.val(0)
+   }else{
+        $tp_ele.val(1)
+   }
+
+})
+
+
+function resize_condition_num(){
+    $('.condition_num').each(function(i,ele){
+        $(this).html(i+1)
+    })
+}
+
+
+
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(){
+    if (!this.check_empty_input()){return false}
+     var msg =  {
+        "rdt": 0,       //兑换奖励截止时间
+        "st" :   0,     // 抢购活动开始时间(时间戳)
+        "et" :   0,      // 抢购活动结束时间(时间戳)
+        "pdls" : []        //兑换需要的积分条件strCondition  co需要的积分,et能兑换的次数
+    }
+
+    //开启时间
+     msg['st'] = datetime_str_to_timestamp( this.contEle.find('[name="st"]').val() )
+     msg['et'] = datetime_str_to_timestamp( this.contEle.find('[name="et"]').val() )
+     msg['rdt'] = datetime_str_to_timestamp( this.contEle.find('[name="rdt"]').val() )
+     if ( msg['rdt'] <= msg['et']) {
+        alert('兑换奖励截止时间不能小于结束时间!')
+        return false
+     }
+     if ( msg['st'] >= msg['et']) {
+        alert('开始时间不能小于等于结束时间!')
+        return false
+     }
+
+     var point_items = $('#point-item-cont .point-item')
+     if(point_items.length==0){
+        alert('没有设置充值条件!')
+        $('#add-point-item-btn').focus();
+        return false
+    }
+
+     point_items.each(function(i,ele){
+        var $this = $(ele)
+        var pdl_obj = {}
+        var $rebate_Item = $(ele)
+                        
+
+        pdl_obj.pn =  $rebate_Item.find('[name="pn"]').val()           //礼包名称
+        pdl_obj.tp = parseInt( $rebate_Item.find('[name="tp"]').val()) //礼包类型，只能为0或1
+        pdl_obj.ptid = parseInt($rebate_Item.find('[name="ptid"]').val() )           //礼包图片id
+
+        pdl_obj.co = parseInt( $rebate_Item.find('[name="co"]').val()),
+        pdl_obj.et = parseInt( $rebate_Item.find('[name="et"]').val())
+        
+
+        pdl_obj.ra = []
+        $this.find('.reward_cont .equipitem').each(function(i,ele){
+            pdl_obj.ra.push(
+                    ri.to_json(ele)
+                    )
+
+        })
+        msg['pdls'].push(pdl_obj)
+     })
+     console.dir(msg)
+     return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    console.dir(msg)
+    var html = get_views('point-setting-tpl',msg)
+    this.contEle.html(html)
+    resize_condition_num()
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+    console.dir(data)
+    var in_time_range =   this.system_timestamp >= data.st  && this.system_timestamp <=data.et 
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if (data.pdls.length>0 && !in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data.st)+'- '+ timestamp_to_datetime_str(data.et)+'">未开始</span>'
+    } else if (data.st == 0 && data.et == 0 ) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }
+    return status
+}
+
+
+</script>
+
+
+

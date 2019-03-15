@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>功能列表</title>
+<style>
+    .btn-set { overflow: hidden; }
+    .btn-left{ float: left; }
+    .btn-right{ float: right; }
+    .scroll_div { overflow: scroll; width: 450px; height: 750px; border: 1px dotted #d3d3d3;}
+</style>
+{% endblock %}
+
+{% block content %}
+{% with url_prefix='/system/menu/user_menu_'  %}
+<script type="text/javascript">
+    var menu_list = [{%for item in list_record%}{"id":"{{item.id}}","parent_id":"{{item.parent_id}}","name":"{{item.name}}","url":"{{item.url}}","icon":"{{item.icon}}","css":"{{item.css}}"},{%endfor%}{}];
+
+    function menu_tree_creator(menu_info, postion){
+        var ptid = menu_info.parent_id,
+            data_id = menu_info.id,
+            name = menu_info.name,
+            tblock = postion == 1 ? $("#sys_menu") : $("#def_menu");
+
+        var _mdiv = $("<div>", {"class":"dd-handle " + (postion == 2 ? " def-name" : ""), "html":name});
+        var _mli = $("<li>", {"class":"dd-item " , "data-id":data_id});
+
+
+        if(data_id > 10000){
+            _mdiv.append($('<a href="javascript:;" class="red pull-right" onclick="remove_menu(this)"><i class="icon-trash bigger-130"></i></a>'));
+        }else{
+            _mdiv.prepend($("<i class='" + menu_info.icon + "'></i>"))
+        }
+
+        _mli.prepend(_mdiv);
+        if(ptid == 0){
+            tblock.append(_mli)
+        }else{
+            var parent_obj = tblock.find("[data-id='" + ptid + "']");
+            var _mol = parent_obj.children("ol");
+            if(_mol.length > 0){
+                _mol.append(_mli)
+            }else{
+                var nol = $("<ol>", {"class": "dd-list"});
+                parent_obj.append(nol.append(_mli))
+            }
+        }
+    }
+
+    function remove_menu(obj){
+        $($(obj).parents('li')[0]).remove();
+    }
+
+    function mk_def_id(){
+        var flags = $("li[flag='1']");
+        if(flags.length == 0){
+            return "10001"
+        }else{
+            return (10000 + flags.length + 1) + "";
+        }
+    }
+
+    function create_menu(){
+        var m_div = $("<div>", {class:"dd2-content"}),
+            m_input = $("<input>", {class:"enter_done", style:"height:20px;"}),
+            m_a = $('<div class="pull-right action-buttons"><a href="javascript:;" class="red" onclick="remove_menu(this)"><i class="icon-trash bigger-130"></i></a></div>'),
+            m_li = $("<li>", {"class":"dd-item dd2-item", "data-id":mk_def_id(), flag:"1"}),
+            def_menu = $("#def_menu");
+
+        m_li.append($('<div class="dd-handle dd2-handle"><i class="icon-move"></i></div>')).append(m_div.append(m_input).append(m_a));
+        def_menu.append(m_li);
+
+        m_input.focus();
+        m_input.blur(function(e){
+            var ecode = e.keyCode,
+                name = $(this).val();
+            
+                if(name.length == 0 ){
+                    alert("菜单名不能为空!");
+                    m_input.focus();
+                    return
+                }
+                $(this).before($("<span>", {class:"btn-left blue def-name", html:name}));
+                $(this).remove();
+            
+        })
+    }
+
+    function save_menu(){
+        var This = this;
+        this.find_children_items = function(p_obj, p_id, d_item, s_item){
+            var menu_items = $(p_obj).children("li[data-id]");
+            menu_items.each(function(){
+                var sub_id = $(this).attr("data-id"),
+                    def_name = $(this).find(".def-name:first").text();
+                if(sub_id > 10000){
+                    d_item[sub_id] = [p_id, def_name]
+                }else{
+                    s_item[sub_id] = p_id
+                }
+
+                var fol = $(this).children("ol");
+                if(fol.length > 0){
+                    This.find_children_items(fol, sub_id, d_item, s_item)
+                }
+            })
+        }
+
+        var def_menu = $("#def_menu"), def_item = {}, sys_item = {};
+        this.find_children_items(def_menu, "0", def_item, sys_item);
+
+        var save_url = "{{url_prefix}}save";
+        $.ajax({
+            url : save_url,
+            method : "GET",
+            cache : false,
+            data : {d : JSON.stringify(def_item), s : JSON.stringify(sys_item)},
+            success : function(rsp){
+                if(rsp == '1'){
+                    alert("保存成功!")
+                }else{
+                    alert("保存失败!")
+                }
+            },
+            error : function(){
+                alert("系统出错")
+            }
+        })
+    }
+</script>
+
+<div class="page-content">
+	<div class="page-header btn-set">
+		<h1 class="btn-left">
+			用户自定义菜单
+			<small>
+				<i class="icon-double-angle-right"></i>
+				User Defined Menu
+			</small>
+		</h1>
+        <div class="btn-right">
+            <a href="javascript: $('.dd').nestable('expandAll');">展开</a>
+            <a href="javascript: $('.dd').nestable('collapseAll');">收缩</a>
+            <a class="btn btn-sm btn-success" onclick="create_menu()">创建</a>
+            <a class="btn btn-sm btn-success" onclick="save_menu()">保存</a>
+        </div>
+	</div><!-- /.page-header -->
+
+	<div class="row">
+		<div class="col-xs-12">
+			<!-- PAGE CONTENT BEGINS -->
+
+			<div class="row">
+				<div class="col-sm-6 scroll_div">
+					<div class="dd" id="nestable">
+						<ol class="dd-list" id="sys_menu">
+							<!-- 系统菜单生成 -->
+
+						</ol>
+					</div>
+				</div>
+
+				<!--<div class="vspace-sm-16"></div>-->
+
+				<div class="col-sm-6 scroll_div">
+					<div class="dd dd-draghandle">
+						<ol class="dd-list" id="def_menu">
+							<li class="dd-item ">
+								<div class="dd-handle ">
+                                    <i class="normal-icon icon-reorder blue bigger-130"></i>
+
+                                    点击创建顶级菜单，或从左侧拉入菜单
+                                    <span class="red">(仅作参考坐标和说明使用)</span>
+                                </div>
+							</li>
+
+						</ol>
+					</div>
+				</div>
+			</div><!-- PAGE CONTENT ENDS -->
+		</div><!-- /.col -->
+	</div><!-- /.row -->
+</div><!-- /.page-content -->
+
+<script type="text/javascript">
+    $(function(){
+        for(var i in menu_list){
+           menu_tree_creator(menu_list[i], 1)
+        }
+
+        $.ajax({
+            url: "{{url_prefix}}structure",
+            async : false,
+            success : function(response){
+                var data = $.parseJSON(response);
+                //console.log(JSON.stringify(data));
+                if(data.code == 0){
+                    var menus = data.data;
+                    for(var i in menus){
+                        menu_tree_creator(menus[i], 2)
+                    }
+                     
+                }
+            },
+            error : function(){}
+        })
+
+        $('.dd').nestable();
+
+        $('.dd-handle a').on('mousedown', function(e){
+            e.stopPropagation();
+        });
+
+        $('[data-rel="tooltip"]').tooltip();
+         $('.dd').nestable('collapseAll');
+    });
+
+</script>
+{% endwith %}
+{% endblock %}

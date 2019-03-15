@@ -1,0 +1,209 @@
+# 后台安装说明
+## 项目基本结构
+        ├── daemon_log              定时服务日志目录
+        ├── daemon_service.py       后台服务控制脚本
+        ├── analys             游戏后台
+        ├── api               游戏礼包卡/激活码
+        ├── pay            游戏支付/SDK接入
+        ├── python-packets
+        │   ├── install_packets.sh  依赖包安装脚本
+        │   ├── game.conf           Nginx 配置模板
+        └── service                 游戏验证服务（py_service）
+
+## 后台安装配置
+### 检查基本环境
+        基本环境：MySQL 5.6.20  Nginx
+        基本分区情况，后台默认在 /data 目录，此目录一般单独挂载
+        默认使用北京时间
+        确认软件安装（运维默认已安装MySQL，Twisted，对应版本如下）
+            MySQL == 5.6.20
+            Twisted == 13.1.0
+            MySQL启动脚本位置
+                /data/mysql-$port/start_mysql.sh
+
+        确定项目别名，如yxgl
+        解压源码文件到 /data/www/yxgl 目录
+
+        安装项目依赖
+            sh python-packets/install_packets.sh
+
+        配置 Nginx
+            修改并复制 python-packets/nginx_config/ 目录下的配置文件到 nginx 配置目录下
+            （默认为 /etc/nginx/conf.d/ ）
+
+            默认端口配置，具体修改见文件注释
+
+            项目        uwsgi       nginx
+            analys     8001  ==>   9001
+            pay    8002  ==>   9002
+            api       8003  ==>   9003
+
+### 初始化配置
+        数据库配置
+            创建数据库，yx_center 和 yx_card，对应对应后台（center）和 礼包卡/激活码（api）
+                导入db目录下的center.sql和card.sql
+
+            修改源码所有 settings.py/config.py 文件内的数据库配置（用户名、密码、端口、连接地址、数据库名）
+
+        其它配置
+            项目名
+
+### 配置运营后台analys
+        修改配置
+            GameAnalys/settings.py
+
+        执行以下命令，创建 yxgl 数据库的表结构, 可忽略
+            python manage.py syncdb
+            // 效果同上，默认使用”default“指定的数据库 python manage.py syncdb --database=default
+
+        执行以下命令，创建后台菜单, 可忽略
+            python manage.py  CreateMenu GameAnalys/menue.txt
+
+        执行以下命令，创建root用户和密码（root/123456, 可忽略
+            python manage.py  CreateRoot
+
+        使用以下命令启动 analys，默认使用 9001 端口，实际见 uwsgi.xml 配置
+            // 项目根目录下 /data/www/yxgl
+                python daemon_service.py start analys
+
+            // 或 analys 目录
+                sh uwsgi_reboot.sh
+
+        注1：
+            启动后注意检查是否正确运行，如无法启动，可尝试减小 uwsgi.xml 中 socket 监听队列的配置（listen选项），下同
+            uwsgi listen 默认值为 100，最大值取决于系统限制
+            linux 系统默认为 128，实际大小可通过 cat /proc/sys/net/core/somaxconn 查看
+
+        注2：
+            部分表的数据可重用（可从类似项目导入数据后再作修改，如字典定义，查询定义等）
+                def_dict        字典定义
+                def_gm          GM定义
+                def_log         日志定义
+                query_new       查询列表
+                statistic_new   统计列表
+                user_type       用户类型
+
+        注3：
+            执行 syncdb 时，并不创建 log_开头的表（除了log_0_new），可能导致后台部分菜单出错
+            如：
+                菜单：系统管理 ==> 同步模型，对应的数据表 log_backstage 默认不存在
+
+            可通过以下三种方式一次性创建所有 log_xxx 表，具体原因见 analys/GameAnalys/views/log/log.py
+                1、浏览器访问后台地址
+                        http://10.20.202.186:8001/log/log/log_syncdb?action=syncdb
+
+                2、使用Curl or wget
+                    curl -s http://10.20.202.186:8001/log/log/log_syncdb?action=syncdb
+                    wget -q http://10.20.202.186:8001/log/log/log_syncdb?action=syncdb
+
+                3、进入数据库，使用类似以下命令创建
+                    CREATE TABLE IF NOT EXISTS  log_backstage LIKE log_0_new;
+
+                    需创建的log表有：
+                        SELECT CONCAT('log_', `key`) table_name
+                        FROM def_log
+                        WHERE status = 1
+                        order by table_name
+
+        注4:
+            log_statistic_date 表需手动创建，对应SQL脚本见 python-packets/log_statistic_date.sql
+
+        注5:
+            log_platform_result 等 platform 相关表通过 python manage.py GetPlatFormStatisticCron 创建
+
+        注6:
+            player_roll & player_xx_tmp 通过 python GameAnalys/scripts/backup_youai/backup_youai.py --table 创建
+
+### 配置礼包卡/激活码 api
+        修改配置
+            GameCard/settings.py
+
+        创建软链接(或直接复制目录代码，该部分与 analys 代码共用)
+            GameCard/models              -->  analys/GameAnalys/models
+            GameCard/util                -->  analys/GameAnalys/util
+            GameCard/views/game          -->  analys/GameAnalys/views/game
+
+        进入源码 api 目录，执行以下命令，创建 yxgl_card 数据库的表结构,可忽略
+            python manage.py syncdb --database=card
+
+        使用以下命令启动 api，默认使用 9003 端口，实际见 uwsgi.xml 配置
+            // 进入项目根目录 /data/www/yxgl
+                python daemon_service.py start api
+
+            // 或 进入 api 目录
+                sh uwsgi_reboot.sh
+
+### 配置游戏支付/SDK接入 pay
+        修改配置
+            GameService/settings.py
+            GameService/views/pay/__init__.py   // settings.FUNC_URL
+
+        创建软链接(或直接复制目录代码，该部分与 analys 代码共用)
+            GameService/models              -->  analys/GameAnalys/models
+            GameService/util                -->  analys/GameAnalys/util
+            GameService/views/game          -->  analys/GameAnalys/views/game
+
+        使用以下命令启动 pay，默认使用 9002 端口，实际见 uwsgi.xml 配置
+            // 项目根目录 /data/www/yxgl
+                python daemon_service.py start pay
+
+            // 或 pay 目录
+                sh uwsgi_reboot.sh
+
+        注：pay 不需要单独建库建表
+
+
+以下操作都基于/data/www/yxgl
+服务启动或停止:
+Usage: daemon_service.py [stop|start|status|list|restart] service_name
+python daemon_service.py 查看支持的命令
+python daemon_service.py list 查看所有服务
+
+查看对应的log:
+例如充值日志
+tail -f pay/GameService/logs/pay/20180626.log
+
+客户端api用到的接口:
+域名规则:
+静态文件:
+https://static.ios.shyouai.com
+for 客户端登录过程使用,服务器生成的文件对应在
+/data/www/yxgl/center/static/server
+/data/www/yxgl/center/static/md5
+/data/www/yxgl/center/static/notice
+/data/www/yxgl/center/static/channel
+
+后台央服:
+http://centermhtx.ios.shyouai.com:8001/index
+https://centermhtx.ios.shyouai.com:8004/index
+
+客服服务/充值服务:
+http://centermhtx.ios.shyouai.com:8002
+https://custom.ios.shyouai.com
+礼包测试方法:url/client/question/post/1
+充值测试方法:url/service/confirm/youai
+
+礼包卡服务:
+http://centermhtx.ios.shyouai.com:8003
+https://card.ios.shyouai.com:8006
+测试方法:url/card_service?player_id=1
+
+cdn域名:
+https://cdnmhtx.ios.shyouai.com/mhtx/
+ftp上传帐号需要提供一个
+
+后台更新方法:(布署一个新后台后,需要在中转机配置好对应的更新环境)
+以qyj为例:
+1.连进中转机10.21.212.75
+2.cd /data/qyj/code/support/trunk && svn up
+3.更新操作
+后台页面:python rsync_update.py [update_all|list_all]
+礼包码:python rsync_update_api.py [update_all|list_all]
+后台服务:python rsync_update_pay.py [update_all|list_all]
+更新文件后,需要重新启动对应的服务才会生效
+更新时会提示更新目标,更新目标的配置文件在对应的py文件内,更换成正式的服务器ip即可
+
+异常:
+unavailable modifier requested: 0
+yum install uwsgi-plugin-python2
+

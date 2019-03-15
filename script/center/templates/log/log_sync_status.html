@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>日志表同步</title>
+<style>
+.action-cont{display: none}
+.progress{
+	margin-bottom: 0px
+}
+</style>
+{% endblock %}
+{% block content %}
+{% with model_name="Server" %}
+<script type="text/javascript">
+$(function(){
+	var tableObj = $('#sync_status_table').dataTable({
+					//"sScrollY": '200px',//document.documentElement.clientHeight*0.6 + 'px',
+					//"bScrollCollapse": true,
+					//"sScrollX": "100%",
+	                //"sScrollXInner": "100%",
+	                "bSortClasses":false,
+					"bStateSave": false, 
+					"bProcessing": false, //是否显示正在处理的提示 
+					"iDisplayLength":-1,//默认每页显示的记录数
+					"bPaginate": false, // 是否使用分页
+					"bAutoWidth": true,//列的宽度会根据table的宽度自适应 
+					//"bSortClasses":true,
+					"bLengthChange": false,
+					"oSearch":{
+						"sSearch": "",//默认的框文字
+						"bRegex":true,//支持正则搜索
+					},
+					"bInfo": true,
+					 "oLanguage": {
+					 "sSearch": "筛选:",//
+					 "sZeroRecords": "没有匹配记录",
+					  "sInfo":'当前第 _START_ - _END_ 条　共计 _TOTAL_ 条',
+					  "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
+					  "sLengthMenu": "每页显示 _MENU_条",
+					  "sInfoEmpty": "",
+					  "oPaginate": {
+	                    "sFirst": "首页",
+	                    "sPrevious": "前一页",
+	                    "sNext": "后一页",
+	                    "sLast": "尾页"
+	                	}
+
+					 },
+					 "aoColumnDefs":[{
+		           			"bSortable": false,
+		            		"aTargets": [0]
+		        			}],
+				}
+		)
+
+	var ServerIds = [],
+	    tolServerNum = 0,
+	    doneNum = 0
+	function  get_ServerIds() {
+		ServerIds = []
+		$('#{{model_name}}_area :checked').each(function(i,ele){
+			ServerIds.push($(ele).val())
+		})
+		ServerIds.reverse()
+		tolServerNum = ServerIds.length
+		doneNum = 0
+	}
+
+	function find_tr_from_sid(server_id){
+		return $('#{{model_name}}_area [server_id="'+server_id+'"]')
+	}
+
+	function change_progress(percent){
+		var progressEle = $('#sync_progress')
+		var percentStr = percent + '%'
+		progressEle.attr('data-percent',percentStr)
+		progressEle.find('.progress-bar').css({"width":percentStr})
+	}
+	function update_status(trId,Column,html){
+		console.dir(trId)
+		tableObj.fnUpdate(html,trId,Column,false,false)
+	}
+	function do_syncdb(server_id){
+		var tr = find_tr_from_sid(server_id)
+		var trId = parseInt(tr.attr('trid'))
+		var serverCheckboxEle = tr.find(':checkbox')
+		function response_handle(data) {
+				if (data.code == 0) {
+					var table_status = data.content[0]
+					var index_status = data.content[1]
+					var table_status_html = table_status.tol_num + ' / ' + table_status.already_num + ' / ' + table_status.sync_num,
+						index_status_html = index_status.tol_num + ' / ' + index_status.already_num + ' / ' + index_status.sync_num
+					update_status(trId,3,table_status_html)
+					update_status(trId,4,index_status_html)
+					serverCheckboxEle.prop({"checked":false})
+					doneNum += 1
+				} else {
+					update_status(trId,3,linebreaksbr(data.msg))
+				}
+		}
+
+		$.ajax({
+			url: '?action=syncdb&ajax=true',
+			type: 'POST',
+			dataType: 'json',
+			timeout:120000,
+			data: {"sid": server_id},
+			beforeSend:function(){
+					update_status(trId,3,'<img src="/static/skin/images/loading.gif">同步中...')
+					update_status(trId,4,'<img src="/static/skin/images/loading.gif">同步中...')
+			}
+		})
+		.done(function(data) {
+			response_handle(data)
+		})
+		.fail(function(o,x,text) {
+			var data = {"code":1,"msg":x + o.responseText}
+			response_handle(data)
+		})
+		.always(function() {
+			change_progress(parseInt(doneNum/tolServerNum * 100))
+			if (ServerIds.length>0) {
+				do_syncdb(ServerIds.pop())
+			} else {
+			}
+		});
+	}
+
+
+	function start_syncdb(){
+		get_ServerIds()
+		do_syncdb(ServerIds.pop())
+		
+	}
+
+	start_syncdb()
+
+	$('#start_sync').click(function(){
+		start_syncdb()
+	})
+})
+</script>
+
+
+<div id="bar">
+</div>
+
+
+<ul id="nav-list" class="nav nav-tabs" >
+	  <li class="active" >
+	  	<a >日志表同步状态</a>
+	  </li>
+</ul>
+
+<form id="post_form"  method="post" >
+<!-- 按钮工具条 -->
+
+<div id='datatable_toolbar'>
+			<div class="btn-toolbar pull-right">
+				<div id="sync_progress" class="progress progress-striped" style="width:88px" data-percent="17%"><div class="progress-bar" style="width:20%;"></div></div>
+				<div class="btn-group ">
+					<a id="start_sync" class="btn btn-sm btn-warning " >
+						<i class="icon-refresh"></i>重新同步
+					</a>
+
+				</div>
+				
+			</div>
+			
+</div>
+<table  id="sync_status_table" class="table table-bordered " >
+			<thead>
+			<tr>
+				<th width="60">
+					<input type="checkbox"   checkbox-area='{{model_name}}_area'  >
+				</th>
+				<th >ID</th>
+				<th >服务器名</th>
+				<th >表:全部/已同步/同步</th>
+				<th >索引同步状态</th>
+			</tr>
+			</thead>
+			<tbody id="{{model_name}}_area">
+			{%for item in list_record%}
+			<tr server_id="{{item.id}}" trid="{{forloop.counter0}}">
+				<td>
+					<input type="checkbox"  value="{{item.id}}" name="sid" checked="checked">
+				</td>
+				<td>{{item.id}}</td>
+				<td>{{item.name}}</td>
+				<td class="table_status"></td>
+				<td class="index_status"></td>
+			</tr>
+			{%endfor%}
+			</tbody>
+</table>
+<script type="text/javascript">
+
+	
+
+</script>
+{% endwith %}
+{% endblock %}

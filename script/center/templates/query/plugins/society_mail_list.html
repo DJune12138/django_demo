@@ -1,0 +1,262 @@
+
+{% include 'game/resource_editor.html' %}
+<script type="text/javascript">
+
+//标题为   -,	ID	服务器	渠道	 收信用户ID	申请人	审核人	创建日期	邮件标题	邮件内容	奖励内容	类型	状态	操作
+$QUERY_TABLE.find('tbody:first').attr('id','checkbox-area');
+$QUERY_TABLE.find('thead th').eq(TH['-']).html('<input type="checkbox" checkbox-area="checkbox-area">');
+
+
+function resetPlayerCheckbox(){
+	$QUERY_TABLE.find('tbody :checkbox[value]').prop('checked',false)
+}
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+
+
+    //获取道具价值
+    var da =$.ajax({
+    async:false,
+    url: '/game/player/get_equipment',
+    type: 'GET',
+    dataType: 'JSON',
+    })
+    .done(function(da) {
+    if (da) {
+        return da
+    }
+    });
+    //获取登录用户渠道
+{#    var channel_list =$.ajax({#}
+{#    async:false,#}
+{#    url: '/game/player/get_channel',#}
+{#    type: 'GET',#}
+{#    dataType: 'JSON',#}
+{#    })#}
+{#    .done(function(da) {#}
+{#    if (da) {#}
+{#        return da#}
+{#    }#}
+{#    });#}
+     //获取登录用户渠道
+    var channel_list =$.ajax({
+    async:false,
+    url: '/game/player/get_channel',
+    type: 'GET',
+    dataType: 'JSON',
+    })
+    .done(function(da) {
+    if (da) {
+        return da
+    }
+    });
+
+    LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+	var new_list_data = []
+    var allow_ea=0
+	for (var i in LIST_DATA) {
+		var type_map = {"个人":0, "全服":2, "联远商ID":3}
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+		var status = row[TH['状态']]
+		var caozuo_index = TH['操作']
+        var pp = TH['总值']
+		var player_ids = row[TH['收信用户ID']]
+		var server_id = row[TH['服务器']]
+		var type = row[TH['类型']]
+		var bonus_content = row[TH['奖励内容']]
+		var title = row[TH['邮件标题']]
+		var content = row[TH['邮件内容']]
+		var channel_id = row[TH['渠道']]
+		var id = row[TH['ID']]
+		var msg = {};
+
+		msg["rw"] =  [{"act":bonus_content,"gn":"xx"}];
+		msg["m"] = content;
+		msg["t"] = title;
+		msg["ty"] = type_map[type];
+
+		if(type == "个人"){
+			msg["arg"] = player_ids;
+		}else if(type == "全服"){
+			msg["arg"] = [];
+			msg["svr"] = [-1];
+		}else{
+			msg["arg"] = channel_id;
+			msg["svr"] = [-1];
+		}
+
+		var send_ulr_params = 'server_id='+server_id+'&id='+id
+		var del_url_params = 'id='+id;
+
+        //判断邮件是否是为该用户的渠道，筛选渠道
+        var flag =false;
+        for (var ll in $.parseJSON(channel_list.responseText)['ch']){
+               if(row[TH['渠道']] == $.parseJSON(channel_list.responseText)['ch'][ll]){
+                   flag =true
+               }else {
+                   continue
+               }
+        if(row[TH['渠道']] == 0){
+		new_row[TH['渠道']] = ''
+		     } }
+        if (flag){
+           new_row[channel_id] = new_row[TH['渠道']]
+        }else {
+            continue
+        }
+
+        //id
+		new_row[TH['-']] = '<input id="' + row[TH['ID']] +'" type="checkbox" name="id" value="'+ row[TH['ID']] +'">'
+
+        //奖励内容
+		var prize_content_str = reversal_prize(bonus_content)
+		new_row[TH['奖励内容']] = prize_content_str
+
+        console.log('ggggggg',$.parseJSON(player_ids).length)
+
+        //计算总值
+        new_row[pp] =0;
+        var cc=$.parseJSON(bonus_content);
+        $(cc).each(function (i,ele) {
+            if (ele.aID ==1){
+                new_row[pp] += ele.v
+            }if(ele.aID ==2){
+                new_row[pp] += ele.v
+            }if(ele.aID ==3){
+                new_row[pp] += Math.ceil(ele.v/1000)
+            }if(ele.aID ==4){
+                console.log($.parseJSON(da.responseText)[ele.id])
+                if($.parseJSON(da.responseText)[ele.id] == undefined){
+                  new_row[pp] += 0
+                }else {
+                  new_row[pp] += $.parseJSON(da.responseText)[ele.id] * ele.v
+
+                }
+            }
+        });
+        new_row[pp] = new_row[pp] * $.parseJSON(player_ids).length;
+{#        allow_ea += new_row[pp] #}       //总值先不算
+
+		if(status == "未审核"){
+		new_row[caozuo_index]	+= '<a href="/game/mail_list/conference_send_mail?'+ send_ulr_params +'" class="dialog" onclick="audit(this)"> 审核 </a>'
+		new_row[caozuo_index]	+= '<a href="/game/mail_list/del_mail?'+ del_url_params +'" class="dialog" onclick="del(this)"> 删除 </a>'
+	}else if(status == "审核失败"){
+		new_row[caozuo_index]	+= '<a href="/game/mail_list/conference_send_mail?'+ send_ulr_params +'" class="dialog" onclick="audit(this)"> 再审核 </a>'
+		new_row[caozuo_index]	+= '<a href="/game/player/del_mail?'+ del_url_params +'" class="dialog" onclick="del(this)"> 删除 </a>'
+	}
+		new_list_data.push(new_row)
+	}
+    data.list_data = new_list_data
+    $('.all_earn_show').remove()
+{#    $('#batch_del').after('<span class="all_earn_show">&nbsp;&nbsp;当前总值:'+allow_ea+'</span>')#}   //先不显示当前总值
+    $('#batch_del').after('<span class="all_earn_show" style="color:red;">&nbsp;&nbsp;当前可审余额:'+$.parseJSON(channel_list.responseText)['channel_earn']+'</span>')
+	return data
+
+
+})
+
+function del(ele){
+	setTimeout(function(){
+	$(ele).parents("tr").remove()
+	$SEARCH.trigger('click')
+	},2000)
+	
+}
+
+function audit(ele){
+    $(ele).css('display','none').after('<span style="width:90px" >审核中</span>')
+	setTimeout(function(){
+	$(ele).parent("td").prev("td").text("已审核")
+	$(ele).parent("td").empty()
+	$SEARCH.trigger('click')
+	},2000)
+}
+
+</script>
+<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="messageModalLabel">消息</h4>
+            </div>
+            <div class="modal-body"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sub-menu-1">
+  <input id="batch_audit" type="button"  value="批量审核">
+  <input id="batch_del" type="button" value="批量删除">
+
+
+</div>
+
+<script type="text/javascript">
+
+var messageModal = $("#messageModal");
+var ModalBody = messageModal.find(".modal-body");
+
+$("#batch_audit").click(function(){
+	var allEle = $QUERY_TABLE.find("input[name='id']");
+	var ids = [];
+	for(i = 0;i<allEle.length;i++){
+		if(allEle.eq(i).is(":checked")){
+			console.log(allEle.eq(i).val())
+			ids.push(allEle.eq(i).val())
+		}
+	}
+	$.ajax({
+        url: '/game/mail_list/conference_send_mail',
+        type: 'POST',
+        data: "ids="+JSON.stringify(ids)
+    })
+    .done(function(msg){
+    	for(i = 0;i<allEle.length;i++){
+    		if(allEle.eq(i).is(":checked")){
+    	allEle.eq(i).parent("td").siblings().eq(11).text("已审核")
+		allEle.eq(i).parent("td").siblings().eq(12).empty()
+        }
+	}
+	// $.dialog({"fixed": true,"content":msg})
+	ModalBody.empty()
+    ModalBody.append("<p style='text-align:center;font-size:16px;'>"+msg+"</p>")
+    messageModal.modal("show")
+	$SEARCH.trigger('click')
+    })
+
+})
+
+$("#batch_del").click(function(){
+	var allEle = $QUERY_TABLE.find("input[name='id']");
+	var ids = [];
+	for(i = 0;i<allEle.length;i++){
+		if(allEle.eq(i).is(":checked")){
+			console.log(allEle.eq(i).val())
+			ids.push(allEle.eq(i).val())
+		}
+	}
+	$.ajax({
+        url: '/game/mail_list/del_mail',
+        type: 'POST',
+        data: "ids="+JSON.stringify(ids)
+    })
+    .done(function(msg) {
+    	for(i = 0;i<allEle.length;i++){
+    		if(allEle.eq(i).is(":checked")){
+    		allEle.eq(i).parents("tr").remove()
+    	}
+	}
+        // $.dialog({"fixed": true,"content":msg})
+        ModalBody.empty()
+        ModalBody.append("<p style='text-align:center;font-size:16px;'>"+msg+"</p>")
+        messageModal.modal("show")
+        $SEARCH.trigger('click')
+    })
+})
+</script>

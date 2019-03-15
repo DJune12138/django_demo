@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+ 
+
+{% block header%}
+<title>{{gm_def.title}} - GM参数填写</title>
+{% include 'game/resource_editor.html' %}
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	{{gm_def.title}}
+	<div class="buttons" >
+		<a href="/game/gm/list" >返回列表</a>
+	</div>
+</div>
+
+
+
+<form id="gm_form" action="" method="POST" >
+	<table class="form">
+
+	<tr>
+		<th>选择服务器列表:</th>
+		<td>
+		{% include "widgets/group_server_select.html" with group_servers_dict=group_servers_dict server_id=server_id %}
+		</td>
+	</tr>
+	{% if def_params%}
+	{%for key_name,item in def_params.items %}
+		{% if item.required != 0 %}
+		<tr><th></th>
+
+
+			<td><input type="hidden" name="{{key_name}}" value="{{item.value}}" /></td>
+		</tr>
+		{% else %}
+			<tr>
+				<th width="160px">{{key_name}}:</th>
+				<td> 
+					{% if item.value_map == '' %}
+						{% if item.type == 'string' or item.type == 'int' %}
+						 <input type="text" name="{{key_name}}" value="{{item.value}}" />
+						{% endif %}
+						{% if item.type == 'text' %}
+						<textarea name="{{key_name}}" >{{item.value}}</textarea>
+						{% endif %} 
+						{% if item.type == 'boolean' %}
+						<select name="{{key_name}}" >
+							<option value="1" {% if item.value %}  selected="selected" {% endif %} >true</option>
+							<option value="0" {% if not item.value  %}  selected="selected" {% endif %} >false</option>
+						</select>
+						{% endif %}
+					{% else %} 
+						<select name="{{key_name}}" >
+							{% for item2 in item.value_map.item %}
+							<option value="{{item2.key}}" >
+								{{item2.value}}
+							</option>
+							{% endfor %}
+						</select>
+					{% endif %}
+				</td>
+			</tr>
+		{% endif %}
+	{%endfor%}
+	{%endif%}
+	 <tr class="bottom-buttons">
+	 	<td>
+	 		
+	 	</td>
+	 	<td>
+	 		<div class="buttons">
+	 			<input id="btn_submit" type="submit" value="提交"/>
+	 			or 
+	 			<a href="/game/gm/list" >返回列表</a>
+	 		</div>
+	 	</td>
+	 </tr>
+	</table>
+
+</form>
+
+{% endblock %}

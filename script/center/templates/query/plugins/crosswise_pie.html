@@ -1,0 +1,155 @@
+<!-- 加载highcharts -->
+<script type="text/javascript" src="/static/js/highcharts/highcharts.js"></script>
+<script type="text/javascript" src="/static/js/highcharts/exporting.js"></script>
+
+<div id="charts-div" >
+
+</div>
+
+<script type="text/javascript">
+
+function hightcharts(container) {
+	container = container?container:document.createElement('div')
+	var _this = this
+	this.hightcharts_obj = null
+        this.opt = {
+        			chart: {//配置chart选项
+                            renderTo: container, //容器名，和body部分的div id要一致
+			                plotBackgroundColor: null,
+			                plotBorderWidth: null,
+			                plotShadow: false
+
+                    },
+	                title: {//配置标题
+						text:'',
+						align:'center',
+						verticalAlign:'',
+						margin:0,
+						floating:0,
+						style:{
+							color: 'rgb(84, 126, 168)',
+							fontSize: '20px'
+						}
+	                },
+	                subtitle: {//配置副标题
+	                    text: '',
+	                    //y:30
+	                },
+	                credits: {
+            	 		text: '',
+            	 		href:""
+            		},
+			        tooltip: {
+			    	    pointFormat: '{point.percentage:.1f}%({point.y}) ',
+			        	percentageDecimals: 1
+			        },
+			        plotOptions: {
+			            pie: {
+			                allowPointSelect: true,
+			                cursor: 'pointer',
+			                dataLabels: {
+			                    enabled: true,
+			                    color: '#000000',
+			                    connectorColor: '#000000',
+			                    format: '{point.name} | {point.percentage:.1f}%({point.y}) '
+			                },
+			                showInLegend: true
+			            }
+			        },
+	                series:[],
+                   }
+	this._getAvg = function(list){
+		var num = 0
+		for(i in list){num += list[i]}
+		return 	(num / list.length).toFixed(1)
+	}
+	this.push_data = function(list_data,name){//增加数据
+		var data_list = []
+		var xAxis = [] //横轴项目，即第一列
+		var lines = list_data
+		data_list = [{
+				"type":"pie",
+				'name':name,
+				'data':[]
+		}]
+
+
+		for (var i = 0;i<lines.length;i++){
+			var items = lines[i]
+			var first_item = items[0]
+			if(!first_item){continue}
+			first_item = String(first_item)
+			if (first_item.indexOf('合计')>=0 || !first_item) { //不需要的
+				continue
+			}
+			items[1] = parseFloat(items[1])
+			data_list[0]['data'].push(items)
+		}
+		// for(var i in  data_list ){
+		// 	var o = data_list[i]
+		// 	o['name'] += ' (Min:'+ Math.min.apply(Math,o['data'])
+		// 	o['name'] += ' Max:'+ Math.max.apply(Math,o['data'])
+		// 	o['name'] += ' Avg:'+ _this._getAvg(o['data'])+')'
+		// }
+		console.dir(data_list)
+		_this.opt.series = data_list //增加序列数据
+		return [xAxis,data_list]
+	}
+
+	this.done = function(){
+		Highcharts.setOptions({
+								global:{
+				        				useUTC: 0 
+				        		},
+				        		lang:{
+				        			resetZoom:"重置",
+				        		}
+        })
+		_this.hightcharts_obj = new Highcharts.Chart(_this.opt)
+
+		return container
+	}
+}
+
+
+</script>
+
+
+
+<script>
+
+if (window.dataTableOption) {
+	var LIST_DATA = null
+	var $charts_cont = $('#charts-div')
+	$charts_cont.insertBefore($QUERY_TABLE)
+
+	dataTableOption.page_size=100
+	dataTableOption.page_size_list=[100,200]
+
+	dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+	dataTableOption.convertOutputDataFuncs.push(function(data) {
+		LIST_DATA = data.list_data;
+
+	    var pie_data = [];
+	    var pie_fields = data.pie_fields ? data.pie_fields : data.fields;
+	    if(pie_fields){
+	        for(var i in data.fields){
+	            if($.inArray(data.fields[i], pie_fields) > -1){
+	                pie_data.push([data.fields[i], data.list_data[0][i]])
+	            }
+	        }
+	    }
+
+		var h = new hightcharts('charts-div');
+		h.opt.title.text = data.query_name;
+		h.push_data(pie_data, data.fields);
+
+		h.done();
+	  	return data;
+	}) 
+}
+</script>
+
+
+
+

@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>跨服战管理</title>
+<style>
+.action-cont{display: none}
+
+</style>
+{% endblock %}
+{% block content %}
+
+{% with model_name='BattleList' url_prefix='/server/battle_server/battle_server_list' %}
+
+<script type="text/javascript">
+
+	function add{{model_name}}(ele){
+		art.dialog.open("{{url_prefix}}edit",{title:ele.innerText})
+	}
+
+	function first{{model_name}}(ele){
+		var sids = $('#{{model_name}}_area :checkbox').serialize()
+		if(confirm("确定将所有服务器按第一阶段排序吗？")){
+			$.ajax({
+				url:"/server/battle_server/battle_server_first",
+				type:"POST",
+				dataType:"json",
+				data:sids
+			})
+			.done(function(data){
+				console.log(data.msg)
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+	}
+
+	function save_single(ele){
+		var This = $(ele)
+		var new_group = This.parent().siblings().eq(8).find("input").val()
+		var new_sub_group = This.parent().siblings().eq(9).find("input").val()
+		var sid = This.parent().siblings().eq(1).text()
+		if (new_group && new_sub_group){
+			var params = {"new_group":new_group,"new_sub_group":new_sub_group,"sid":sid}
+			if(confirm("确定修改？")){
+			$.ajax({
+				url:"/server/battle_server/save_battle_single",
+				type:"POST",
+				dataType:"json",
+				data:params
+			})
+			.done(function(data){
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+		}else if (!new_group){
+			return art.dialog("没有填跨服区")
+		}else if(!new_sub_group){
+			return art.dialog("没有填跨服组")
+		}
+	}
+
+	function delete_single(ele){
+		var This = $(ele)
+		var sid = This.parent().siblings().eq(1).text()
+		var params = {"sid":sid}
+		if(confirm("确定修改？")){
+			$.ajax({
+				url:"/server/battle_server/delete_battle_single",
+				type:"POST",
+				dataType:"json",
+				data:params
+			})
+			.done(function(data){
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+		return
+	}
+
+
+	function edit{{model_name}}(ele){
+		if (selectId) {
+			art.dialog.open("{{url_prefix}}edit?sid=" + selectId,{title:ele.innerText})
+		}
+	}
+	function remove{{model_name}}(ele){
+		var sids = $('#{{model_name}}_area :checkbox').serialize()
+		if (sids) {
+			if (confirmRandom('确定删除吗?')) {
+				window.location.href = "{{url_prefix}}remove?" + sids
+			}
+		}
+	}
+	function copy{{model_name}}(ele){
+		if (selectId) {
+			art.dialog.open("{{url_prefix}}edit?copy=true&sid=" + selectId,{title:ele.innerText})
+		}
+	}
+
+	function sync_table() {
+		openwindow('/log/log/log_syncdb','123123',0.8,0.8,$('#post_form').serialize())
+	}
+
+	function change_server_status() {
+		if (confirm('确定修改服务器状态吗!')){
+			$.ajax({
+				url: '/server/battle_server/battle_server_status_edit',
+				type: 'POST',
+				dataType:'json',
+				data: $('#post_form').serialize()
+			})
+			.done(function(data) {
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+	}
+
+$(function(){
+     $('#{{model_name}}_area tr').contextMenu('contextMenu',
+     {
+          bindings:
+          {
+            'c_edit': function(t) {
+              edit{{model_name}}(t)
+            },
+            'c_settings': function(t) {
+              alert('服务器参数配置!')
+            },
+            'c_copy': function(t){
+            	copy{{model_name}}(t)
+            }
+          }
+    });
+ })
+</script>
+
+<div  id="contextMenu" class="contextMenu hide">
+	<ul>
+		<li id="c_edit" class="btn no-border btn-white"><i class="icon-edit"></i>编辑</li>
+		<li id="c_copy" class="btn no-border btn-white"><i class="icon-cogs"></i>复制</li>
+	</ul>
+</div>
+
+<ul id="nav-list" class="nav nav-tabs" >
+	  <li class="active" >
+	  	<a href="{{url_prefix}}list" >跨服战管理</a>
+	  </li>
+</ul>
+
+
+<form id="post_form"  method="post" >
+    <!-- 按钮工具条 -->
+<div id='datatable_toolbar'>
+			<div class="btn-toolbar pull-right">
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-danger " onclick="first{{model_name}}(this)">
+						<i class="icon-arrow-down"></i>第一阶段匹配
+					</a>
+				</div>
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-danger " onclick="second{{model_name}}(this)">
+						<i class="icon-arrow-down"></i>第二阶段匹配
+					</a>
+				</div>
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-danger " onclick="third{{model_name}}(this)">
+						<i class="icon-arrow-down"></i>第三阶段匹配
+					</a>
+				</div>
+		<!-- 		<div class="btn-group ">
+					<a class="btn btn-sm btn-primary " onclick="edit{{model_name}}(this)" >
+						<i class="icon-edit"></i>编辑
+					</a>
+					<a data-toggle="dropdown" class="btn btn-sm btn-primary dropdown-toggle">
+						<span class="icon-caret-down icon-only"></span>
+					</a>
+
+					<ul class="dropdown-menu" >
+						{%if request.allow_menu.游戏服_删除%}
+						<li><a  class="gray" onclick="remove{{model_name}}(this)">删除</a></li>
+						{%endif%}
+					</ul>
+				</div> -->
+
+			</div>
+</div>
+<!-- data-group-by-index="[5]" -->
+<table  class="table table-bordered datatable" data-group-by-index= "[6,7,13]">
+			<thead>
+			<tr>
+				<th width="60">
+					<input type="checkbox"   checkbox-area='{{model_name}}_area'  >
+				</th>
+				<th >ID</th>
+				<th >跨服战服务器名(别名)</th>
+				<th>版本号</th>
+				<th >开服时间</th>
+				<th >世界等级</th>
+				<th>子服务器</th>
+				<th>大组</th>
+				<th>跨服区</th>
+				<th>跨服组</th>
+				<th>平均战力</th>
+				<th>前十战力平均</th>
+				<th>综合积分</th>
+				<th>状态</th>
+				<th>操作</th>
+			</tr>
+			</thead>
+			<tbody id="{{model_name}}_area">
+			{%for item in list_record%}
+			<tr>
+				<td>
+				<input type="checkbox"  value="{{item.server}}" name="sid">
+				</td>
+				<td>{{item.server}}</td>
+				<td><a href="{{url_prefix}}edit?sid={{item.server}}" class="openDialog">
+					{% for k,v in server_name.items%}
+					{% if k == item.server %}
+					{{v}}
+					{% endif%}{%endfor%}
+				</td>
+				<td>{{item.version}}</td>
+				<td>{{item.create_time_str}}</td>
+				<td>{{item.world_level}}</td>
+				<td>{{item.sub_server}}</td>
+				<!-- <td><input type="number" value="{{item.sort}}" size=1 style="width:50px;"></td> -->
+				<td>{{item.sort}}</td>
+				<td><input type="text" name="{{item.server}}" value = "{{item.group}}" size=1></td>
+				<td><input type="number" value="{{item.sub_group}}" size=1 style="width:50px;"></td>
+				<td>{{item.f4}}</td>
+				<td>{{item.f7}}</td>
+				<td>{{item.score}}</td>
+				<td>{{item.get_status}}</td>
+				<td><a href="javascript:void(0);" class="btn btn-primary btn-xs" role="button" onclick="save_single(this)">[修改]</a>
+					<a href="javascript:void(0);" class="btn btn-xs btn-danger" role="button" onclick="delete_single(this)">[删除]</a></td>
+
+<!-- 				<td>
+					{% if request.admin.is_root%}
+					<a href="/game/server/battle_server_time?server_id={{item.id}}" class="openDialog">[跨服服务器时间]</a>
+					{%endif%}
+				</td> -->
+			</tr>
+
+			{%endfor%}
+			</tbody>
+</table>
+
+
+{% if request.allow_menu.修改服务器状态 or request.allow_menu.修改版本号 %}
+<div class="sub-menu-1">
+	<label>选中操作：</label>
+	<select  name="action"   >
+		<option value="save_config">保存配置</option>
+		<option value="change_sort">修改大组</option>
+		<option value="change_version">修改版本号</option>
+		<option value="send_reward">结算战场</option>
+	</select>
+	<span id="change_sort" class="action-cont">
+		大组:<input type="text" class="input-number" name="sort" value="" />
+	</span>
+	<span id="change_version" class="action-cont">
+		版本:<input type="text" class="input-number" name="ver" value="" />
+	</span>
+	<input type="checkbox" id="send_all" checkbox-area='type_area' value="1" />全选&nbsp;&nbsp;
+	<div id="type_area" style="display:inline;">
+	<input type="checkbox" id="send_star" value="1" />发送魔星&nbsp;&nbsp;
+	<input type="checkbox" id="send_monster" value="1" />发送荒兽&nbsp;&nbsp;
+	<input type="checkbox" id="send_battle" value="1" />发送战场&nbsp;&nbsp;
+	<input type="checkbox" id="send_yanhuang" value="1" />发送炎黄&nbsp;&nbsp;
+	<input type="checkbox" id="send_arena" value="1" />发送竞技场&nbsp;&nbsp;
+	<input type="checkbox" id="send_skytower" value="1" />发送通天塔&nbsp;&nbsp;
+	</div>
+	<input type="text" id="run_time" name="run_time"  value="{% if model.id %}{{model.run_time|date:"Y-m-d H:i:s"}}{% else%}{{model.run_time}}{% endif %}" class="Wdate"/>
+	<input id="save_many" type="button" class="btn btn-xs btn-danger" value="执行操作">
+</div>
+{%endif%}
+
+<div class="sub-menu-1" id="tip_text" style="display: none;">
+	 <textarea name="weihuTip" placeholder="维护提示信息..."></textarea>
+</div>
+
+<div class="sub-menu-1" id="tip_text" style="">
+		<div class="alert alert-info">
+				<p>*注意 </p>
+		</div>
+</div>
+
+</form>
+<div id="sync_index_dialog" ></div>
+<div id="tip_box" title="提示框" ></div>
+<script type="text/javascript">
+$(function(){
+	$('[name="action"]').click(function(){
+		$('.action-cont').hide()
+		$('#'+$(this).val()).show()
+	})
+
+    $("#change_option").change(function(){
+            var option_id = $(this).find(":selected").val();
+            if(option_id == 1){
+                $("#tip_text").show()
+            }else{
+                $("#tip_text").hide();
+            }
+     })
+
+    $("#send_all").click(function(){
+    	if($("#send_all").checked){
+    		$("#send_star").checked=true;
+    		$("#send_monster").checked=true;
+    		$("#send_battle").checked=true;
+    		$("#send_yanhuang").checked=true;
+    		$("#send_skytower").checked=true;
+    		$("#send_arena").checked=true;
+    	}
+    })
+
+    $("#save_many").click(function(){
+		var params = {};
+		$('#BattleList_area :checkbox[checked]').each(function(){
+			c_g = $(this).parents("td").siblings().eq(7).find("input").val()
+			c_s_g = $(this).parents("td").siblings().eq(8).find("input").val()
+			
+			params[$(this).val()] = [c_g,c_s_g]
+		})
+		var data = {"params":JSON.stringify(params)}
+		var action = $("select[name=action]").val()
+		if (action == "change_sort"){
+		var sort = $("input[name=sort]").val()	
+		if(!!sort){
+			data["action"] = "change_sort"
+			data["sort"] = sort
+		}else{
+			return false
+		}
+		}else if(action == "change_version"){
+			var ver = $("input[name=ver]").val()
+			if(!!ver){
+				data["action"] = "change_version"
+				data["ver"] = ver
+			}
+		}else if(action == "send_reward"){
+			data["action"] = "send_reward"
+		}
+
+		var _temp = []
+		if($("#send_star").is(":checked")){
+			_temp.push(21)
+		}
+		if($("#send_monster").is(":checked")){
+			_temp.push(20)
+		}
+		if($("#send_battle").is(":checked")){
+			_temp.push(19)
+		}
+		if($("#send_yanhuang").is(":checked")){
+			_temp.push(24)
+		}
+
+		if($("#send_arena").is(":checked")){
+			_temp.push(27)
+		}
+
+		if($("#send_skytower").is(":checked")){
+			_temp.push(28)
+		}
+
+		if(!!$("#run_time").val()){
+			_temp.push({"run_time":$("#run_time").val()})
+		}else{
+			_temp.push({"run_time":false})
+		}
+
+		data["send_to_server"] = JSON.stringify(_temp)
+
+		if(confirm("确定执行操作？")){
+			$.ajax({
+				url:"/server/battle_server/save_battle_many",
+				type:"POST",
+				dataType:"json",
+				data:data
+			})
+			.done(function(data){
+				art.dialog(data.msg)
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+		})
+
+})
+
+</script>
+
+
+{% endwith %}
+{% endblock %}

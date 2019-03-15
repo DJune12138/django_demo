@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>角色信息排序</title>
+<!-- 排序条件样式 -->
+<style>
+.sort-contextMenu div {
+	padding: 0;
+	margin: 0;
+	width:50px;
+	height: 31px;
+	line-height: 31px;
+	text-align: center;
+	border: solid 1px #dcdcdc;
+	cursor: pointer;
+	background: white;
+}
+.th_sort thead th{
+	cursor:pointer;
+}
+.sort-span{
+	margin-left: 2px;
+	border:solid 1px #DDDFE7;
+	display: inline-block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	角色信息排序
+</div>
+<form id="player_list_form" action="" method="post">
+	{%include 'widgets/group_server_select.html' %}
+<div class="sub-menu-1">
+		<table>
+			<tr>
+				<th>国家:</th>
+				<td>
+				<select name="nat">
+					{% for v,n in country_map_list%}
+					<option value="{{v}}" {%if country_code == v%}selected="selected"{%endif%}>{{n}}</option>
+					{%endfor%}
+				</select>
+				<input type="submit" value="查询" />
+				</td>
+			</tr>
+			<tr>
+				<th>排序条件:<br>(右键表头添加)</th>
+				<td>
+
+				<span id="sort-condition">
+			    	{% for c in sort_condition%}
+					<span class="sort-span">{{c.2}}
+						<select name="{{c.0}}">
+							<option value="1" {%ifequal c.1 1%}selected="selected"{%endifequal%}>升序</option>
+							<option value="-1" {%ifequal c.1 -1%}selected="selected"{%endifequal%} >降序</option>
+						</select>
+						<a href="javascript:void(0)" onclick="$(this).parent().remove()">X</a>
+					</span>
+			    	{%endfor%}
+			    	<input type="hidden" id="sort-keys" name="sort_keys" value="{{sort_keys}}">
+			    </span>
+				</td>
+			</tr>
+		</table>
+
+
+</div>
+</form>
+
+<table class="table table-bordered">
+	{% if total_record%}
+	<caption>目前已创建角色共 {{total_record}} 个</caption>
+	{%endif%}
+	<thead>
+	<tr>
+		{% for k,name in condition_map.items%}
+				<th key="{{k}}" class="th_sort">{{name}}</th>
+		{%endfor%}	
+	</tr>
+	</thead>
+	<tbody>
+	{%for item in player_list%}
+	<tr pid="{{item.pi}}">
+		<td><a href="/game/player/player_info?player_id={{item.pi}}&server_id={{server_id}}&player_name={{item.pn}}" class="openDialog">{{item.pi}}</a></td>
+		<td>{{item.pn}}</td>
+		<td>{{item.plv}}</td>
+		<td>{{item.vip}}</td>
+		<td>{{item.nat}}</td>
+		<td>{{item.of}}</td>
+		<td>{{item.pc}}</td>
+		<td>{{item.olt}}</td>
+	</tr>
+	{%endfor%}
+	</tbody>
+</table>
+
+<div id="diag_block_user" style="display:none;" >
+	<form action="/player/block" method="post" >
+		<input type="hidden" name="server_id" value="{{server_id}}" />
+		<input type="hidden" name="player_id" value="" />
+		<textarea name="remark" placeholder="备注" ></textarea>
+		<input type="submit" value="提交" />
+	</form>
+</div>
+{% include "page_post.html" %}
+
+
+<div id="sort-contextMenu" class="sort-contextMenu" style="display: none;position:fixed;">
+            <div class="sort-set" sort-type="1">升序</div>
+            <div class="sort-set" sort-type="-1">降序</div>
+</div>
+
+<script type="text/javascript">
+$.fn.extend({   
+        "rightclick":function(fn){  
+            $(this).bind('contextmenu',function(e){  
+                return false;  
+            });   
+            
+            $(this).mouseup(function(e){  
+            	this.fn = fn
+                if(3 == e.which){  
+                  	this.fn(e);  
+                }  
+            });   
+        }   
+    });  
+</script>
+
+<script type="text/javascript">
+	var sortObj = null
+	function sortMenu(obj,e){　
+		$('#sort-contextMenu').css({"left":e.pageX+1,"top":e.pageY}).show()
+	}
+	function makeSortInput(name,key,val){
+		var span = $('<span>',{html:name,class:"sort-span"}),
+			select = $('<select>',{name:key})
+			select.append($('<option>',{html:'升序',val:"1"}))
+			select.append($('<option>',{html:'降序',val:"-1"}))
+			span.append(select)
+			span.append('<a href="javascript:void(0)" onclick="$(this).parent().remove()">X</a>')
+			select.val(val)
+		return span
+	}
+
+	$('.th_sort').rightclick(function(e){
+		    sortObj = $(this)
+			sortMenu(sortObj,e)
+	})
+	$('.sort-set').click(function(e){
+		$('#sort-contextMenu').hide()
+		var name = sortObj.text(),
+		    sortKey = sortObj.attr('key'),
+			sortType = $(this).attr('sort-type')
+		$('#sort-condition').append(makeSortInput(name,sortKey,sortType))
+	})
+
+	$('#player_list_form').submit(function(){
+		var keys = ''
+		$('.sort-span select').each(function(){
+
+			keys += $(this).attr('name') + ','
+		})
+		$('#sort-keys').val(keys)
+	})
+
+</script>
+{% endblock %}

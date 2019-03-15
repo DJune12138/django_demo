@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+
+<title>发送跨服消费排行</title>
+{% include 'game/resource_editor.html' %}
+<style type="text/css">
+.reward_item{
+	border:2px solid #1b6aaa!important;
+	margin: 2px
+}
+.send_text{
+    width: 460px;
+    height: 200px;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="bar">
+发送跨服消费排行
+</div>
+
+<div class="sub-menu-1">
+{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=server_id%}
+</div>
+<table class="form">
+    <tr>
+        <th>发送数据</th>
+        <td>
+            <textarea name="dict" class="send_text"></textarea>
+            <br>
+            <a id="quick_add" href="javascript:void(0)">快速添加</a>
+        </td>
+    </tr>
+    <tr>
+        <th>类型：</th>
+        <td>
+
+            跨服消费<input type="radio"  name="tp" value="3" />
+        </td>
+    </tr>
+     <tr>
+    </tr>
+    <tr>
+		<th>操作：</th>
+		<td>
+			<input type="button" id="send_btn" class="btn btn-app btn-xs" value="发送">
+		</td>
+	</tr>
+</table>
+
+<div id="quick_div" style="display:none" >
+     每行以逗号或空格分割项目编号
+     <textarea id="quick_textarea" style="height:300px"></textarea>
+     <br>
+     <input id="quick_btn_save" type="button" value="确定">
+</div>
+
+<script>
+$('#quick_add').click(function(){
+    $('#quick_textarea').val('')
+    $('#quick_div').dialog({"title":"快速添加","top":"25%"})
+
+})
+$('#quick_btn_save').click(function(){
+    var dict_container = $('[name="dict"]')
+    var dict_input = text_split_to_json($('#quick_textarea').val())
+    dict_container.val(JSON.stringify(dict_input))
+})
+
+function text_split_to_json(text){
+    var lines = text.split(/\n/)
+    var lis = []
+    for (var i in lines){
+        var _dict = {}
+        var line = lines[i]
+        var fields = line.split(/[,\t ]+/)
+        _dict.sid = parseInt(fields[0])
+        _dict.sn = fields[1]
+        _dict.pi = parseInt(fields[2])
+        _dict.na = fields[3]
+        _dict.am = parseInt(fields[4])
+        lis.push(_dict)
+    }
+    return lis
+}
+
+function get_msg(){
+    var msg = []
+    msg[0] = parseInt($('[name="tp"]:checked').val())
+    msg[1] = $('[name="dict"]').val()
+
+    if (! msg[1]) {
+		alert('请填发送数据!')
+		return
+	}
+
+    msg = JSON.stringify(msg)
+    return msg
+}
+
+
+var post_url = '/game/player/send_expense_rank'
+var is_running = false
+var server_process = new ServerProcess()
+var running_server_ids = []
+function ajax_do(server_id,data){
+    var data = {"server_id":server_id,"msg":data};
+    var server_status_cont = server_process.get_server_status_cont(server_id)
+	server_status_cont.html('<img src="/static/skin/images/loading.gif">')
+    if (is_running) {
+        $.ajax({
+            url: post_url,
+            dataType: 'json',
+            type: 'POST',
+            data: data,
+            timeout: 10000
+        }).done(function (data) {
+            server_status_cont.html(linebreaksbr(data.msg))
+        })
+    }
+    else {
+		server_status_cont.html('停止!')
+	}
+}
+
+function stop_post(){
+	if(running_server_ids.length>0 && is_running==true) {
+		if ( confirm('是否停止发送!') ) {
+			is_running = false
+			return true
+		} else {
+			return false
+		}
+	}
+}
+
+$('#send_btn').click(function(){
+	var msg = get_msg()
+	var server_ids = get_server_ids(true)
+	running_server_ids = server_ids
+	if (! msg) {
+		return
+	}
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!')
+		return
+	}
+	server_process.show({"title":"发送状态:","top":'20%',"close":function(){
+		return stop_post()
+	}})
+
+	is_running = true
+	console.dir(msg)
+	for (i in server_ids) {
+		var server_id = server_ids[i]
+		server_process.make_tr_for_server_id(server_id)
+		ajax_do(server_id,msg)
+	}
+	if(running_server_ids.length>1){
+		server_process.process_bar.append(
+	$('<a>',{"id":"stop-post-btn","html":"停止","class":"btn btn-sm btn-primary pull-right","click":function(){
+		return stop_post()
+	}})
+)
+	}
+})
+
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+

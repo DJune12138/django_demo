@@ -1,0 +1,113 @@
+
+<style>
+    .error {
+        width: 100px;
+        height: 36px;
+        line-height: 36px;
+        background-color: #ff0000;
+        color: #ffffff;
+        margin: 0 auto;
+    }
+    .filter label{
+        margin-right: 10px;
+    }
+</style>
+<script>
+    $(document).ready(function(){
+        $("#search_item").keypress(function(e){
+            var kp_code = e.keyCode;
+            if(kp_code == 13){
+                var content = $(this).val();
+                if(content.length == 0){
+                    $(".item_list").show()
+                }else{
+                    var con_arr = content.split(",");
+                    var show_items = [];
+                    $(".item_list").each(function(){
+                        var iid = $(this).find(".iid").html(),
+                            iname = $(this).find(".iname").html();
+                        for(var i in con_arr){
+                            if(iid == con_arr[i] || iname.indexOf(con_arr[i]) >=0 ){
+                                show_items.push($(this));
+                                break;
+                            }
+                        }
+                    })
+                    $(".item_list").hide();
+                    for(var i in show_items){
+                        show_items[i].show();
+                    }
+                }
+            }
+        });
+
+        var sort_items = [];
+        $("#asc, #desc").click(function(){
+            if(sort_items.length == 0){
+                var sortIds = function(a, b){
+                    return a - b;
+                };
+                var ids = [];
+                $(".iid").each(function(){
+                    ids.push(parseInt($(this).html()));
+                });
+                ids.sort(sortIds);
+
+                for(var i in ids){
+                    var tl = $(".iid:contains('"+ids[i]+"')").parent(".item_list");
+                    sort_items.push(tl);
+                }
+            }
+
+            var tbody = $("#checkbox2_area");
+            tbody.html("");
+            for(var k in sort_items){
+                if($(this).attr("id") == "asc"){
+                    tbody.append(sort_items[k])
+                }else{
+                    tbody.prepend(sort_items[k])
+                }
+            }
+            $(this).prop("disabled", true).siblings().prop("disabled", false);
+        })
+    })
+</script>
+{% if not error %}
+<div id="push_tab" style="height:500px; overflow:auto;">
+    <div class="filter">
+        <label>
+            <input type="text" id="search_item" name="search" placeholder="搜索" />
+            <input type="text" style="display: none"/>
+        </label>
+        <label>
+            <input type="button" value="正序" id="asc"/>
+            <input type="button" value="倒序" id="desc"/>
+        </label>
+        <label class="red">* 可查询id, 模糊匹配name, 多项以逗号分隔, Enter键结束输入开始查询</label>
+    </div>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th width="80">
+                    <input type="checkbox" checkbox-area="checkbox2_area" />
+                </th>
+                <th width="100">ID</th>
+                <th width="500">name</th>
+                <th>状态</th>
+            </tr>
+        </thead>
+        <tbody id="checkbox2_area">
+            {% for data in db_list %}
+            <tr class="item_list">
+                <td><input type="checkbox" value="{{data.id}}" name="push_id" /></td>
+                <td class="iid">{{data.id}}</td>
+                <td class="iname">{{data.name}}</td>
+                <td class="status">&nbsp;</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<h2 class="error">{{error}}</h2>
+{% endif %}

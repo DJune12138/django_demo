@@ -1,0 +1,400 @@
+    
+<div id="calendar_cont" >
+
+</div>
+
+<SCRIPT language="JavaScript"> 
+<!--
+ var lunarInfo=new Array(
+0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5d0,0x14573,0x052d0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b5a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04bd7,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0
+)
+
+var Today = new Date();
+var tY = Today.getFullYear();
+var tM = Today.getMonth();
+var tD = Today.getDate();
+
+var solarMonth=new Array(31,28,31,30,31,30,31,31,30,31,30,31);
+var Animals=new Array("鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪");
+var solarTerm = new Array("小寒","大寒","立春","雨水","惊蛰","春分","清明","谷雨","立夏","小满","芒种","夏至","小暑","大暑","立秋","处暑","白露","秋分","寒露","霜降","立冬","小雪","大雪","冬至");
+var sTermInfo = new Array(0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375494,397447,419210,440795,462224,483532,504758);
+var nStr1 = new Array('日','一','二','三','四','五','六','七','八','九','十');
+var nStr2 = new Array('初','十','廿','卅');
+//公历节日
+var sFtv = new Array(
+	"0101 元旦",
+	"0214 情人节",
+	"0308 妇女节",
+	"0312 植树节",
+	"0315 消费者权益日",
+	"0401 愚人节",
+	"0501 劳动节",
+	"0504 青年节",
+	"0512 护士节",
+	"0601 儿童节",
+	"0701 建党节",
+	"0801 建军节",
+	"0910 教师节",
+	"0928 孔子诞辰",
+	"1001 国庆节",
+	"1006 老人节",
+	"1024 联合国日",
+	"1224 平安夜",
+	"1225 圣诞节"
+)
+//农历节日
+var lFtv = new Array(
+	"0101 春节",
+	"0115 元宵节",
+	"0505 端午节",
+	"0707 七夕情人节",
+	"0715 中元节",
+	"0815 中秋节",
+	"0909 重阳节",
+	"1208 腊八节",
+	"1224 小年"
+)
+//返回农历y年的总天数
+function lYearDays(y) {
+   var i, sum = 348;
+   for(i=0x8000; i>0x8; i>>=1)sum+=(lunarInfo[y-1900]&i)?1:0;
+   return(sum+leapDays(y));
+}
+//返回农历y年闰月的天数
+function leapDays(y) {
+   if(leapMonth(y))  return((lunarInfo[y-1900] & 0x10000)? 30: 29);
+   else return(0);
+}
+//判断y年的农历中那个月是闰月,不是闰月返回0
+function leapMonth(y){
+   return(lunarInfo[y-1900]&0xf);
+}
+//返回农历y年m月的总天数
+function monthDays(y,m){
+   return((lunarInfo[y-1900]&(0x10000>>m))?30:29);
+}
+//算出当前月第一天的农历日期和当前农历日期下一个月农历的第一天日期
+function Dianaday(objDate) {
+   var i, leap=0, temp=0;
+   var baseDate = new Date(1900,0,31);
+   var offset   = (objDate - baseDate)/86400000;
+   this.dayCyl = offset+40;
+   this.monCyl = 14;
+   for(i=1900; i<2050 && offset>0; i++) {
+      temp = lYearDays(i)
+      offset -= temp;
+      this.monCyl += 12;
+   }
+   if(offset<0) {
+      offset += temp;
+      i--;
+      this.monCyl -= 12;
+   }
+   this.year = i;
+   this.yearCyl=i-1864;
+   leap = leapMonth(i); //闰哪个月
+   this.isLeap = false;
+   for(i=1; i<13 && offset>0; i++) {
+      if(leap>0 && i==(leap+1) && this.isLeap==false){	//闰月
+          --i; this.isLeap = true; temp = leapDays(this.year);}
+      else{
+         temp = monthDays(this.year, i);}
+      if(this.isLeap==true && i==(leap+1)) this.isLeap = false;	//解除闰月
+      offset -= temp;
+      if(this.isLeap == false) this.monCyl++;
+   }
+   if(offset==0 && leap>0 && i==leap+1)
+      if(this.isLeap){ this.isLeap = false;}
+      else{this.isLeap=true;--i;--this.monCyl;}
+   if(offset<0){offset+=temp;--i;--this.monCyl;}
+   this.month=i;
+   this.day=offset+1;
+}
+//返回公历y年m+1月的天数
+function solarDays(y,m){
+   if(m==1)
+      return(((y%4==0)&&(y%100!=0)||(y%400==0))?29:28);
+   else
+      return(solarMonth[m]);
+}
+//记录公历和农历某天的日期
+function calElement(sYear,sMonth,sDay,week,lYear,lMonth,lDay,isLeap) {
+      this.isToday = false;
+      //公历
+      this.sYear = sYear;
+      this.sMonth = sMonth;
+      this.sDay = sDay;
+      this.week = week;
+      //农历
+      this.lYear = lYear;
+      this.lMonth = lMonth;
+      this.lDay = lDay;
+      this.isLeap = isLeap;
+	  //节日记录
+      this.lunarFestival = ''; //农历节日
+      this.solarFestival = ''; //公历节日
+      this.solarTerms = ''; //节气
+}
+//返回某年的第n个节气为几日(从0小寒起算)
+function sTerm(y,n) {
+   var offDate = new Date((31556925974.7*(y-1900)+sTermInfo[n]*60000)+Date.UTC(1900,0,6,2,5));
+   return(offDate.getUTCDate())
+}
+
+//保存y年m+1月的相关信息
+var fat=mat=9;
+var eve=0;
+function calendar(y,m) {
+   fat=mat=0;
+   var sDObj,lDObj,lY,lM,lD=1,lL,lX=0,tmp1,tmp2;
+   var lDPOS = new Array(3);
+   var n = 0;
+   var firstLM = 0;
+   sDObj = new Date(y,m,1);	//当月第一天的日期
+   this.length = solarDays(y,m);    //公历当月天数
+   this.firstWeek = sDObj.getDay();    //公历当月1日星期几
+   if ((m+1)==5){fat=sDObj.getDay()}
+   if ((m+1)==6){mat=sDObj.getDay()}
+   for(var i=0;i<this.length;i++) {
+      if(lD>lX) {
+         sDObj = new Date(y,m,i+1);    //当月第一天的日期
+         lDObj = new Dianaday(sDObj);     //农历
+         lY = lDObj.year;           //农历年
+         lM = lDObj.month;          //农历月
+         lD = lDObj.day;            //农历日
+         lL = lDObj.isLeap;         //农历是否闰月
+         lX = lL? leapDays(lY): monthDays(lY,lM); //农历当月最後一天
+         if (lM==12){eve=lX}
+		 if(n==0) firstLM = lM;
+         lDPOS[n++] = i-lD+1;
+      }
+      this[i] = new calElement(y,m+1,i+1,nStr1[(i+this.firstWeek)%7],lY,lM,lD++,lL);
+	  if((i+this.firstWeek)%7==0){
+	     this[i].color = 'red';  //周日颜色
+	  }
+   }
+   //节气
+   tmp1=sTerm(y,m*2)-1;
+   tmp2=sTerm(y,m*2+1)-1;
+   this[tmp1].solarTerms = solarTerm[m*2];
+   this[tmp2].solarTerms = solarTerm[m*2+1];
+   if((this.firstWeek+12)%7==5)	//黑色星期五
+      this[12].solarFestival += '黑色星期五';
+   if(y==tY && m==tM) this[tD-1].isToday = true;	//今日
+}
+//用中文显示农历的日期
+function cDay(d){
+   var s;
+   switch (d) {
+      case 10:
+         s = '初十'; break;
+      case 20:
+         s = '二十'; break;
+         break;
+      case 30:
+         s = '三十'; break;
+         break;
+      default :
+         s = nStr2[Math.floor(d/10)];
+         s += nStr1[d%10];
+   }
+   return(s);
+}
+
+function rjust(source_str,length,padding_str){
+  var _str = ''
+  var s_l = source_str.toString().length
+  if (s_l<length){
+    for(var i=0;i<length-s_l;i++){
+      _str += padding_str
+    }
+  }
+  return _str + source_str
+}
+
+
+//在表格中显示公历和农历的日期,以及相关节日
+var cld;
+function drawCld(SY,SM,$cont) {
+   var TF=true;
+   var p1=p2="";
+   var i,sD,s,size,_d;
+   var _y = SY,
+       _m = rjust(SM+1,2,'0')
+   var _date = _y+'-'+_m
+   cld = new calendar(SY,SM);
+   $cont.find('#datecont').html(_date)
+   for(i=0;i<42;i++) {
+      sObj=$cont.find('#SD'+ i)[0];
+      lObj=$cont.find('#LD'+ i)[0];
+      gdObj=$cont.find('#GD'+ i);
+      
+      sObj.className = '';
+      sD = i - cld.firstWeek;
+      if(sD>-1 && sD<cld.length) { //日期内
+         _d = sD+1
+         sObj.innerHTML = _d;
+         gdObj.addClass(_date + '-' + rjust(_d,2,'0'))
+		 if(cld[sD].isToday){ sObj.style.color = '#9900FF';sObj.style.background="blanchedalmond"} //今日颜色
+		 else{sObj.style.color = '';}
+         if(cld[sD].lDay==1){ //显示农历月
+		   lObj.innerHTML = '<b>'+(cld[sD].isLeap?'闰':'') + cld[sD].lMonth + '月' + (monthDays(cld[sD].lYear,cld[sD].lMonth)==29?'小':'大')+'</b>';
+         }
+		 else{lObj.innerHTML = cDay(cld[sD].lDay);}	//显示农历日
+		var Slfw=Ssfw=null;
+		s=cld[sD].solarFestival;
+		for (var ipp=0;ipp<lFtv.length;ipp++){	//农历节日
+			if (parseInt(lFtv[ipp].substr(0,2))==(cld[sD].lMonth)){
+				if (parseInt(lFtv[ipp].substr(2,4))==(cld[sD].lDay)){
+					lObj.innerHTML=lFtv[ipp].substr(5);
+					Slfw=lFtv[ipp].substr(5);
+				}
+			}
+			if (12==(cld[sD].lMonth)){	//判断是否为除夕
+				if (eve==(cld[sD].lDay)){lObj.innerHTML="除夕";Slfw="除夕";}
+			}
+		}
+		for (var ipp=0;ipp<sFtv.length;ipp++){	//公历节日
+			if (parseInt(sFtv[ipp].substr(0,2))==(SM+1)){
+				if (parseInt(sFtv[ipp].substr(2,4))==(sD+1)){
+					lObj.innerHTML=sFtv[ipp].substr(5);
+					Ssfw=sFtv[ipp].substr(5);
+				}
+			}
+		}
+	    if ((SM+1)==5){	//母亲节
+			if (fat==0){
+				if ((sD+1)==7){Ssfw="母亲节";lObj.innerHTML="母亲节"}
+			}
+			else if (fat<9){
+				if ((sD+1)==((7-fat)+8)){Ssfw="母亲节";lObj.innerHTML="母亲节"}
+			}
+		}
+	    if ((SM+1)==6){	//父亲节
+			if (mat==0){
+				if ((sD+1)==14){Ssfw="父亲节";lObj.innerHTML="父亲节"}
+			}
+			else if (mat<9){
+				if ((sD+1)==((7-mat)+15)){Ssfw="父亲节";lObj.innerHTML="父亲节"}
+			}
+		 }
+		 if (s.length<=0){	//设置节气的颜色
+			s=cld[sD].solarTerms;
+            if(s.length>0) s = s.fontcolor('limegreen');		
+		 }
+		 if(s.length>0) {lObj.innerHTML=s;Slfw=s;}	//节气
+		 if ((Slfw!=null)&&(Ssfw!=null)){
+			lObj.innerHTML=Slfw+"/"+Ssfw;
+		 }						
+      }
+      else { //非日期
+         sObj.innerHTML = '';
+         lObj.innerHTML = '';
+      }
+   }
+}
+
+function get_calendat_table_ele(){
+  var table_html =  $('#calendar_div').html()
+  return $(table_html)
+}
+
+function create_calendar_table(y,m){
+  var table_cont = get_calendat_table_ele()
+  drawCld(y,m,table_cont);
+  return table_cont
+}
+
+var already_month_list = []
+
+var $calendar_cont = $('#calendar_cont')
+function add_calendar_table(y,m){
+  var _d_str = y+'-'+m
+  if ($.inArray(_d_str, already_month_list)<0){
+    $calendar_cont.append(
+      create_calendar_table(y,m)
+      )
+    already_month_list.push(_d_str)
+  }
+}
+
+
+$(function(){
+  $calendar_cont.insertBefore($QUERY_TABLE)
+  $calendar_cont.html('')
+  add_calendar_table(tY,tM)
+})
+
+
+dataTableOption.page_size=100
+dataTableOption.page_size_list=[100,200]
+
+var date_th_index = TH['时间']
+dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+  LIST_DATA = data.list_data
+  $calendar_cont.html('')
+  already_month_list = []
+  for (var i in LIST_DATA) {
+    var row = LIST_DATA[i]
+    var _d_str = row[date_th_index] 
+    var _d_class = _d_str.split(' ')[0]
+    var _d = new Date(_d_str)
+    add_calendar_table(_d.getFullYear(),_d.getMonth())
+    $('.'+_d_class).css('background','gray')
+
+  }
+    return data
+
+})     //输出处理
+
+</SCRIPT>
+
+
+
+<div id="calendar_div" style="display:none">
+<div style="display:inline-block;margin:1px;width:400px;height:300px">
+<table style="width:100%">
+  <tbody>
+    <tr>
+    <td align="middle">
+      <table border="1" cellpadding="0" cellspacing="0" bordercolordark="#FFFFFF" bordercolor="#ffffff" bordercolorlight="#EEEEEE">
+        <tbody>
+        <tr bgcolor="#006600">
+          <td colspan="7"><font color="#ffffff" style="FONT-SIZE: 9pt">公历: <b id="datecont"></b> 月
+          </td>
+        </tr>
+        <tr align="middle" bgcolor="#e0e0e0">
+          <td width="54" style="font-size:9pt; padding:5pt;">日</td>
+          <td width="54" style="font-size:9pt ">一</td>
+          <td width="54" style="font-size:9pt ">二</td>
+          <td width="54" style="font-size:9pt ">三</td>
+          <td width="54" style="font-size:9pt ">四</td>
+          <td width="54" style="font-size:9pt ">五</td>
+          <td width="54" style="font-size:9pt ">六</td>
+      </tr>
+<tr align="center"><td id="GD0"><font id="SD0" size="2" face="Arial Black" color="red" title="" class=""></font><br><font id="LD0" size="2" style="font-size:9pt"></font></td><td id="GD1"><font id="SD1" size="2" face="Arial Black" title="" class=""></font><br><font id="LD1" size="2" style="font-size:9pt"></font></td><td id="GD2"><font id="SD2" size="2" face="Arial Black" title="" class=""></font><br><font id="LD2" size="2" style="font-size:9pt"></font></td><td id="GD3"><font id="SD3" size="2" face="Arial Black" title="" class=""></font><br><font id="LD3" size="2" style="font-size:9pt"></font></td><td id="GD4"><font id="SD4" size="2" face="Arial Black" title="" class=""></font><br><font id="LD4" size="2" style="font-size:9pt"></font></td><td id="GD5"><font id="SD5" size="2" face="Arial Black" title="" class=""></font><br><font id="LD5" size="2" style="font-size:9pt"></font></td><td id="GD6"><font id="SD6" size="2" face="Arial Black" color="#000080" title="" class="">1</font><br><font id="LD6" size="2" style="font-size:9pt">劳动节</font></td></tr><tr align="center"><td id="GD7"><font id="SD7" size="2" face="Arial Black" color="red" title="" class="">2</font><br><font id="LD7" size="2" style="font-size:9pt">十七</font></td><td id="GD8"><font id="SD8" size="2" face="Arial Black" title="" class="">3</font><br><font id="LD8" size="2" style="font-size:9pt">十八</font></td><td id="GD9"><font id="SD9" size="2" face="Arial Black" title="" class="">4</font><br><font id="LD9" size="2" style="font-size:9pt">青年节</font></td><td id="GD10"><font id="SD10" size="2" face="Arial Black" title="" class="">5</font><br><font id="LD10" size="2" style="font-size:9pt">二十</font></td><td id="GD11"><font id="SD11" size="2" face="Arial Black" title="" class="">6</font><br><font id="LD11" size="2" style="font-size:9pt"><font color="limegreen">立夏</font></font></td><td id="GD12"><font id="SD12" size="2" face="Arial Black" title="" class="">7</font><br><font id="LD12" size="2" style="font-size:9pt">廿二</font></td><td id="GD13"><font id="SD13" size="2" face="Arial Black" color="#000080" title="" class="">8</font><br><font id="LD13" size="2" style="font-size:9pt">廿三</font></td></tr><tr align="center"><td id="GD14"><font id="SD14" size="2" face="Arial Black" color="red" title="" class="">9</font><br><font id="LD14" size="2" style="font-size:9pt">母亲节</font></td><td id="GD15"><font id="SD15" size="2" face="Arial Black" title="" class="">10</font><br><font id="LD15" size="2" style="font-size:9pt">廿五</font></td><td id="GD16"><font id="SD16" size="2" face="Arial Black" title="" class="">11</font><br><font id="LD16" size="2" style="font-size:9pt">廿六</font></td><td id="GD17"><font id="SD17" size="2" face="Arial Black" title="" class="" style="">12</font><br><font id="LD17" size="2" style="font-size:9pt">护士节</font></td><td id="GD18"><font id="SD18" size="2" face="Arial Black" title="" class="">13</font><br><font id="LD18" size="2" style="font-size:9pt">廿八</font></td><td id="GD19"><font id="SD19" size="2" face="Arial Black" title="" class="">14</font><br><font id="LD19" size="2" style="font-size:9pt">廿九</font></td><td id="GD20"><font id="SD20" size="2" face="Arial Black" color="#000080" title="" class="">15</font><br><font id="LD20" size="2" style="font-size:9pt"><b>4月大</b></font></td></tr><tr align="center"><td id="GD21"><font id="SD21" size="2" face="Arial Black" color="red" title="" class="">16</font><br><font id="LD21" size="2" style="font-size:9pt">初二</font></td><td id="GD22"><font id="SD22" size="2" face="Arial Black" title="" class="">17</font><br><font id="LD22" size="2" style="font-size:9pt">初三</font></td><td id="GD23"><font id="SD23" size="2" face="Arial Black" title="" class="">18</font><br><font id="LD23" size="2" style="font-size:9pt">初四</font></td><td id="GD24"><font id="SD24" size="2" face="Arial Black" title="" class="">19</font><br><font id="LD24" size="2" style="font-size:9pt">初五</font></td><td id="GD25"><font id="SD25" size="2" face="Arial Black" title="" class="">20</font><br><font id="LD25" size="2" style="font-size:9pt">初六</font></td><td id="GD26"><font id="SD26" size="2" face="Arial Black" title="" class="">21</font><br><font id="LD26" size="2" style="font-size:9pt"><font color="limegreen">小满</font></font></td><td id="GD27"><font id="SD27" size="2" face="Arial Black" color="#000080" title="" class="">22</font><br><font id="LD27" size="2" style="font-size:9pt">初八</font></td></tr><tr align="center"><td id="GD28"><font id="SD28" size="2" face="Arial Black" color="red" title="" class="">23</font><br><font id="LD28" size="2" style="font-size:9pt">初九</font></td><td id="GD29"><font id="SD29" size="2" face="Arial Black" title="" class="">24</font><br><font id="LD29" size="2" style="font-size:9pt">初十</font></td><td id="GD30"><font id="SD30" size="2" face="Arial Black" title="" class="">25</font><br><font id="LD30" size="2" style="font-size:9pt">十一</font></td><td id="GD31"><font id="SD31" size="2" face="Arial Black" title="" class="">26</font><br><font id="LD31" size="2" style="font-size:9pt">十二</font></td><td id="GD32"><font id="SD32" size="2" face="Arial Black" title="" class="">27</font><br><font id="LD32" size="2" style="font-size:9pt">十三</font></td><td id="GD33"><font id="SD33" size="2" face="Arial Black" title="" class="">28</font><br><font id="LD33" size="2" style="font-size:9pt">十四</font></td><td id="GD34"><font id="SD34" size="2" face="Arial Black" color="#000080" title="" class="">29</font><br><font id="LD34" size="2" style="font-size:9pt">十五</font></td></tr><tr align="center"><td id="GD35"><font id="SD35" size="2" face="Arial Black" color="red" title="" class="">30</font><br><font id="LD35" size="2" style="font-size:9pt">十六</font></td><td id="GD36"><font id="SD36" size="2" face="Arial Black" title="" class="">31</font><br><font id="LD36" size="2" style="font-size:9pt">十七</font></td><td id="GD37"><font id="SD37" size="2" face="Arial Black" title="" class=""></font><br><font id="LD37" size="2" style="font-size:9pt"></font></td><td id="GD38"><font id="SD38" size="2" face="Arial Black" title="" class=""></font><br><font id="LD38" size="2" style="font-size:9pt"></font></td><td id="GD39"><font id="SD39" size="2" face="Arial Black" title="" class=""></font><br><font id="LD39" size="2" style="font-size:9pt"></font></td><td id="GD40"><font id="SD40" size="2" face="Arial Black" title="" class=""></font><br><font id="LD40" size="2" style="font-size:9pt"></font></td><td id="GD41"><font id="SD41" size="2" face="Arial Black" color="#000080" title="" class=""></font><br><font id="LD41" size="2" style="font-size:9pt"></font></td></tr>
+ </tbody>
+</table>
+</td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+</div>

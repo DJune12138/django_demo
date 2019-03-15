@@ -1,0 +1,53 @@
+﻿
+<style>
+#shangxia {
+	position: fixed;
+	width: 30px;
+	height: 80px;
+	bottom: 25%;
+	right:0px;
+	z-index: 1000;
+	display: none;
+	}
+</style>
+
+<div id="shangxia">
+	<a href="#" id="shang" class="btn btn-sm btn-inverse" title="移至顶部">
+		<i class="icon-double-angle-up "></i>
+	</a>
+	<a  id="xia" href="javascript:void(0);" class=" btn btn-sm btn-inverse" title="↓ 移至底部" onclick="$('html,body').animate({scrollTop: $(document).height()},400)">
+		<i class="icon-double-angle-down "></i>
+	</a>
+</div>
+
+<script type="text/javascript">
+$(function(){
+		// ----- 上下按钮
+		var _breadcrumbs = $('#breadcrumbs')
+		var _navbar = $('#navbar')
+		var _shangxia = $('#shangxia')
+		var _breadcrumbs_top = 0
+		
+		setInterval(function(){
+			_shangxia.hide();
+		},5000)
+		
+		$(window).scroll(function(){ 
+			_breadcrumbs_top = 0
+			if ($(window).scrollTop() > 45) {
+				_breadcrumbs.addClass('breadcrumbs-fixed');
+				if(_navbar.hasClass('navbar-fixed-top')){
+					_breadcrumbs_top = 45
+				}	    
+			} else {
+				_breadcrumbs.removeClass('breadcrumbs-fixed');
+			}
+			window.tab_concent ? window.tab_concent.resize_iframe() : parent.window.tab_concent ? parent.window.tab_concent.resize_iframe() : ''
+			_breadcrumbs.css('top',_breadcrumbs_top)
+			_shangxia.show()
+		 })
+		// ----- 上下按钮 END
+})
+
+</script>
+

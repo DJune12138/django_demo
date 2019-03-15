@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>角色模版列表</title>
+
+{% endblock %}
+
+{% block content %}
+
+{% include 'game/resource_editor.html' %}
+
+<div class="bar">
+     <h3>角色模版列表</h3>
+     <div class="buttons"> 
+         <a href="/game/player_template/edit" class="openDialog">添加</a> 
+    </div>
+</div>
+
+    <table class="table table-bordered datatable">    
+    <thead>
+        <tr>
+            <th>模版名
+            </th>
+            <th>备注
+            </th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in record%}
+        <tr>
+            <td>
+                {{item.name}}
+               
+                    <a href="/game/player_template/import_to_player?id={{item.id}}&player_id={{player_id}}&player_name={{player_name}}" class=" ask">[导入到-{{player_name}}]</a>
+               
+            </td>
+            <td>{{item.remark}}</td>
+            <td>
+                <a href="/game/player_template/edit?id={{item.id}}" class="openDialog">[编辑]</a>
+                <a href="/game/player_template/remove?id={{item.id}}" class="ask">[删除]</a>
+            </td>
+        </tr>
+        {%endfor%}
+    </tbody>
+    </table>
+
+</div>
+
+
+
+
+
+{% endblock %}

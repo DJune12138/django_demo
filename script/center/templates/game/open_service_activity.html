@@ -1,0 +1,433 @@
+<style>
+.equipitem{
+    display: block;
+    margin-left: 50px
+}
+#ranking-cont{
+    font-weight: bold;
+    display: block;
+    margin-left: 25px
+}
+</style>
+
+<!-- 模版开始 -->
+<script id="Activity-setting-tpl" type="text/template">
+<div id="Activity-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+        <th>活动ID</th>
+        <td><input type="text" name="kid" class="input input-sm" readonly="readonly" value="<%=data.kid ? data.kid : parseInt(new Date().getTime()/1000)%>"> </td>
+    </tr>
+    <tr>
+        <th>活动名称</th>
+        <td><input type="text" name="nm"  value="<%=data.nm ? data.nm : ''%>"> </td>
+    </tr>
+    <tr>
+        <th>活动开始时间</th>
+         <td>
+            <input type="text" class="Wdate" name="bt" value="<%=data.bt ? it.w.timestamp_to_datetime_str(data.bt ? data.bt : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+            入口结束时间
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : parseInt(new Date()/1000)) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr><th>
+    <input type="button" value="添加子活动" onclick="add_child()">
+    </th>
+    </tr>
+    <tr>
+        <th></th>
+        <td id="child-cont">
+            <%var items=data.pg;%>
+
+            <% for (var i in items){%>
+                <%=it.w.get_child_html(items[i],null)%>
+            <%}%>
+        </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<script id="child-setting-tpl" type="text/template">
+    <%var data=it.data;%>
+<div class="goods">
+<hr>
+<input type="hidden" name="k" value="<%=data.k ? data.k : randomNum(parseInt(new Date()/10000))%>" >
+子活动类型
+    <select name="t" onclick="changeele(this)">
+        <option  value="0" <%? it.data.t==0 %> selected = "selected" <%?%> ></option>
+        <option  value="1" <%? it.data.t==1 %> selected = "selected" <%?%> >击败指定npc</option>
+        <option  value="2" <%? it.data.t==2 %> selected = "selected" <%?%> >推图进度排名</option>
+        <option  value="3" <%? it.data.t==3 %> selected = "selected" <%?%> >国家官职奖励</option>
+        <option  value="4" <%? it.data.t==4 %> selected = "selected" <%?%> >竞技场排名</option>
+        <option  value="5" <%? it.data.t==5 %> selected = "selected" <%?%> >等级排行</option>
+        <option  value="6" <%? it.data.t==6 %> selected = "selected" <%?%> >爵位排行</option>
+        <option  value="7" <%? it.data.t==7 %> selected = "selected" <%?%> >星盟排行奖励</option>
+    </select>
+<a href="javascript:void(0)" onclick="delete_child(this)" style="float:right">[删除]</a><br>
+子活动名称<input type="text" name="n" maxlength=10 value="<%=data.n ? data.n:'' %>"><br>
+<span class="actet">
+活动结束时间
+<input type="text" class="Wdate" name="e" value="<%=data.e ? it.w.timestamp_to_datetime_str(data.e ? data.e : parseInt(new Date()/1000)) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+<br>
+</span>
+<%? (data.t==1) %>
+<span class="i">
+击败NPCID<input type="text" name="i" value="<%=data.i ? data.i:0 %>" class="input-small input-number not-empty"><br>
+</span>
+<%?%>
+<%? (data.t!=3) %>
+<span class="ms">
+排名最大人数<input type="text" name="m" maxlength=10000 value="<%=data.m ? data.m:0 %>" class="input-small input-number not-empty"><input type="button" value="添加排名奖励" onclick="add_ranking(this)"><br>
+排名显示人数<input type="text" name="s" value="<%=data.s ? data.s:0 %>" class="input-small input-number not-empty"><br>
+</span>
+<%?%>
+<span class="gd">
+活动公告链接<input type="text" name="l" value="<%=data.l ? data.l:'' %>"><br>
+</span>
+<%? (data.t==3) %>
+<input type="button" name="gzjl" value="添加官职奖励" onclick="add_guanzhi(this)">
+<%?%>
+<div id="ranking-cont">
+            <%var items=data.r;%>
+
+            <% for (var i in items){%>
+                <%=it.w.get_ranking_html(items[i],null)%>
+            <%}%>
+</div>
+</div>
+</script>
+
+<script id="ranking-setting-tpl" type="text/template">
+<%var data=it.data;%>
+<%? it.data[0].length == 2 %>
+<div class="rankings">
+<hr>
+名次<input type="text" value="<%=data[0][0]%>" name="sr" class="input-small input-number not-empty" >
+到<input type="text" value="<%=data[0][1]%>" name="er" class="input-small input-number not-empty" >
+<a href="javascript:void(0)" onclick="delete_ranking(this)" style="float:right">[删除]</a><br>
+排名奖励：<a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a>
+    <div id="rewards-cont">
+            <%var items=data[1];%>
+            <% for (var i in items){%>
+                <%=it.w.pi.get_item_html(items[i],null)%>
+            <%}%>
+    </div>
+<a href="javascript:void(0)" onclick="insert_ranking_rewards(this.parentElement)">[插入排名]</a>
+</div>
+<%?? it.data[0].length == 1 %>
+<div class="rankings">
+<hr>
+官职：<select name="gz">
+    <option value="1" <%? it.data[0][0]==1 %> selected = "selected" <%?%> >元首</option>
+    <option value="2" <%? it.data[0][0]==2 %> selected = "selected" <%?%> >议会长</option>
+    <option value="3" <%? it.data[0][0]==3 %> selected = "selected" <%?%> >执政官</option>
+    <option value="4" <%? it.data[0][0]==4 %> selected = "selected" <%?%> >事务大臣</option>
+    <option value="5" <%? it.data[0][0]==5 %> selected = "selected" <%?%> >司法大臣</option>
+    <option value="6" <%? it.data[0][0]==6 %> selected = "selected" <%?%> >国防大臣</option>
+    <option value="7" <%? it.data[0][0]==7 %> selected = "selected" <%?%> >营造特使</option>
+    <option value="8" <%? it.data[0][0]==8 %> selected = "selected" <%?%> >交通特使</option>
+    <option value="9" <%? it.data[0][0]==9 %> selected = "selected" <%?%> >安全特使</option>
+    <option value="10" <%? it.data[0][0]==10 %> selected = "selected" <%?%> >外交特使</option>
+    <option value="11" <%? it.data[0][0]==11 %> selected = "selected" <%?%> >经济特使</option>
+</select>
+<a href="javascript:void(0)" onclick="delete_ranking(this)" style="float:right">[删除]</a><br>
+排名奖励：<a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a>
+    <div id="rewards-cont">
+            <%var items=data[1];%>
+            <% for (var i in items){%>
+                <%=it.w.pi.get_item_html(items[i],null)%>
+            <%}%>
+    </div>
+<a href="javascript:void(0)" onclick="insert_guanzhi_rewards(this.parentElement)">[插入官职奖励]</a>
+</div>
+<%?%>
+</script>i
+
+<!-- 模版结束 -->
+
+<script type="text/javascript">
+function randomNum(num){
+    return Math.floor(Math.random()*num);
+}
+
+function reset_t(){
+    var t_l = []
+    $('.goods').each(function(i,ele){
+        var l = []
+        l[0] = $(ele).find('[name="t"]').val()
+
+        for (var n =0;n<t_l.length;n++){
+            var num = t_l[n]
+            if (num == '0'){
+                continue
+            }
+            $(ele).find('[name="t"] option[value='+ num +']').remove()
+        }
+        t_l.push(l)
+    })
+}
+
+function changeele(ele){
+    reset_t()
+    var $pele = $(ele).parents('.goods')
+    var text1 = '<span class="i">击败NPCID<input type="text" name="i" value="" class="input-small input-number not-empty"><br></span>'
+    var text2 = '<span class="ms">' +
+            '排名最大人数<input type="text" name="m" value="" class="input-small input-number not-empty"><input type="button" value="添加排名奖励" onclick="add_ranking(this)"><br>' +
+            '排名显示人数<input type="text" name="s" value="" class="input-small input-number not-empty"><br></span>'
+
+    if ($pele.find('[name="t"]').val() == "1" && $pele.find('.i').length < 1){
+        $pele.find('.actet').after(text1)
+    }
+    else {
+        $pele.find('.i').remove()
+    }
+    if ($pele.find('[name="t"]').val() !=3 && $pele.find('.ms').length < 1){
+        $pele.find('.gd').before(text2)
+        $pele.find('.rankings').remove()
+    }
+    else{
+        $pele.find('.ms').remove()
+    }
+    if ($pele.find('[name="t"]').val() == "3" && $pele.find('[name="gzjl"]').length <= 1){
+        default_msg.pg[0]["c"] = 1
+        default_msg.pg[0]["r"][0] = [[1],[{"aid":1,"v":1}]]
+        if ($pele.find('[name="gzjl"]').length < 1){
+            $pele.find('.gd').after('<input type="button" name="gzjl" value="添加官职奖励" onclick="add_guanzhi(this)">')
+        }
+        $pele.find('.rankings').remove()
+    }
+    else {
+        $pele.find('[name="gzjl"]').remove()
+        default_msg.pg[0]["c"] = 0
+        default_msg.pg[0]["r"][0] = [[1,2],[{"aid":1,"v":1}]]
+    }
+}
+
+
+default_msg = {
+//      "kid":1,     // 活动id
+      "nm":"名称", // 活动名称
+      "bt":0,      // 活动开始时间
+      "et":0,      // 活动结束时间
+      "pg":        // 页卡
+      [
+        {
+           "t":0,          // 子活动类型
+           "n":"",     // 子活动名称
+           "e":0,          // 子活动结束时间
+           "i":0,            // npc_id
+           "m":1,            // 排名最大人数
+           "s":1,            // 排名显示人数
+           "l":"",            // 活动公告链接
+           "r":            // 奖励
+           [
+                // 条件类型: 0排名范围 1官职  例如: [[1,10],[{}]]表示排名1到10名的奖励, [[1],[{}]]表示官职ID为1的奖励
+           ],
+           "c":0
+        }
+      ]
+}
+
+var pi = new ResourceInput()
+
+//删除子活动
+function delete_child(ele){
+   if (confirm("确定要删除吗？")) {
+        $(ele).parents('.goods').remove()
+    }
+}
+
+//删除排名
+function delete_ranking(ele){
+    if (confirm("确定要删除吗？")) {
+        $(ele).parents('.rankings').remove()
+    }
+}
+
+//插入排名
+function insert_ranking_rewards(ele){
+    default_msg.pg[0]["c"] = 0
+    default_msg.pg[0]["r"][0] = [[1,2],[{"aid":1,"v":1}]]
+    obj = default_msg.pg[0]["r"][0]
+    console.dir(obj)
+    var html = get_ranking_html(obj)
+    $(ele).after(html)
+}
+
+//插入官职
+function insert_guanzhi_rewards(ele){
+    default_msg.pg[0]["c"] = 1
+    default_msg.pg[0]["r"][0] = [[1],[{"aid":1,"v":1}]]
+    obj = default_msg.pg[0]["r"][0]
+    console.dir(obj)
+    var html = get_ranking_html(obj)
+    $(ele).after(html)
+}
+
+//添加子活动
+function add_child(){
+    if ($('.goods').length >=7){
+        alert('最多7个子活动')
+        return false
+    }
+    obj = default_msg.pg[0]
+    console.dir(obj)
+    var html = get_child_html(obj)
+    $('#child-cont').append(html)
+    reset_t()
+}
+
+function get_child_html(obj){
+    return  get_views('child-setting-tpl', obj)
+}
+
+//添加排名
+function add_ranking(ele){
+    default_msg.pg[0]["c"] = 0
+    default_msg.pg[0]["r"][0] = [[1,2],[{"aid":1,"v":1}]]
+    obj = default_msg.pg[0]["r"][0]
+    console.dir(obj)
+    var html = get_ranking_html(obj)
+    $(ele).parents('.goods').find('#ranking-cont').append(html)
+}
+
+function get_ranking_html(obj){
+    return get_views('ranking-setting-tpl',obj)
+}
+
+//添加官职
+function add_guanzhi(ele){
+    default_msg.pg[0]["c"] = 1
+    default_msg.pg[0]["r"][0] = [[1],[{"aid":1,"v":1}]]
+    obj = default_msg.pg[0]["r"][0]
+    console.dir(obj)
+    var html = get_ranking_html(obj)
+    $(ele).parents('.goods').find('#ranking-cont').append(html)
+}
+
+//添加奖励
+function add_rewards(ele){
+    $(ele).parents(".rankings").find("#rewards-cont").append(pi.get_item_html())
+}
+
+<!-- 这里重写活动的参数配置 -->
+activitySetting.get_json = function(event_name) {
+    if (!this.check_empty_input()) {
+        return false
+    }
+
+    var msg = {
+      "kid":1,     // 活动id
+      "nm":"名称", // 活动名称
+      "bt":0,      // 活动开始时间
+      "et":0,      // 活动结束时间
+      "pg":        // 页卡
+      [
+        {
+           "k":1,
+           "t":1,          // 子活动类型
+           "n":"名称",     // 子活动名称
+           "e":0,          // 子活动结束时间
+           "i":0,            // npc_id
+           "m":1,            // 排名最大人数
+           "s":1,            // 排名显示人数
+           "l":"",            // 活动公告链接
+           "r":            // 奖励
+           [
+               []  // 条件类型: 0排名范围 1官职  例如: [1,10],[{}]]表示排名1到10名的奖励, [[1],[{}]]表示官职ID为1的奖励
+           ],
+           "c":0
+        }
+      ]
+    }
+    msg.kid = parseInt(this.contEle.find('[name="kid"]').val())
+    msg.nm = this.contEle.find('[name="nm"]').val()
+    msg.bt = datetime_str_to_timestamp(this.contEle.find('[name="bt"]').val())
+    msg.et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+
+    var pg = []
+    $('.goods').each(function(i,ele){
+        var p = {}
+        p.k = parseInt($(ele).find('[name="k"]').val())
+        p.t = parseInt($(ele).find('[name="t"]').val())
+        p.n = $(ele).find('[name="n"]').val()
+        p.e = datetime_str_to_timestamp($(ele).find('[name="e"]').val())
+        p.i = parseInt($(ele).find('[name="i"]').val() ? $(ele).find('[name="i"]').val():0)
+        p.m = parseInt($(ele).find('[name="m"]').val() ? $(ele).find('[name="m"]').val():0)
+        p.s = parseInt($(ele).find('[name="s"]').val() ? $(ele).find('[name="s"]').val():0)
+        p.l = $(ele).find('[name="l"]').val()
+        p.r = []
+        $(ele).find('.rankings').each(function(i,ele){
+            var ll = []
+            ll[0] = []
+            ll[1] = []
+            if ($(ele).find('[name="gz"]').val()){
+                p.c = 1
+                ll[0][0] = parseInt($(ele).find('[name="gz"]').val())
+            }
+            else{
+                p.c = 0
+                ll[0][0] = parseInt($(ele).find('[name="sr"]').val())
+                ll[0][1] = parseInt($(ele).find('[name="er"]').val())
+            }
+            $(ele).find('#rewards-cont .equipitem').each(function(i,ele){
+                ll[1].push(pi.to_json(ele))
+            })
+            p.r.push(ll)
+        })
+        pg.push(p)
+    })
+
+    msg.pg = pg
+    console.dir(msg)
+    return JSON.stringify(msg)
+}
+
+activitySetting.to_html = function(msg) {
+    msg = !$.isEmptyObject(msg) && msg ? msg : default_msg
+    try {
+        var source_json = $.parseJSON(this.get_json())
+    }catch(e){
+        var source_json = {}
+    }
+    msg = $.extend(source_json,msg)
+    console.dir(source_json)
+
+    var html = get_views('Activity-setting-tpl', msg)
+    this.contEle.html(html)
+}
+
+//状态
+activitySetting.get_status = function(data){
+    if ( $.isEmptyObject(data) || data.id==0 || !data) {
+
+        return '<span class="label label-danger">已关闭</span>'
+    }
+
+    var status = ''
+    console.dir(data)
+    var bt = data.bt
+    var et = data.et
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(bt)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    }
+
+    return status
+}
+
+activitySetting.to_template_json = function(data){
+    delete data['kid']
+    return data
+}
+
+
+</script>
+
+
+

@@ -1,0 +1,357 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="screen-orientation" content="portrait">
+  <meta name="full-screen" content="no">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">  
+  <title>帮助</title>
+  <script type="text/javascript" src="jquery.min.js"></script>
+  <script type="text/javascript" src="jquery.mousewheel.js"></script>
+  <script type="text/javascript" src="jquery.jscrollpane.min.js"></script>
+  <script type="text/javascript" src="play_audio.js"></script>
+  <link href="jquery.jscrollpane.css" rel="stylesheet" type="text/css" />
+  <style type="text/css">
+    html {
+      height: 100%;
+      width: 100%;
+      /* color: white; */
+      /* background-color: black; */
+      background-color: #233046;
+      font-family: "微软雅黑";
+      -webkit-text-size-adjust: none;
+    }
+
+    body {
+      font-size: 2.5vw;
+      /* font-size: 28px; */
+      text-align: left;
+      border: 0 none;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      /* background: url(img/bg.png) no-repeat; */
+      /* background-size: 100% 100%; */
+      /* *background: none; */
+      /* _filter: progid: DXImageTransform.Microsoft.AlphaImageLoader(src='img/tongyong_ui_03.png', sizingMethod='crop'); */
+    }
+
+    * {
+      /* color: #0371DC; */
+      color: #68677F;
+      text-decoration: none;
+      list-style: none;
+    }
+
+    .sub_item {
+      font-size: 2.2vw;
+      /* font-size: 22px; */
+      display: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .border_radius {
+      /* border: 1px solid #0088fe; */
+      /* border-radius: 5px */
+      /* border: 1px solid black; */
+      border: 0 solid black;
+    }
+
+    #sub_bg {
+      width: 93%;
+      height: 90%;
+      margin: 0 auto;
+      position: absolute;
+      top: 4.5%;
+      left: 3.5%;
+    }
+
+    #wrap {
+      width: 100%;
+      height: 100%;
+      /*    background-color: #103674;*/
+    }
+
+    #left {
+      float: left;
+      overflow: hidden;
+      width: 37%!important;
+      height: 100%;
+      background-size: 100% 100%;
+      /* background: url("img/tongyong_ui_71.png") no-repeat; */
+      /* background-color: #09214A; */
+      text-align: left;
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -moz-box-shadow: 0 0 20px black inset;
+      outline: none;
+    }
+
+    #left ul {
+      padding: 0;
+      margin: 0;
+    }
+
+    #left ul li {
+      /* margin: 5px; */
+      margin: 0px;
+    }
+
+    #left span img {
+      vertical-align: middle;
+      line-height: normal;
+      margin-left: 1em;
+      width: 1em;
+      height: 1em;
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      /* top: 20px; */
+    }
+
+    .btn {
+      height: 2em;
+      /* color: #02ACE4; */
+      color: #949AB0;
+      display: block;
+      width: 100%;
+      /* height: 100%; */
+      padding: 2% 0 2% 0;
+      /* background: url("img/btn_bg.png") no-repeat; */
+      background-size: 100% 100%!important;
+      line-height: 2em;
+      text-indent: 3em;
+      position: relative;
+    }
+
+    .select_btn_bg {
+      /* background: url("img/select_btn_bg.png") no-repeat; */
+      /* color: #A59B7E; */
+      /* background-color: #374a68; */
+    }
+
+    li span.focused {
+      background-color: #374a68;
+      color: #A59B7E;
+    }
+
+    .sub_item dd {
+      /* background: url("img/btn_bg.png") no-repeat; */
+      background-size: 100% 100%!important;
+      margin: 0;
+      /* padding-left: 3em; */
+      text-indent: 3em;
+    }
+
+    .sub_item dd a {
+      display: block;
+      padding: 4% 0% 4% 0;
+      /* color: #BCCBD8; */
+    }
+
+    #right {
+      float: left;
+      width: 60%;
+      height: 100%;
+      /* margin-left: 1%; */
+      padding-left: 1%;
+      -webkit-overflow-scrolling: touch;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -moz-box-shadow: 0 0 20px black inset;
+      /*box-shadow: 0 0 100px black inset;*/
+    }
+
+    dd.focused {
+      /* background: url("img/select_btn_bg.png") no-repeat!important; */
+      background-size: 100% 100% !important;
+    }
+
+    dd.focused a {
+      /* color: white; */
+      color: #BCCBD8;
+      /* background-color: #374a68; */
+    }
+
+    dd {
+      /* border: 1px solid black; */
+      padding-left: 1em;
+    }
+
+  </style>
+
+
+  <script type="text/javascript">
+    var userAgent = navigator.userAgent;
+    var isIos = userAgent.match(/i[^;]+;( U;)? CPU.+Mac OS X/) != null;
+    if (isIos) {
+
+      var search_list = window.location.hash.match(/#hw=(\d+),(\d+)/);
+      // //if(search_list.length >= 3){
+      //  var h = search_list[1],
+      //      w = search_list[2];
+      document.getElementsByTagName("head")[0].innerHTML += '<meta name="viewport" content="target-densitydpi=device-dpi, width=700, user-scalable=no"/>';
+      //}
+    } else {
+      var ratio = window.devicePixelRatio;
+      if (ratio > 1.5) {
+        document.getElementsByTagName("head")[0].innerHTML += '<meta name="viewport" content="target-densitydpi=240,initial-scale=1.0"/>';
+      } else if (ratio < 1) {
+        document.getElementsByTagName("head")[0].innerHTML += '<meta name="viewport" content="target-densitydpi=160,initial-scale=1.0"/>';
+      }
+    }
+  </script>
+
+</head>
+
+<body id="body">
+
+  <div id="sub_bg">
+    <div id="wrap">
+      <div id="left" class="border_radius">
+        <ul>
+          {% for item in data_list %}
+          <li>
+            <span class="btn border_radius">
+              <img src="img/c.png" alt=""/>
+              {{item.order}}.{{ item.name }}
+            </span>
+            <dl class="sub_item">
+              {% for help in item.helps %}
+              <dd><a href="{{help.filename}}.html" target="right" class="sub_btn"> {{help.filename|slice:"4:"}} {{help.title}}</a></dd>
+              {% endfor %}
+            </dl>
+            <img src="img/lanxiang.png" alt="" width="100%" height="1em"/>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div id="right" class="border_radius">
+        <!-- <iframe name="right" scrolling="no" frameborder="0" src="blank.html" width="100%" height="100%" allowTransparency="true" onload="SetiFrameHeight(this)"></iframe> -->
+        <iframe name="right" scrolling="auto" frameborder="0" src="blank.html" style="overflow: hidden; height: 100%; width: 100%;" allowTransparency="true" onload="SetiFrameHeight(this)" ></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    function make_scroll() {
+      $('#left').jScrollPane({
+        verticalDragMinHeight: 30,
+        verticalDragMaxHeight: 30,
+      });
+
+    };
+
+    function SetiFrameHeight(obj) {
+      var win = obj;
+      if (document.getElementById) {
+        if (win && !window.opera) {
+          var _height = 0
+          if (win.contentDocument && win.contentDocument.body.offsetHeight) {
+            _height = win.contentDocument.body.offsetHeight;
+          } else if (win.Document && win.Document.body.scrollHeight) {
+            _height = win.Document.body.scrollHeight;
+          }
+          win.height = _height;
+          document.getElementById('right').scrollTop = 0
+        }
+      }
+    }
+
+    $(document).ready(function() {
+      var the_height = $(window).height;
+      var $iframe = $('[name="right"]')
+      if (the_height > 400) {
+        $('iframe').css("height", the_height + "px");
+        $('#left').css("height", the_height + "px");
+      }
+      var ih = 'h=' + $iframe.height()
+
+      function active_span(span_ele, not_make_scroll) {
+        var This = span_ele
+
+        /* $(".focused").removeClass(); */
+        $('li').find(".focused").removeClass("focused");
+        This.addClass('focused');
+
+        This.next().toggle();
+        if (This.next().is(":hidden")) {
+          This.find("img").attr("src", "img/c.png")
+          This.removeClass('select_btn_bg')
+        } else {
+          This.find("img").attr("src", "img/o.png")
+          This.addClass('select_btn_bg')
+        }
+        if (!not_make_scroll) {
+          make_scroll()
+        }
+        var icon = $(this).find("b").text();
+        icon = (icon == '+' ? '-' : '+');
+        $(this).find("b").text(icon);
+        return false;
+      }
+
+      //处理2级菜单
+      $('ul span').mousedown(function() {
+        active_span($(this))
+      });
+
+      //处理高亮
+      $('ul a').mousedown(function() {
+        var p = $(this).parent();
+        if (p.hasClass('focused')) {
+          return false;
+        }
+
+        $('li').find(".focused").removeClass("focused");
+        p.parent().siblings('.btn').addClass('focused');
+
+        /* $('ul').find(".focused").removeClass(); */
+        $('dl').find(".focused").removeClass();
+        p.addClass('focused');
+
+        var url = $(this).attr('href') + '?' + ih
+          //alert(url)
+        return false;
+      });
+
+      //处理URL指定默认页比如 index.html?help2 将会在页面载入时，右边直接显示help2.html
+      var url = window.location.href.toString();
+      if (url.indexOf("?") > 0) {
+        var arrParams = url.match(/\?(help[\d\.]+)/)
+        if (arrParams) {
+          var url = arrParams[1];
+          $iframe.attr('src', url + '.html?' + ih);
+          var f = $('#left').find("a[href='" + url + ".html']");
+          if (f.length > 0) {
+            f = f.parent();
+
+            if (f.is('dd')) {
+              active_span(f.closest('li').find('span'), true)
+
+              // f.parent().show()
+              // $('#left').scrollTop(parseInt(f.parent().parent().offset().top));
+              $('#left').scrollTop(parseInt(f.offset().top - 16));
+
+              f.addClass('focused');
+            }
+          }
+        }
+      }
+      make_scroll()
+    });
+  </script>
+</body>
+
+</html>

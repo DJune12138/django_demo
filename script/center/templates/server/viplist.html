@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+<title>VIP列表</title>
+{% include 'game/resource_editor.html' %}
+{% endblock %}
+{% block content %}
+<style>
+.equipitem{
+    display: block;
+}
+</style>
+
+<div id="bar">
+	VIP列表
+</div>
+
+<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+    <li class="active">
+        <a data-toggle="tab" href="#tab1">
+            <i class="icon-info bigger-110"></i>VIP列表
+        </a>
+    </li>
+</ul>
+<div class="tab-content">
+<div id="tab1" class="tab-pane active">
+    <button id="player-add-btn" class="btn btn-danger btn-xs radius-4 pull-right" info_json="">验证VIP角色</button>
+    <button id="equip-add-btn" class="btn btn-xs btn-primary pull-right" info_json="{{msg|json_dumps}}">设置礼包</button>
+    <table class="table datatable">
+        <thead>
+        <tr>
+            <th width="60">
+            <input type="checkbox" id="all" checkbox-area="group_area" >
+            </th>
+            <th>编号</th>
+            <th>角色ID</th>
+            <th>服务器ID</th>
+            <th>特权礼包领取</th>
+            <th>每日礼包领取</th>
+            <th width="100">操作</th>
+        </tr>
+        </thead>
+        {%for item in list_record%}
+        <tr>
+            <td>
+            <input type="checkbox" name="item_id" value="{{item.id}}" uid="{{item.player_id}}" sid="{{item.server_id}}">
+            </td>
+            <td>{{item.id}}</td>
+            <td>{{item.player_id}}</td>
+            <td>{{item.server_id}}</td>
+            <td>{{item.privilege_type}}</td>
+            <td>{{item.everyday_type}}</td>
+            <td><!--<a href="/group/remove/{{item.id}}" class="del">删除</a>&nbsp;&nbsp;-->
+                <a href="question/viplist_edit?model_id={{item.id}}" class="openDialog">编辑</a>
+            </td>
+        </tr>
+        {%endfor%}
+    </table>
+</div>
+
+<div id="player_add_tmp" class="dialog-div">
+<div class="widget-main no-padding">
+    <table class="table table-bordered">
+        <tr>
+            <th>角色ID</th>
+            <td>
+                <textarea rows="2" name="playerid" data-type></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th></th>
+            <td>PS:多个ID逗号隔开</td>
+        </tr>
+    </table>
+    <button id="player-add-sure-btn" class="btn btn-success btn-xs radius-4 pull-right" onclick="save_playerid()"><i class="icon-ok"></i>添加验证</button>
+</div>
+</div>
+
+<script id="equip_add_tmp" type="text/template">
+<%var data=it.data;%>
+<div class="widget-main no-padding">
+    <table class="table table-bordered rankings" style="width: 500px">
+        <tr>
+            <th style="width: 100px">特权礼包</th>
+            <td>
+                <a href="javascript:void(0)" onclick="add_privileget(this)">[添加奖励]</a>
+                <div id="privileget">
+                    <%var items=data[0].info;%>
+                    <% for (var i in items){%>
+                        <%=it.w.pi.get_item_html(items[i],null)%>
+                    <%}%>
+                </div>
+			</td>
+        </tr>
+        <tr>
+            <th style="width: 100px">每日礼包</th>
+            <td>
+                <a href="javascript:void(0)" onclick="add_everyday(this)">[添加奖励]</a>
+                <div id="everyday">
+                    <%var items=data[1].info;%>
+                    <% for (var i in items){%>
+                        <%=it.w.pi.get_item_html(items[i],null)%>
+                    <%}%>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <button id="sure_btn" class="btn btn-success btn-xs radius-4 pull-right" onclick="save_json()"><i class="icon-ok"></i>保存</button>
+</div>
+</script>
+<script type="text/javascript">
+var pi = new ResourceInput()
+
+var default_info = [{"id":"0","info":[{}]},{"id":"1","info":[{}]}]
+
+$(function(){
+    $('#equip-add-btn').click(function(){
+        var info = $(this).attr('info_json')
+        info = $.parseJSON(info)
+        //console.dir(info)
+        info = !$.isEmptyObject(info) && info ? info : default_info
+        var html = get_views('equip_add_tmp',info)
+        $.dialog({"title":"设置礼包","content":html,"fixed":true})
+    })
+
+    $('#player-add-btn').click(function(){
+        $('#player_add_tmp').dialog({"title":"添加VIP角色"})
+    })
+})
+
+//添加奖励
+function add_privileget(ele){
+    if ($("#privileget .equipitem").length > 5){
+        alert('特权礼包最多设置6个奖励!')
+        return
+    }
+
+    $(ele).parents(".rankings").find("#privileget").append(pi.get_item_html())
+}
+function add_everyday(ele){
+    if ($("#everyday .equipitem").length > 3){
+        alert('每日礼包最多设置4个奖励!')
+        return
+    }
+
+    $(ele).parents(".rankings").find("#everyday").append(pi.get_item_html())
+}
+
+function save_json(ele){
+    var msg = []
+    var p1 = {'id':'0','info':[]}
+    $("#privileget .equipitem").each(function(i,ele){
+        p1.info.push(pi.to_json(ele))
+    })
+    msg.push(p1)
+    var p2 = {'id':'1','info':[]}
+    $("#everyday .equipitem").each(function(i,ele){
+        p2.info.push(pi.to_json(ele))
+    })
+    msg.push(p2)
+
+    for (i in msg){
+        var info = msg[i].info
+        for (j in info){
+            if (info[j].aID == 14 && info[j].v !=1){
+                alert("秀女数量只能为1")
+                return
+            }
+        }
+    }
+
+    var msg_json = JSON.stringify(msg)
+    var data = {req_type: 'pick',msg:msg_json}
+    $.ajax({
+        url: 'viplist_save',
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+    })
+    .done(function(data) {
+        if (data.code == 0) {
+            alert('成功!')
+            location.reload()
+        } else {
+            alert(data.msg)
+        }
+    })
+    .fail(function(a,b,c) {
+        alert('错误!')
+    })
+}
+
+function save_playerid(){
+    var pstr = $('[name="playerid"]').val()
+    var pid = new Array();
+    pid = pstr.split(",")
+    for (i in pid){
+        if (isNaN(pid[i])){
+            alert("输入错误!")
+            return
+        }
+    }
+    var msg_json = JSON.stringify(pid)
+    var data = {req_type: 'playerid',msg:msg_json}
+    //console.dir(data)
+    $.ajax({
+        url: 'viplist_save',
+        type: 'POST',
+        dataType: 'json',
+        data: data,
+    })
+    .done(function(data) {
+        if (data.code == 0) {
+            $('.dialog-div').dialog().hide()
+            alert('成功!')
+            location.reload()
+        } else {
+            alert('验证不成功'+data.msg)
+        }
+    })
+    .fail(function(a,b,c) {
+        alert('错误!')
+    })
+}
+</script>
+{% endblock %}
+
+
+
+
+

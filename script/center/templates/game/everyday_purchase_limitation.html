@@ -1,0 +1,654 @@
+<style>
+  .re_cont{
+    border: 1px solid #AAAAAA;
+    padding: 5px 5px 5px 15px;
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+
+  .equipitem{
+    display: block;
+  }
+
+  label {
+    font-size: 12px;
+    color: #FD0000;
+  }
+</style>
+
+<!-- 模版开始 -->
+<script id="custom-setting-tpl" type="text/template">
+  <%var data =it.data[0];%>
+  <table>
+    <tr>
+        <th>上/下架时间：</th>
+        <td>
+          <input type="text" class="Wdate" name="ast" value="<%=data[12] && data[12]!=0 ? it.w.timestamp_to_datetime_str(data[12]) : "{{model.sdate|date:"Y-m-d H:i:30"}}"  %>" allow_empty="true">
+          到
+          <input type="text" class="Wdate" name="aet" value="<%=data[13] && data[13]!=0 ? it.w.timestamp_to_datetime_str(data[13]) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>" allow_empty="true">
+          <b class="red">两者都为空时表示无期限</b>
+        </td>
+    </tr>
+  </table>
+
+  <ul id="tab-ul" class="nav nav-tabs">
+    <%var data_list=it.data;%>
+    <%for (var i in data_list){%>
+      <%var gift_obj=data_list[i];%>
+      <%var gift_id=gift_obj[0];%>
+
+      <li class="<%? i==0%>active<%?%> tab-li" gift_id="<%=gift_id%>">
+        <a href="#gift_<%=gift_id%>" data-toggle="tab">
+          <b>商品<span class="gift_num"><%=gift_id%></span></b>
+        </a>
+      </li>
+    <%}%>
+    <li style="float:right">
+    <a id="add_gift" class="btn btn-xs  add_gift pointer" onclick="add_gift()">+增加商品</a></li>
+  </ul>
+  <div id="tab-cont" class="tab-content">
+    <%for (var i in data_list){%>
+      <%var gift_obj=data_list[i];%>
+      <%var gift_id=gift_obj[0];%>
+      <div class="tab-pane <%? i==0%> active<%?%>" id="gift_<%=gift_id%>" gift_id="<%=gift_id%>">
+        <%=it.w.get_gift_html(gift_obj)%>
+      </div>
+    <%}%>
+  </div>
+</script>
+
+
+<script id="gift-tpl" type="text/template">
+  <div class="custom-activity-cont" >
+    <table class="form">
+      <%var data=it.data;%>
+      <caption>
+        <h3>商品<span class="gift_num"><%=data[0]%></span></h3>
+        <a href="javascript:void(0)" onclick="del_gift(this)">[删除]</a>
+      </caption>
+      <tr>
+        <th>上/下架实际时间：</th>
+        <td>
+          <input type="text" class="Wdate" name="st" value="<%=data[12] && data[12]!=0 ? it.w.timestamp_to_datetime_str(data[12]) : "{{model.sdate|date:"Y-m-d H:i:30"}}"  %>" allow_empty="true" disabled="true">
+          到
+          <input type="text" class="Wdate" name="et" value="<%=data[13] && data[13]!=0 ? it.w.timestamp_to_datetime_str(data[13]) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>" allow_empty="true" disabled="true">
+        </td>
+      </tr>
+      <tr>
+        <th>商品名称：</th>
+        <td>
+          <input type="text" name ="gn" maxlength="6" class="input-sm" value="<%=data[1] ? data[1]: '' %>" >
+        </td>
+      </tr>
+      <tr>
+        <th>商品描述：</th>
+        <td>
+          <textarea name="gd" placeholder="商品描述 50 字内" maxlength=50 ><%=data[2] ? data[2] : ''%></textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>图标ID：</th>
+        <td>
+          <input type="number" name="gi" class="input-number not-empty" value="<%= data[3] %>" />
+        </td>
+      </tr>
+      <tr>
+        <th>消费类型：</th>
+        <td>
+          <select name="currency">
+            <option value="0" <%? data[4] == 0 %>  selected="selected" <%?%> >充值金币</option>
+            <option value="1" <%? data[4] == 1 %>  selected="selected" <%?%> >赠送金币</option>
+            <option value="2" <%? data[4] == 2 %>  selected="selected" <%?%> >充值积分</option>
+            <option value="3" <%? data[4] == 3 %>  selected="selected" <%?%> >红包币</option>
+            <option value="4" <%? data[4] == 4 %>  selected="selected" <%?%> >银币</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>标签：</th>
+        <td>
+          <select name="tag" class="tag">
+            <option value="discount">折扣</option>
+            <option value="ishot" <%? data[5] == true %>  selected="selected" <%?%> >热销</option>
+          </select>
+          <%? data[8] != 0 %>
+            <input name="discount" type="number" value="<%= data[8] %>"  allow_empty="true" placeholder="1~9"/>
+          <%?%>
+        </td>
+      </tr>
+      <tr>
+        <th>商品折后价：</th>
+        <td><input name="price" type="number" class="input-number not-empty" value="<%= data[6] %>" /></td>
+      </tr>
+      <tr>
+        <th>商品类型：</th>
+        <td>
+          <input type="text" class="item_type" name="_item_type" value="<%= data[7] %>" style="display:none;"/>
+          <input type="checkbox" name="item_type" value="1" /> 打折热销
+          <input type="checkbox" name="item_type" value="2" /> 超值礼包
+          <input type="checkbox" name="item_type" value="4" /> 道具
+          <input type="checkbox" name="item_type" value="8" /> 装备将魂
+          <input type="checkbox" name="item_type" value="16" /> 红包月卡
+        </td>
+      </tr>
+      <tr>
+        <th>限购数量：</th>
+        <td><input type="number" name="limit_num" value="<%= data[9] %>" allow_zero="true"/></td>
+      </tr>
+      <tr>
+        <th>VIP限制：</th>
+        <td><input type="number" name="limit_vip" value="<%= data[10] %>" allow_zero="true" /></td>
+      </tr>
+      <tr>
+        <th>等级限制：</th>
+        <td><input type="number" name="limit_rank" value="<%= data[11] %>" allow_zero="true" /></td>
+      </tr>
+      <tr>
+        <th>产出途径：</th>
+        <td><input type="text" name="output_path" value="<%= data[15] %>" /></td>
+      </tr>
+      <tr>
+        <th>奖励设置：</th>
+        <%var ls=data[14];%>
+        <%var i='x'; %>
+        <td style="text-align: left;">
+            <input onclick="add_reward('<%=i%>',this)" type="button" value="增加奖励">
+        </td>
+      </tr>
+      <tr>
+        <th></th>
+        <td class="re_cont re_cont_<%=i%>" vl="<%=i%>">
+          <%for (var i in ls){%>
+            <%=it.w.ri.get_item_html(ls[i],null)%>
+          <%}%>
+        </td>
+      </tr>
+    </table>
+  </div>
+</script>
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+  var xs_input_attr = {
+    "type": "text",
+    "name": "x",
+    "step": "0.1",
+    "min": "0.1",
+    "class": "input-number",
+    "maxlength": 5
+  }
+
+  var shop_map = {
+    1: {
+      name: "银币",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    2: {
+      name: "金票",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    3: {
+      name: "金币",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    5: {
+      name: "粮食",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    6: {
+      name: "木材",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    7: {
+      name: "铁",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    8: {
+      name: "军功",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    9: {
+      name: "威望",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    10: {
+      name: "军令",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    11: {
+      name: "主角经验",
+      unit: [
+        ["经验值", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    12: {
+      name: "装备道具",
+      unit: [
+        ["物品ID", {
+          "name": "id",
+          "class": "input-small",
+          "select-key": "equipment",
+          "maxlength": 8
+        }],
+        ["数量", {
+          "name": "v",
+          "type": "number",
+          "min": 1,
+          "class": "input-small input-number",
+          "maxlength": 8
+        }]
+      ]
+    },
+    13: {
+      name: "武将",
+      unit: [
+        ["武将ID", {
+          "name": "id",
+          "class": "input-small",
+          "select-key": "pilots",
+          "data-multiple": "true"
+        }],
+        ["数量", {
+          "name": "v",
+          "min": 0.01,
+          "class": "input-number",
+          "maxlength": 8
+        }]
+      ]
+    },
+    14: {
+      name: "秀女",
+      unit: [
+        ["秀女ID", {
+          "name": "id",
+          "class": "input-small",
+          "select-key": "concubine",
+          "maxlength": 8
+        }],
+        ["数量", {
+          "name": "v",
+          "type": "number",
+          "min": 1,
+          "class": "input-small input-number",
+          "maxlength": 8
+        }],
+      ]
+    },
+    15: {
+      name: "红包币",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    16: {
+      name: "贡献值",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    17: {
+      name: "群英币",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    18: {
+      name: "拜帖",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    19: {
+      name: "VIP经验值",
+      unit: [
+        ["数量", default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    21:{
+      name:"寻访积分",
+      unit:[
+        ["数量",default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    23:{
+      name:"功勋币", 
+      unit:[
+        ["数量",default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    24:{
+      name:"骰子",
+      unit:[
+        ["数量",default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    25:{
+      name:"折扣材料",
+      unit:[
+        ["数量",default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    },
+    26:{
+      name:"远征币", 
+      unit:[
+        ["数量",default_input_attr],
+        ["系数", xs_input_attr]
+      ]
+    }
+  }
+
+  var ri = new ResourceInput(shop_map)
+  ri.to_json=function(contEle,resouce_obj_handler){//将元素内容转为对象
+      var This = this
+      var resouce_obj = {}
+      var contEle = contEle
+      var is_jquery_ele = contEle instanceof jQuery ? true : false
+      if (!is_jquery_ele) {
+          contEle = $(contEle)
+      }
+      resouce_obj['aID'] = parseInt(contEle.find('select').val())
+      contEle.find(':input[name]').each(function(i,ele){
+          var name = ele.name
+          if(name == 'x'){
+            resouce_obj[name] = !isNaN(this.value) ? parseFloat(this.value) : this.value
+          } else
+          resouce_obj[name] = !isNaN(this.value) ? parseInt(this.value) : this.value
+      })
+      var resource_attr = This.resourceMap[resouce_obj['aID']]
+      var output_handler = resource_attr.hasOwnProperty('output_handler') ? resource_attr.output_handler : null
+      output_handler = resouce_obj_handler ? resouce_obj_handler : output_handler
+      
+      resouce_obj = output_handler ? output_handler(resouce_obj) : resouce_obj
+
+      return resouce_obj
+  }
+
+
+  // [商品ID, 商品名字, 商品描述, 商品图标, 消费类型, 是否热销, 价格, 分类ID, 折扣(1~9, 其他未无折扣), 限购(< 1为不限购), 限制vip, 限制等级, 开始时间, 结束时间, 奖励描述, 商品产出描述, [[资源类型, 资源等级系数]...]]
+  var default_msg = [[{% widthratio model.id 1 10000 %}, "", "", 0, 0, false, 66, 6, 9, 1, 2, 3, 0, 0, [{"aID": 1, "v": 1}], "商城", [[1, 0.2]]]]
+
+  
+  function show_item_type(){
+    $('[name="_item_type"').each(function(index, ele) {
+      item_type_checked = parseInt($(this).val()).toString(2)
+      $(this).parent().find('[name="item_type"]').each(function(index, ele) {
+        if (item_type_checked[item_type_checked.length - index - 1] == 1) {
+          $(this).prop("checked", true)
+        }
+      })
+    })
+  }
+
+  $(document).on('change', '.tag', function(){
+    var parent_cont = $(this).closest('.custom-activity-cont')
+    if ($(this).find('option:selected').attr("value") == "discount") {
+      parent_cont.find("[name=discount]").show();
+    } else {
+      parent_cont.find("[name=discount]").hide();
+    }
+  });
+
+  $('#tag').change(function() {
+    if ($(this).find('option:selected').attr("value") == "discount") {
+      $("#discount").show();
+    } else {
+      $("#discount").hide();
+    }
+  });
+
+  //重置礼包 序列号
+  function reset_gift_num(){
+      $('.tab-li').each(function(i,ele){
+          var gift_id = i+1,
+              $ele = $(ele)
+          $ele.find('.gift_num').text(gift_id)
+          $ele.attr('gift_id',gift_id)
+          $ele.find('a').attr('href',"#gift_id_"+gift_id)
+      })
+      $('.tab-pane').each(function(i,ele){
+          var gift_id = i+1,
+              $ele = $(ele)
+          $ele.find('.gift_num').text(gift_id)
+          $ele.attr('gift_id',gift_id)
+          $ele.attr('id',"gift_id_"+gift_id)
+      })
+
+  }
+
+  //增加礼包
+  function add_gift(){
+      // if ($('#tab-ul li').length >=4){
+      //     alert('最多3个礼包')
+      //     return
+      // }
+      var new_gift_id =  get_max_gift_id() + 1
+      $('#tab-ul li:last').before(
+        '<li class="tab-li" gift_id="'+ new_gift_id +'">'+
+        '<a  href="#gift_id_'+ new_gift_id +'"data-toggle="tab"><b>商品<span class="gift_num">'+ new_gift_id +'</span></b></a>'+
+        '</li>'
+      )
+
+      var msg = get_gift_obj($('.custom-activity-cont:last'), activitySetting)
+
+      var gift_obj = $.extend({}, msg)
+      gift_obj[0] = new_gift_id
+      gift_obj[1] = "" 
+      $('#tab-cont').append(
+        '<div id="gift_id_' + new_gift_id + '" class="tab-pane"  gift_id="'+ new_gift_id +'">' +
+        get_gift_html(gift_obj) +
+        '</div>'
+      )
+      show_item_type()
+  }
+  function get_max_gift_id(){
+    var gift_id_list = $('.tab-pane').map(function(){
+        return parseInt( $(this).attr('gift_id') )
+    }).get()
+
+    return Math.max.apply(Math,gift_id_list)
+  }
+
+  function active_gift_tab(gift_id){
+    $('#tab-ul li').removeClass('active').filter('[gift_id="'+gift_id+'"]').addClass('active')
+    $('.tab-pane').removeClass('active').filter('[gift_id="'+gift_id+'"]').addClass('active')
+  }
+
+  //删除礼包
+  function del_gift(ele){
+      if (!confirm('确定删除商品?')){return false}
+      var gift_id = $(ele).closest('.tab-pane').attr('gift_id')
+      $('[gift_id="'+gift_id+'"]').remove()
+
+      var last_gift_id = $('[gift_id]:last').attr('gift_id')
+      active_gift_tab(last_gift_id)
+  }
+
+  //获取礼包html
+  function get_gift_html(gift_obj){
+      return get_views('gift-tpl',gift_obj)
+  }
+
+  //增加奖励
+  function add_reward(vl,ele){
+      var parent_cont = $(ele).closest('.custom-activity-cont')
+      var vip_cont =  parent_cont.find('.re_cont_'+vl)
+      vip_cont.append(ri.get_item_html({}))
+  }
+
+
+  function get_gift_obj(cont,activity_manager){
+      var msg = []
+      var st_str = $('[name="ast"]').val(),
+          et_str = $('[name="aet"]').val()
+      st = datetime_str_to_timestamp( st_str )
+      et = datetime_str_to_timestamp( et_str )
+
+      st = !isNaN(st) ? parseInt(st) : 0
+      et = !isNaN(et) ? parseInt(et) : 0
+
+      //上下架时间
+      msg[12] = st
+      msg[13] = et
+
+      msg[0] = parseInt(cont.find('.gift_num').text() )
+      msg[1] = cont.find('[name="gn"]').val()
+      msg[2] = cont.find('[name="gd"]').val()
+      msg[3] = parseInt(cont.find('[name="gi"]').val())
+      msg[4] = parseInt(cont.find('[name="currency"]').val())
+      msg[5] = cont.find('[name="tag"]').val() == 'ishot' ? true: false
+      msg[6] = parseInt(cont.find('[name="price"]').val())
+      msg[8] = msg[5] ? 10 : parseInt(cont.find('[name="discount"]').val())
+
+      var item_type = 0
+      cont.find("input[name='item_type']").each(function() {
+        if ($(this).is(':checked')) {
+          item_type += parseInt($(this).val())
+        }
+      })
+      msg[7] = item_type
+
+      msg[9] = parseInt(cont.find('[name="limit_num"]').val())
+      msg[10] = parseInt(cont.find('[name="limit_vip"]').val())
+      msg[11] = parseInt(cont.find('[name="limit_rank"]').val())
+      msg[15] = cont.find('[name="output_path"]').val()
+      var ls = []
+      var ratio = []
+      cont.find('.re_cont').each(function(i,ele){
+          var $ele = $(ele)
+          $ele.find('.equipitem').each(function(_i,item){
+              var data = ri.to_json(item)
+              ls.push(data)
+              if ('x' in data){
+                ratio.push([data.aID, data.x])
+              }
+          })
+      })
+      msg[14] = ls
+      msg[16] = ratio
+
+      if (st <= activity_manager.system_timestamp) {
+          alert('开始时间不能早于当前服务器时间!')
+          //return false
+          active_gift_tab(gift_id)
+      }
+
+      if ( st >= et ) {
+          alert('开始时间不能大于等于结束时间!')
+          active_gift_tab(gift_id)
+      }
+      console.dir(msg)
+      return msg
+  }
+
+  function err_callback(input_ele){
+      var gift_id = $(input_ele).closest('.tab-pane').attr('gift_id')
+      active_gift_tab(gift_id)
+  }
+  // 这里重写 从控件获取值的函数
+
+  activitySetting.get_json = function(){
+      if (!this.check_empty_input(err_callback)){return false}
+      var This = this
+      var msg_list = []
+      var all_done = true
+      $('.custom-activity-cont').each(function(i,ele){
+          var gift_obj = get_gift_obj($(ele),This)
+          if (!gift_obj || $.isEmptyObject(gift_obj)) {
+              all_done = false
+          } else {
+              msg_list.push(gift_obj)
+          }
+      })
+
+      //console.dir(msg_list)
+      return all_done ? JSON.stringify(msg_list) : all_done
+  }
+
+  // 这里重写值到控件的函数
+  activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg)? default_msg : msg
+    var min_id = {% widthratio model.id 1 10000 %}
+    for (var i in msg){
+      msg[i][0] = min_id + parseInt(i)
+    }
+
+    var html = get_views('custom-setting-tpl', msg)
+    this.contEle.html(html)
+    show_item_type()
+  }
+
+
+  activitySetting.get_status = function(data){
+      var status = ''
+      var data_list = data
+      console.dir(data_list)
+      console.dir(this.system_timestamp)
+      var in_time_range =  false
+      for (var i in data_list){
+          var gift_obj = data_list[i]
+          var st = gift_obj[12]
+          var et = gift_obj[13]
+          in_time_range = this.system_timestamp >= gift_obj[12]  && this.system_timestamp <=gift_obj[13]
+          if (in_time_range){
+              break
+          }
+      }
+
+      if (in_time_range) {
+          status = '<span class="label label-success">已开启</span>'
+      } else if ($.isEmptyObject(data)) {
+          status = '<span class="label label-danger">已关闭</span>'
+      }else if (!in_time_range) {
+          status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(st)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+      }
+      return status
+  }
+
+  activitySetting.to_template_json = function(data){
+      // 保存问模版的时候 id要删除
+      for (var i in data){
+        data[i][0] = 0
+      }
+      console.log(data)
+      return data
+  }
+
+
+</script>

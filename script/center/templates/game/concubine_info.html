@@ -1,0 +1,474 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+<title>后宫信息</title>
+
+{% endblock %}
+{% block content %}
+
+ <script>
+ var server_id = '{{server_id}}'
+ var player_id = '{{player_id}}'
+ var book_name = '{{book_name | escapejs }}'
+ var title_list = '{{ title_list | escapejs }}'
+ var player_lv = '{{ player_lv }}'
+ </script>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+    <div class="widget-box">
+        <div class="widget-header widget-header-small">
+            <h5>册封信息</h5>
+            <div class="widget-toolbar">
+                <a href="#" data-action="collapse">
+                    <i class="icon-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+        <div class="widget-body">
+            <div class="widget-body-inner">
+                <div class="widget-main no-padding">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>封位</th>
+                            <th>秀女ID</th>
+                            <th>秀女等级</th>
+                            <th>秀女经验</th>
+                            <th>绑定情况</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>王后</td>
+                            <td>{{title_list.4.4|dict_key:'concubine'}}({{title_list.4.0}})</td>
+                            <td>{{title_list.4.1}}</td>
+                            <td>{{title_list.4.2}}</td>
+                            {% if title_list.4.3 %}<td><label style="color: #FF5722; font-weight:bold">已绑定</label></td>
+                            {% else %}<td>未绑定</td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td>贵妃</td>
+                            <td>{{title_list.3.4|dict_key:'concubine'}}({{title_list.3.0}})</td>
+                            <td>{{title_list.3.1}}</td>
+                            <td>{{title_list.3.2}}</td>
+                            {% if title_list.3.3 %}<td><label style="color: #FF5722; font-weight:bold">已绑定</label></td>
+                            {% else %}<td>未绑定</td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td>贵嫔</td>
+                            <td>{{title_list.2.4|dict_key:'concubine'}}({{title_list.2.0}})</td>
+                            <td>{{title_list.2.1}}</td>
+                            <td>{{title_list.2.2}}</td>
+                            {% if title_list.2.3 %}<td><label style="color: #FF5722; font-weight:bold">已绑定</label></td>
+                            {% else %}<td>未绑定</td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td>宫人</td>
+                            <td>{{title_list.1.4|dict_key:'concubine'}}({{title_list.1.0}})</td>
+                            <td>{{title_list.1.1}}</td>
+                            <td>{{title_list.1.2}}</td>
+                            {% if title_list.1.3 %}<td><label style="color: #FF5722; font-weight:bold">已绑定</label></td>
+                            {% else %}<td>未绑定</td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td>才人</td>
+                            <td>{{title_list.0.4|dict_key:'concubine'}}({{title_list.0.0}})</td>
+                            <td>{{title_list.0.1}}</td>
+                            <td>{{title_list.0.2}}</td>
+                            {% if title_list.0.3 %}<td><label style="color: #FF5722; font-weight:bold">已绑定</label></td>
+                            {% else %}<td>未绑定</td>
+                            {% endif %}
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box ">
+			<div class="widget-header widget-header-small">
+				<h5>秀女图鉴({{ book_len }})&nbsp&nbsp&nbsp&nbsp&nbsp类型分类:
+                    <span style="color: #FFEB3B;">似水红颜</span>&nbsp
+                    <span style="color: #FFCD0B;">江湖侠女</span>&nbsp
+                    <span style="color: #FF9800;">名媛戏子</span>&nbsp
+                    <span style="color: #FF5722;">巾帼佳人</span>&nbsp
+                </h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered co">
+						<tbody>
+                            {% for book_item in book_list %}
+							<tr>
+                                {% for j in book_item %}
+                                <td class="book_num">
+                                    {% if forloop.parentloop.counter0 == 0 %}
+                                        {{ forloop.counter0 }}
+                                    {% else %}
+                                        {{forloop.parentloop.counter0}}{{ forloop.counter0 }}
+                                    {% endif %}
+                                </td>
+                                    {% if j == '1' %}
+                                        <td><label style="color: #FF5722; font-weight:bold" onclick="del_book(this)">开启</label></td>
+                                    {% else %}
+                                        <td><label onclick="del_book(this)">关闭</label></td>
+                                    {% endif%}
+                                {% endfor %}
+							</tr>
+                            {% endfor %}
+						</tbody>
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<div class="row">
+	<div class="col-sm-6"></div>
+	<div class="col-sm-6">
+    <button id="concubine-save-btn" class="btn btn-xs radius-4 pull-right"><i class="icon-save"></i>修改</button>
+	<button id="concubine-add-btn" class="btn btn-xs btn-primary radius-4 pull-right"><i class="icon-save"></i>添加秀女</button>
+	</div>
+</div>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box ">
+			<div class="widget-header widget-header-small">
+				<h5>后宫信息</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered co">
+						<thead>
+						<tr>
+						<th id="{{rs.4}}">秀女ID</th>
+						<th>秀女等级</th>
+						<th>秀女经验</th>
+                        <th>绑定情况</th>
+						</tr>
+						</thead>
+						<tbody>
+                            {% for rs in result_list %}
+							<tr>
+                                <td>{{rs.4|dict_key:'concubine'}} ({{rs.0}})<input num='{{ rs.0 }}' class="pull-left" style="color: rgb(255, 78, 29);margin-left: 10px;width: 15px;height: 15px;text-align: center;padding: 0;line-height: 15px;" onclick="del_concubines(this)" type="button" value="x"/></td>
+                                <td><input type="number" key="lv" id="lv" class="input-number input-mini" maxlength="11" value={{rs.1}}></td>
+                                <td><input type="number" key="exp" id="exp" class="input-number input-mini" maxlength="11" value={{rs.2}}></td>
+                                {% if rs.3 %}<td><input type="button" key="bd" id="bd" style="color: #FF5722; font-weight:bold" value='已绑定' onclick="change_bd(this)"></td>
+                                {% else %}<td><input type="button" key="bd" id="bd" value='未绑定' onclick="change_bd(this)"></td>
+                                {% endif %}
+							</tr>
+                            {%endfor%}
+						</tbody>
+					</table>
+
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<div id="concubine_add_tmp" class="dialog-div">
+<div class="widget-main no-padding">
+    <table class="table table-bordered">
+        <tr>
+            <td>秀女ID</td>
+            <td><input type="text" name='iid' value="" class="input-small" select-key="concubine" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" name='iid' value="" class="input-small" select-key="concubine" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" name='iid' value="" class="input-small" select-key="concubine" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" name='iid' value="" class="input-small" select-key="concubine" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" name='iid' value="" class="input-small" select-key="concubine" maxlength="8" placeholder="选择"></td>
+        </tr>
+        <tr>
+            <td>数量</td>
+            <td><input type="text" name='num' value="" class="input-small" maxlength="8" placeholder="填写"></td>
+            <td><input type="text" name='num' value="" class="input-small" maxlength="8" placeholder="填写"></td>
+            <td><input type="text" name='num' value="" class="input-small" maxlength="8" placeholder="填写"></td>
+            <td><input type="text" name='num' value="" class="input-small" maxlength="8" placeholder="填写"></td>
+            <td><input type="text" name='num' value="" class="input-small" maxlength="8" placeholder="填写"></td>
+        </tr>
+    </table>
+    <button id="concubine-add-sure-btn" class="btn btn-success btn-xs radius-4 pull-right"><i class="icon-ok"></i>添加</button>
+</div>
+</div>
+
+<div id="dialog-div" class="dialog-div">
+	<div class="row">
+		<textarea name="remark" placeholder="备注(150字内)" maxlength="200"></textarea>
+		<div class="col-md-offset-3 col-md-9">
+		<button id="concubine-save-sure-btn" class="btn btn-success btn-xs radius-4 "><i class="icon-ok"></i>确认</button>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+var concubine_modify_url = '/game/concubine/concubine_modify?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_name}}'
+$(function(){
+    var color = '#FFEB3B'
+    $('.book_num').each(function(i,ele){
+        var $ele = $(ele)
+        var val = $ele.text()
+        $ele.attr('bid',parseInt(val))
+        $ele.text(JSON.parse(book_name)[parseInt(val)])
+        var bid = $ele.attr('bid')
+        if (bid == '25'){
+            color = '#FFCD0B'
+        } else if (bid == '50'){
+            color = '#FF9800'
+        } else if (bid == '70'){
+            color = '#FF5722'
+        }
+        $ele.css('background',color)
+    })
+
+	function ajaxDo(url,data,callback,err_callback){
+		$.ajax({
+			url: url,
+			type: 'POST',
+			dataType: 'json',
+			data: data,
+		})
+		.done(function(data) {
+			callback(data)
+		})
+		.fail(function(a,b,c) {
+			err_callback(a,b,c)
+		})
+	}
+
+    $('#lv,#exp,#bd').click(function(){
+        $(this).parents('tr').find('input[key]').each(function(i,ele){
+                $(ele).css('background','yellow')
+                $(ele).attr('change','1')
+            })
+    })
+
+    function ConcubineModify(){
+		var This = this
+        this.remark_ele = $('[name="remark"]')
+		this.msg = {}
+
+        //信息
+        this.get_co = function(){
+            var len = 0
+            var _r = {}
+            var _l = []
+            $('.co input[change]').each(function(i,ele){
+                var $ele = $(ele)
+                var id = $ele.parents('tr').find('input[num]').attr('num')
+                _r['id'] = parseInt(id)
+                var val = $ele.val()
+
+                _r[$ele.attr('key')] = val
+                len = len + 1
+                if (len == 3){
+                    if(_r['bd']== '已绑定'){
+                        _r['bd'] = true
+                    }
+                    if(_r['bd']== '未绑定'){
+                        _r['bd'] = false
+                    }
+                    _r['lv'] = parseInt(_r['lv'])
+                    if (_r['lv'] > parseInt(player_lv)){
+                        alert('秀女等级不能超过主公等级')
+                        return
+                    }
+                    _r['exp'] = parseInt(_r['exp'])
+                    _l.push(_r)
+                    _r = {}
+                    len = 0
+                }
+            })
+            return !$.isEmptyObject(_l) ? _l : null
+        }
+
+        this.send = function(msg){
+            var data = {req_type:'concubine-modity','msg':msg}
+            ajaxDo(concubine_modify_url,data,function(data){
+                $('#dialog-div').dialog().hide()
+                if (data.code == 0) {
+                    alert('修改成功!')
+                    location.reload()
+                } else {
+                    art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+                }
+            },function(a,b,c){
+                art.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>')})
+            })
+        }
+    }
+
+    var concubinemodify = new ConcubineModify()
+
+    //修改
+	$('#concubine-save-btn').click(function(){
+		concubinemodify.remark_ele.val('')
+		$('#dialog-div').dialog({title:"输入备注","top":"10%"})
+		concubinemodify.remark_ele.focus()
+	})
+
+	$('#concubine-save-sure-btn').click(function(event) {
+		if (confirm("确认进行此操作吗 ?")) {
+			if (!concubinemodify.remark_ele.val()) {
+				alert('请输入备注信息!')
+				return
+			}
+
+            var msg = JSON.stringify(concubinemodify.get_co())
+            if (msg != "null"){
+                //alert(msg)
+                concubinemodify.send(msg)
+            }
+
+		}
+	});
+
+    //添加
+    $('#concubine-add-btn').click(function(){
+        $('#concubine_add_tmp').dialog({"title":"添加秀女"})
+    })
+
+    $('#concubine-add-sure-btn').click(function(){
+        var iid_list = []
+        var num_list = []
+        $('[name="iid"]').each(function(i,ele){
+            var value = $(ele).val()
+            if (value && ! isNaN(value)){
+                iid_list.push(parseInt(value))
+            }
+        })
+
+        $('[name="num"]').each(function(i,ele){
+            var value = $(ele).val()
+            if (value && ! isNaN(value)){
+                num_list.push(parseInt(value))
+            }
+        })
+
+        if (iid_list.length != num_list.length){
+            alert('数值错误！')
+            return
+        }else{
+            var msg = JSON.stringify({'iid_list':iid_list,'num_list':num_list})
+            var data = {req_type:'concubine-add','msg':msg}
+            ajaxDo(concubine_modify_url,data,function(data){
+                $('#concubine_add_tmp').dialog().hide()
+                if (data.code == 0) {
+                    alert('添加成功!')
+                    location.reload()
+                } else {
+                    art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+                }
+            },function(a,b,c){
+                alert('错误！')
+            })
+        }
+    })
+
+})
+
+
+//删除
+function del_concubines(ele){
+    if (confirm("确认要删除秀女吗 ?")) {
+        var num = $(ele).attr('num')
+        var bd = $(ele).parents('tr').find('#bd').val()
+        if (bd == '已绑定'){
+            alert('已绑定的秀女不能删除!')
+            return
+        } else if (title_list.indexOf(num) > -1){
+            alert('册封的秀女不能删除!')
+            return
+        }
+
+        var msg_list = []
+        msg_list.push(parseInt(num))
+        var msg = JSON.stringify(msg_list)
+        var data = {req_type:'concubine-del','msg':msg}
+        $.ajax({
+            url: concubine_modify_url,
+            type: 'POST',
+            dataType: 'json',
+            data: data,
+        })
+        .done(function(data) {
+            if (data.code == 0) {
+                alert('删除成功!')
+                location.reload()
+            } else {
+                art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+            }
+        })
+        .fail(function(a,b,c) {
+            err_callback(a,b,c)
+        })
+    }
+}
+
+function change_bd(ele){
+    var $ele = $(ele)
+    var val = $ele.val()
+    if (val == '未绑定'){
+        $ele.val('已绑定')
+    } else if (val == '已绑定'){
+        $ele.val('未绑定')
+    }
+}
+
+function del_book(ele){
+    var $ele = $(ele)
+    if ($ele.text()=='开启'){
+        var str = "确认要关闭图鉴吗?"
+        var msg = {'id':'','rm':true}
+        msg['id'] = $ele.parent('td').prev().attr('bid')
+
+    }else if ($ele.text()=='关闭'){
+        var str = "确认要开启图鉴吗?"
+        var msg = {'id':'','rm':false}
+        msg['id'] = $ele.parent('td').prev().attr('bid')
+
+    }
+    if (confirm(str)){
+        var msg = JSON.stringify(msg)
+        var data = {req_type:'book-change','msg':msg}
+        $.ajax({
+            url: concubine_modify_url,
+            type: 'POST',
+            dataType: 'json',
+            data: data,
+        })
+        .done(function(data) {
+            if (data.code == 0) {
+                alert('改变成功!')
+                location.reload()
+            } else {
+                art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+            }
+        })
+        .fail(function(a,b,c) {
+            err_callback(a,b,c)
+        })
+    }
+}
+
+</script>
+{% endblock %}

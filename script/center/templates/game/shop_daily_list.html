@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% load mytags %}
+
+{% block header%}
+<title>商城管理</title>
+<script type="text/javascript">
+  function filterList() {
+    var server_id = $("#server_id").val();
+    document.location.href = "" + server_id;
+  }
+
+  function add(obj) {
+    art.dialog.open("/game/shop/shop_daily_edit")
+  }
+
+  function edit(obj) {
+    art.dialog.open("/game/shop/shop_daily_edit?item_id=" + $(obj).attr('custom_id').split('_')[1], {id: "shop_edit"})
+  }
+
+  function remove(obj) {
+    if (confirmRandom('确定删除吗?')) {
+      window.location.href = "/game/shop/shop_daily_remove?item_id=" + $(obj).attr('custom_id').split('_')[1];
+    }
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+  商城管理
+  <div class="buttons">
+    <!-- <a href="/push/list">管理推送消息</a> -->
+    <!-- <a href="/push/create" class="ask">生成推送消息</a> -->
+    <!-- <a href="javascript:;" custom_id="id_0" onclick="add(this)">添加</a> -->
+  </div>
+</div>
+
+<div class="sub-menu">
+  {%for item in server_list%}
+  <a href="/game/shop/shop_daily_list?server_id={{item.id}}" 
+    {% if server_id == 0 and item.id == 1 %}
+      class="active"
+    {% elif server_id == item.id %}
+      class="active"
+    {% endif %}
+    >
+      {{item.name}}
+    </a> 
+  {%endfor%}
+</div>
+
+<table class="table datatable table-bordered" data-group-by-index="[2]">
+  <thead>
+    <tr>
+      <th><input type="checkbox" checkbox-area="shop_area"></th>
+      <th>服ID</th>
+      <th>编号</th>
+      <th>名称</th>
+      <th>描述</th>
+      <th>图标</th>
+      <th>消费类型</th>
+      <th>标签</th>
+      <th>价格</th>
+      <th>分类编号</th>
+      <th>限购数量</th>
+      <th>VIP限制</th>
+      <th>等级限制</th>
+      <th>开始时间</th>
+      <th>结束时间</th>
+      <!-- <th>奖励描述</th> -->
+      <th>产出路径</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+
+  <tbody id="shop_area">
+    {% for server_id, shop_list in server_shop_list.items %} {% for item in shop_list %}
+    <tr class="server" value="{{ server_id }}">
+      <td>
+        <input type="checkbox" value="{{ item.0 }}" name="item_id" sid="{{server_id}}">
+      </td>
+
+      <!-- <td><a href="javascript:dialog_response('/game/shop/shop_create?server_id={{ server_id }}&item_id={{ item.0 }}&just_check=true')" title="检查">{{ item.0 }}</a></td> -->
+      <td>{{ server_id }}</td>
+      <td>{{ item.0 }}</td>
+
+      <!-- 商品名称 -->
+      <td>{{ item.1 }}</td>
+      <!-- 商品描述 -->
+      <td>{{ item.2 }}</td>
+      <!-- 商品图标 -->
+      <td>{{ item.3 }}</td>
+
+      <!-- 消费类型 -->
+      {% if item.4 == 0 %}
+      <td>充值金币</td>
+      {% elif item.4 == 1 %}
+      <td>赠送金币</td>
+      {% elif item.4 == 2 %}
+      <td>充值积分</td>
+      {% elif item.4 == 3 %}
+      <td>红包币</td>
+      {% elif item.4 == 4 %}
+      <td>银币</td>
+      {% else %}
+      <td>无效类型!!</td>
+      {% endif %}
+
+      <!-- 标签：是否热销 / 折扣 -->
+      {% if item.5 %}
+      <td>热销</td>
+      {% else %}
+      <td>{{ item.8 }}折</td>
+      {% endif %}
+
+      <!-- 价格 -->
+      <td>{{ item.6 }}</td>
+      <!-- 分类 -->
+      <td>{{ item.7 }}</td>
+
+      <!-- 限购数量 -->
+      <td>{{ item.9 }}</td>
+      <!-- VIP限制 -->
+      <td>{{ item.10 }}</td>
+      <!-- 等级限制 -->
+      <td>{{ item.11 }}</td>
+      <!-- 上架时间 -->
+      <td>{{ item.12|timestamp2datetime }}</td>
+      <!-- 下架时间 -->
+      <td>{{ item.13|timestamp2datetime }}</td>
+      <!-- 奖励描述 -->
+      <!-- <td>{{ item.14 }}</td> -->
+      <!-- 产出路径 -->
+      <td>{{ item.15 }}</td>
+
+      <td>
+        <a href="/game/shop/shop_daily_remove?server_id={{ server_id }}&item_id={{item.0}}" class="del" value='{{item.0}}'>[删除]</a>
+        <!-- <a href="/game/shop/shop_daily_edit?page_num={{ page_num }}&server_id={{ server_id }}&item_id={{item.0}}" class="openDialog">[编辑]</a> -->
+        <!-- <a href="javascript:sendRequest({{item.id}})">[生成]</a> -->
+      </td>
+    </tr>
+    {%endfor%} {%endfor%}
+  </tbody>
+</table>
+
+<div class="sub-menu-1">
+  <input id="del_shop_button" type="button" value="批量删除">
+</div>
+
+<script type="text/javascript">
+  function sendRequest(itemId) {
+    var url = "/game/shop/shop_daily_create?item_id=" + itemId;
+    $.post(url, {}, function(data) {
+      $.dialog(data);
+    });
+  }
+
+  function dialog_response(url) {
+    $.get(url, function(data) {
+      $.dialog(JSON.stringify(data))
+    })
+  }
+
+  function get_shop_list() {
+    var shop_list = [];
+    $('#shop_area input[type=checkbox]:checked').each(function() {
+      shop_list.push($(this).val())
+    })
+    return shop_list
+  }
+
+  function get_server_list() {
+    var server_list = [];
+    $('#shop_area input[type=checkbox]:checked').each(function() {
+      server_list.push($(this).attr('sid'))
+    })
+    return server_list
+  }
+
+
+  function ajax_delete_shop(shop_list, server_list) {
+    if (shop_list.length > 0) {
+      var item_id = shop_list.pop();
+      var server_id = server_list.pop();
+      var _url = "shop_daily_remove?ajax=true&item_id=" + item_id + "&server_id=" + server_id;
+      var _ele = $('[value="' + item_id + '"]').parent('td');
+      _ele.append('删除中...');
+
+      $.get(_url).success(function(data) {
+        var _jdata = $.parseJSON(data);
+        if (_jdata.code == 0) {
+          _ele.html(item_id + '&nbsp;删除成功！')
+          ajax_delete_shop(shop_list, server_list)
+        }
+      })
+    } else {
+      window.location.href = '/game/shop/shop_daily_list?server_id={{ server_id }}';
+    }
+  }
+  $('#del_shop_button').click(function() {
+    var MIN_ITEM_ID = 10000
+    var shop_list = get_shop_list();
+    var server_list = get_server_list();
+
+    for (var i in shop_list) {
+      if (parseInt(shop_list[i]) <= MIN_ITEM_ID) {
+        alert("商品ID <= 10000为本地数据，无法通过后台修改")
+        return
+      }
+    }
+
+    if (shop_list.length > 0 && confirm('确定删除这些id?\n\n' + shop_list)) {
+      if (shop_list.length > 5) {
+        if (!confirm('真的确定批量删除吗,认真检查下哦.\n' + shop_list)) {
+          return
+        }
+      }
+      ajax_delete_shop(shop_list, server_list);
+    }
+  })
+
+  $('html').on('click', '.del', function(e) {
+    var MIN_ITEM_ID = 10000
+    item_id = parseInt($(this).attr("value"))
+    if (item_id <= MIN_ITEM_ID) {
+      alert("商品ID <= 10000为本地数据，无法通过后台修改")
+      return false
+    }
+  })
+</script>
+
+{% include "pager.html" %}
+{% endblock %}

@@ -1,0 +1,241 @@
+<!-- datatable 处理 -->
+
+<script type="text/javascript">
+function DataTableOption() {
+	var This = this
+	this.fnGetKey = function( aoData, sKey){ // 获取datable 的数据
+			for ( var i=0, iLen=aoData.length ; i<iLen ; i++ ) {
+			    if ( aoData[i].name == sKey ) {
+			        return aoData[i].value;
+			    }
+			}
+			return null;
+	}
+	
+	this.convertDataTableInputData = function(saoData){ //转换datatable的输入参数
+			var anewData = []
+			var convertList = [
+								{"sname":"iDisplayLength",//每页大小原参数名
+								 "dname":"page_size",     //目标参数名
+								 "getValueFunc":function(saoData,value){return value}
+								},
+								{"sname":"iSortCol_0",//排序index
+								 "dname":"sort_index",
+								 "getValueFunc":function (saoData,value) {
+									var session_id = This.fnGetKey(saoData,'sEcho')
+									var sort_type = This.fnGetKey(saoData,'sSortDir_0')
+									return session_id == 1 ?  -1 : value
+									}
+								},
+								{"sname":"sSortDir_0",//排序方式
+								 "dname":"sort_type",
+			 					"getValueFunc":function (saoData,value) {
+									var session_id = This.fnGetKey(saoData,'sEcho')
+									return session_id == 1 ? '' : value
+									}
+								},
+								{"sname":"iDisplayStart",//开始步进
+								 "dname":"page_num",      //页码
+								 "getValueFunc":function (saoData,value) {
+														var iDisplayLength = This.fnGetKey(saoData,'iDisplayLength')
+														return Math.round((iDisplayLength + value) / iDisplayLength) 
+														}
+								},
+								{"sname":"sEcho",
+								 "dname":"session_id",
+								}
+
+			]
+			for (var i in convertList) {
+				var convOjb = convertList[i],
+				    newObj = {}
+				var value = This.fnGetKey(saoData,convOjb.sname)
+				if (convOjb.getValueFunc) {
+					value = convOjb.getValueFunc(saoData,value)
+				}
+					newObj['name'] = convOjb.dname
+					newObj['value'] = value
+				anewData.push(newObj)
+			}
+			var mydata = getFormData()
+			return anewData.concat(mydata)
+	}
+
+	this.convertInputDataFuncs = [function(data){return data}]  //增加转换数据输入处理方法数组
+	this.convertOutputDataFuncs = [function(data){return data}] //增加转换数据输出处理方法数组
+
+	// 输入数据处理
+	this.convertInputData = function(data){
+		for (var i in this.convertInputDataFuncs) {
+			var func = this.convertInputDataFuncs[i]
+			data = func(data)
+		}
+		return data
+	}
+	
+	// 输出数据处理
+	this.convertOutputData = function(data){   
+		for (var i in this.convertOutputDataFuncs) {
+			var func = this.convertOutputDataFuncs[i]
+			data = func(data)
+		}
+		return data
+	}
+
+	this.paddingtfoot = function(data){
+		console.dir(data)
+		var tfoot_cont = $QUERY_TABLE.find('tfoot')
+		var html_str = ''
+		tfoot_cont.html('')
+		var list_data = data
+		for (var i in list_data){
+			var tr = list_data[i]
+			html_str += '<tr>'	
+				for (var j in tr){
+					var td = tr[j]
+					j == 0  ? html_str += '<th>' + td + '</th>' : html_str += '<td>' + td + '</td>' 
+
+				}
+			html_str += '</tr>'
+		}
+		tfoot_cont.html(html_str)
+	}
+
+
+	this.fnajaxQuery = function( sSource, aoData, fnCallback ) { //dataTable AJAX请求函数
+
+			var amyData = This.convertDataTableInputData(aoData) 
+			    amyData = This.convertInputData(amyData)
+			var dataTableData = {}
+
+			$.ajax({
+					url: sSource,
+					type: 'POST',
+					dataType: 'json',
+					data: amyData,
+				})
+				.done(function(data) {
+					data = This.convertOutputData(data)
+					if (data.code!=0) {
+						$.dialog(data.msg.replace(/\n/g,'<br>'))
+					} else {
+						$('.query_table_use_time').html('用时:'+ data.exec_time)
+						dataTableData['sEcho'] = data.session_id
+						dataTableData['iTotalRecords'] = data.total_record
+						dataTableData['iTotalDisplayRecords'] = data.total_record
+						dataTableData['aaData'] = data.list_data
+						if (!isNaN(data.result_cache_time) && parseInt(data.result_cache_time)>0 ) {
+							$('.query_table_use_time').append(' - (cache:'+ timestamp_to_datetime_str(data.result_cache_time)+')')
+						}
+						console.dir(data.result_cache_time)
+						fnCallback(dataTableData);
+						if (This.option.sScrollY) {
+							$QUERY_TABLE.find('thead th').removeAttr('class')
+						}
+						if (data.tfoot_data){
+							This.paddingtfoot(data.tfoot_data)
+						}
+					}
+
+				})
+				.fail(function(o,x,text) {
+					$.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>'),"top":0})
+				})
+				.always(function() {
+					console.log("complete");
+				});
+			
+	}
+
+	this.page_size = 50
+	this.page_size_list = [50,100,500]
+
+	this.option  =  {
+//		 "sScrollY": $('body').height(),// * 0.8 + 'px',
+//		 "bScrollCollapse": true,
+		 // "sScrollX": "100%",
+   //     "sScrollXInner": "100%",
+   //       "bSortClasses":false,
+		"bStateSave": false, 
+		"bProcessing": true, //是否显示正在处理的提示 
+		"iDisplayLength":This.page_size,//默认每页显示的记录数
+		"bPaginate": true, // 是否使用分页
+		 "bAutoWidth": false,//列的宽度会根据table的宽度自适应 
+		//"bSortClasses":true,
+		"sAjaxSource": QUERY_URL, //给服务器发请求的url
+		"bServerSide": true,//服务端模式
+		"sServerMethod": "POST",
+		"fnServerData": This.fnajaxQuery,//自定服务器请求
+		// "fnServerParams": function ( aoData ) {} //自定参数
+    	//"sPaginationType": "full_numbers",
+    	"bFilter":false,
+		"aLengthMenu":This.page_size_list,
+		"bLengthChange": true,
+		"oSearch":{
+			
+			"sSearch": "",//默认的框文字
+			"bRegex":true,//支持正则搜索
+		},
+		//"sDom": "<'row'<'col-sm-2 query_table_use_time'><'col-sm-8'><'col-sm-2'l>>rt<'row'<'col-sm-3'i><'col-sm-2'><'col-sm-1 datatable_toolbar'><'col-sm-6'p>>",
+		"sDom": "rt<'row'<'col-sm-2'<'query_table_use_time label label-info'>i><'col-sm-1'><'col-sm-2'l><'col-sm-7'p>>",
+		"bInfo": true,
+		 "oLanguage": {
+		 "sSearch": "筛选:",//
+		 "sZeroRecords": "没有匹配记录",
+		  "sInfo":'当前第 _START_ - _END_ 条 共 _TOTAL_ 条',
+		  "sInfoFiltered": "(从 _MAX_ 条记录中过滤)",
+		  "sLengthMenu": "每页显示 _MENU_条",
+		  "sInfoEmpty": "",
+		  "sProcessing": "<img src='/static/skin/images/loading.gif'>正在加载数据...",
+		  "oPaginate": {
+            "sFirst": "首页",
+            "sPrevious": "前一页",
+            "sNext": "后一页",
+            "sLast": "尾页"
+        	}
+
+		 },
+		 "aaSorting":[],//默认不排序
+		 "aoColumnDefs":[
+		 				{"bSortable": false,//不排序的列
+						 "aTargets":[{% for name,config in field_configs.items %} {% if not config.sort %}{{forloop.counter0 }}{%if not forloop.last%},{%endif%}{% endif %}{% endfor %}]
+        				}
+        	],
+	}
+
+
+	this.update_option = function(){
+		This.option.iDisplayLength = This.page_size
+		This.option.aLengthMenu = This.page_size_list
+
+	}
+	
+
+}
+
+
+var dataTableOption = new DataTableOption()
+function flushDataTable(beforefunc,afterfunc) {
+	dataTableOption.update_option()
+	if (beforefunc){beforefunc()}
+		if (window.odataTable) {
+			window.odataTable.fnDraw()
+		} else {
+			window.odataTable =  $QUERY_TABLE.dataTable(dataTableOption.option)
+		}
+	if (afterfunc){afterfunc()}
+}
+
+$SEARCH.click(function(){
+	flushDataTable()
+})
+
+$(function(){
+	$QUERY_TABLE.find('tbody:first').attr('id','checkbox-area')
+	$QUERY_TABLE.find('thead th').eq(TH['-']).html('<input type="checkbox" checkbox-area="checkbox-area">')
+	$('#datatable_toolbar').insertBefore($QUERY_TABLE)
+})
+
+</script>
+
+

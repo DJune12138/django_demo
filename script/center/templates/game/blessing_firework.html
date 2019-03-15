@@ -1,0 +1,414 @@
+<style>
+  .equipitem {
+    display: block;
+    margin-left: 50px
+  }
+
+  .fnt {
+    font-weight: bold;
+    font-size: 15px;
+  }
+
+  .fnt1 {
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  .gift-item {
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+  }
+
+  .biaoshi {
+    float: right;
+  }
+</style>
+
+<!-- 模版开始 -->
+<script id="Activity-setting-tpl" type="text/template">
+  <div id="Activity-activity-cont">
+    <table class="form">
+      <%var data=it.data;%>
+        <tr>
+          <th>活动开始时间</th>
+          <td>
+            <input type="text" class="Wdate" name="ab" value="<%=data.ab ? it.w.timestamp_to_datetime_str(data.ab? data.ab : parseInt(new Date()/1000)) : " {{model.sdate|date:"Y-m-d H:i:s"}} " %>">
+          </td>
+        </tr>
+        <tr>
+          <th>活动结束时间</th>
+          <td>
+            <input type="text" class="Wdate" name="ae" value="<%=data.ae? it.w.timestamp_to_datetime_str(data.ae? data.ae : parseInt(new Date()/1000)) : " {{model.edate|date:"Y-m-d H:i:s"}} " %>">
+            <span>(活动停止展示时间)</span>
+          </td>
+        </tr>
+    </table>
+  </div>
+</script>
+
+<script id="Single-setting-tpl" type="text/template">
+  <%var data=it.data;%>
+    <div id="goods" class="gift-item">
+      <label class="fnt">天数<span class="level_num"></span>:</label>
+      <a style="float:right" href="javascript:;" onclick="$(this).closest('#goods').remove();resize_level_num()" class="gray">[删除]</a><br/>
+      <label class="fnt1">
+        金币<input type="text" style="width:60px; height:25px;" name="gold" value="<%=data.gold? data.gold: ''%>" class="not-empty">
+      </label>
+      <label class="fnt1">
+        天数<input type="text" style="width:50px; height:25px;" name="accu" value="<%=data.accu? data.accu: ''%>" class="not-empty">
+      </label>
+      <a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a><br>
+      <div id="rewards-cont">
+        <%var items=data.box;%>
+          <% for (var i in items){ %>
+            <%=it.w.pi.get_item_html(items[i], null)%>
+              <% } %>
+      </div>
+      <a href="javascript:void(0)" onclick="insert_new_level(this.parentElement)">[插入新档次]</a>
+      <!-- <label class="biaoshi">唯一标识<input type="text" style="width:25px; height:18px;" name="did" readonly="readonly" value="<%=data.did ?data.did :'1'%>"></label> -->
+    </div>
+</script>
+
+<script id="Accumulated-setting-tpl" type="text/template">
+  <%var data=it.data;%>
+    <div id="goods" class="gift-item">
+      <label class="fnt">档次<span class="level_num"></span>:</label>
+      <a style="float:right" href="javascript:;" onclick="$(this).closest('#goods').remove();resize_level_num(1)" class="gray">[删除]</a><br>
+      <label class="fnt1">
+        排名<input type="text" style="width:50px; height:25px;" name="cnb" value="<%=data.cnb? data.cnb: ''%>" class="not-empty">-
+        <input type="text" style="width:50px; height:25px;" name="cne" value="<%=data.cne? data.cne: ''%>" class="not-empty">
+      </label>
+      <a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a><br>
+      <div id="rewards-count">
+        <%var items=data.re;%>
+          <% for (var i in items){ %>
+            <%=it.w.pi.get_item_html(items[i], null)%>
+              <% } %>
+      </div>
+      <a href="javascript:void(0)" onclick="insert_new_level(this.parentElement, 1)">[插入新档次]</a>
+ <!--      <label class="biaoshi">唯一标识<input type="text" style="width:25px; height:18px;" name="did" readonly="readonly" value="<%=data.did ?data.did :'1'%>"></label> -->
+    </div>
+</script>
+
+<!-- 模版结束 -->
+<script type="text/javascript">
+  var pi = new ResourceInput()
+
+  function print_value(item) {
+    console.log(item)
+  }
+  var print_log = print_value
+
+  function get_level_html(obj, isAccu) {
+    return isAccu ? get_views('Accumulated-setting-tpl', obj) : get_views('Single-setting-tpl', obj)
+  }
+
+  //插入档次
+  function insert_new_level(ele, isAccu) {
+    // if ($('.gift-item').length >= 10) {
+    // alert('档次总数已达上限')
+    // return false
+    // }
+
+    obj = isAccu ? default_msg.pa.box[0] : default_msg.pa.box[0]
+    var html = get_level_html(obj, isAccu)
+    $(ele).after(html)
+    resize_level_num(isAccu)
+  }
+
+  //添加档次
+  function addlevel(ele, isAccu) {
+    //if ($('.gift-item').length >= 10) {
+    //  alert('档次总数已达上限')
+    //  return false
+    //}
+
+    obj = default_msg.pa.box[0]
+    var html = get_level_html(obj, isAccu)
+    if(isAccu){
+      $('#accu-cont').append(html)
+    } else {
+      $('#single-cont').append(html)
+    }
+    resize_level_num(isAccu)
+
+    // setid()
+  }
+
+  //添加奖励
+  function add_rewards(ele) {
+    if ($(ele).parents("#goods").find(".equipitem").length >= 20) {
+      alert('奖励总数已达上限')
+      return false
+    }
+    $(ele).parents("#goods").find("#rewards-count").append(pi.get_item_html())
+  }
+
+  function add_rewards_first(ele) {
+    if ($(ele).parents("#goods").find(".equipitem").length >= 20) {
+      alert('奖励总数已达上限')
+      return false
+    }
+    $(ele).parents("#goods").find("#rewards-first").append(pi.get_item_html())
+  }
+
+    function add_rewards_second(ele) {
+    if ($(ele).parents("#goods").find(".equipitem").length >= 20) {
+      alert('奖励总数已达上限')
+      return false
+    }
+    $(ele).parents("#goods").find("#rewards-second").append(pi.get_item_html())
+  }
+
+    function add_rewards_third(ele) {
+    if ($(ele).parents("#goods").find(".equipitem").length >= 20) {
+      alert('奖励总数已达上限')
+      return false
+    }
+    $(ele).parents("#goods").find("#rewards-third").append(pi.get_item_html())
+  }
+
+  // function setid() {
+  // var _id = parseInt($('[name="sdid"]').val())
+  // var id = $('[name="sdid"]').val(_id + 1).val()
+  // $('.gift-item:last').find('[name="did"]').val(id)
+  // }
+
+  function resize_level_num(isAccu) {
+    $('#accu-cont .level_num').each(function(i, ele) {
+      $(this).html(i + 1)
+    })
+
+    $('.single-cont').each(function(i, ele){
+      $(ele).find('.level_num').each(function(i, ele) {
+        $(ele).html(i + 1)
+      })
+    })
+  }
+
+  function substitute(str,o,regexp){
+    return str.replace(regexp || /\\?\{([^{}]+)\}/g, function (match, name) {
+    return (o[name] === undefined) ? '' : o[name];
+    });
+  }
+
+  // 添加天数
+  function add_day(){
+    var new_day_id =  get_max_day_id() + 1
+    var template = '\
+      <li class="tab-li" day_id="{day_id}">\
+        <a href="#day_{day_id}", data-toggle="tab">\
+          <b>第<span class="day_num">{day_id}<span>天</b>\
+        </a>\
+      </li>'
+    var html = substitute(template, {day_id: new_day_id});
+    $('#tab-ul li:last').before(html)
+
+    var gift_obj = default_msg.pa.box
+    $('#tab-cont').append(
+      '<div id="day_' + new_day_id + '" class="tab-pane single-cont"  day_id="'+ new_day_id +'">' +
+      get_level_html(gift_obj) +
+      '</div>'
+    )
+
+    resize_level_num()
+  }
+
+  // 取最大天数
+  function get_max_day_id(){
+    var id_list = $('.tab-pane').map(function(){
+        return parseInt( $(this).attr('day_id') )
+    }).get()
+    return Math.max.apply(Math, id_list)
+  }
+
+  function active_day_tab(day_id){
+    $('#tab-ul li').removeClass('active').filter('[day_id="'+ day_id +'"]').addClass('active')
+    $('.tab-pane').removeClass('active').filter('[day_id="'+ day_id +'"]').addClass('active')
+  }
+
+  //删除天数
+  function del_day(ele){
+    if (!confirm('确定删除?')){return false}
+    var last_day_id = parseInt($('[day_id]:last').attr('day_id'))
+    $('[day_id="'+last_day_id+'"]').remove()
+    active_day_tab(last_day_id - 1)
+  }
+
+
+  var default_msg = {
+    "rm":false,
+    "ab":0,                 // 活动开始时间  
+    "ae":0,                 // 活动结束时间
+  }
+
+
+    <!-- 这里重写活动的参数配置 -->
+  activitySetting.check_msg = function(obj) {
+    var msg = obj
+    var allow = false
+
+    // if (msg.sb >= msg.ab) {
+    //     inputTooltip($('[name="sb"]'), '<b class="red">显示时间不能大于等于开始时间!</b>', 3000)
+    //     allow = true
+    // }
+    // if (msg.sb >= msg.se) {
+    //     inputTooltip($('[name="sb"]'), '<b class="red">显示时间不能大于等于消失时间!</b>', 3000)
+    //     allow = true
+    // }
+    // if (msg.sb >= msg.ae) {
+    //     inputTooltip($('[name="sb"]'), '<b class="red">显示时间不能大于等于结束时间!</b>', 3000)
+    //     allow = true
+    // }
+    if (msg.ab >= msg.ae) {
+        inputTooltip($('[name="ab"]'), '<b class="red">开始时间不能大于等于结束时间!</b>', 3000)
+        allow = true
+    }
+    // if (msg.ab >= msg.se) {
+    //     inputTooltip($('[name="ab"]'), '<b class="red">开始时间不能大于等于消失时间!</b>', 3000)
+    //     allow = true
+    // }
+    // if (msg.ae >= msg.se) {
+    //     inputTooltip($('[name="ae"]'), '<b class="red">结束时间不能大于等于消失时间!</b>', 3000)
+    //     allow = true
+    // }
+
+
+    // $('.single-cont .gift-item').each(function(i, ele) {
+    $('.single-cont').each(function(i, ele) {
+      var dl = [{
+        gold: 0,
+        accu: 0
+      }]
+      var day_id = $(this).attr('day_id')
+
+      $(this).find('.gift-item').each(function(i, ele) {
+        var d = {}
+        d.gold = parseInt($(ele).find('[name="gold"]').val())
+        d.accu = parseInt($(ele).find('[name="accu"]').val())
+        if (d.gold && d.gold <= dl[i].gold) {
+          active_day_tab(day_id)
+          inputTooltip($(ele).find('[name="gold"]'), '<b class="red">金币数量不能小于前一个档次</b>', 3000)
+          $(ele).find('[name="gold"]').focus()
+          allow = true
+        }
+        if (d.accu <= dl[i].accu ) {
+          active_day_tab(day_id)
+          inputTooltip($(ele).find('[name="accu"]'), '<b class="red">积分数量不能小于前一个档次</b>', 3000)
+          $(ele).find('[name="accu"]').focus()
+          allow = true
+        }
+        dl.push(d);
+      })
+    })
+
+    dl = [{
+      accu: 0
+    }]
+
+    $('#accu-cont .gift-item').each(function(i, ele) {
+      var d = {}
+      d.cnb = parseInt($(ele).find('[name="cnb"]').val())
+      d.cne = parseInt($(ele).find('[name="cne"]').val())
+      if (d.cnb <= dl[i].cnb ) {
+        inputTooltip($(ele).find('[name="cnb"]'), '<b class="red">积分数量不能小于前一个档次</b>', 3000)
+        $(ele).find('[name="cnb"]').focus()
+        allow = true
+      }
+      dl.push(d);
+    })
+    return allow
+  }
+
+  activitySetting.get_json = function(event_name) {
+    if (!this.check_empty_input()) {
+      return false
+    }
+    var msg = {};
+    msg.ab = datetime_str_to_timestamp(this.contEle.find('[name="ab"]').val())
+    msg.ae = datetime_str_to_timestamp(this.contEle.find('[name="ae"]').val())
+    // $('#single-cont .gift-item').each(function(i, ele) {
+    $('.single-cont').each(function(i, ele) {
+      var single = []
+      $(this).find('.gift-item').each(function(i, ele){
+        var rl= {}
+        rl.id = parseInt($(ele).find('.level_num').html())
+        rl.gold = parseInt($(ele).find('[name="gold"]').val())
+        rl.accu = parseInt($(ele).find('[name="accu"]').val())
+        rl.box = []
+        $(ele).find('.equipitem').each(function(i, ele) {
+          rl.box.push(pi.to_json(ele))
+        })
+        single.push(rl)
+      })
+      msg.pa.box.push(single)
+    })
+
+    $('#accu-cont .gift-item').each(function(i, ele) {
+      var rl= {}
+      rl.id = parseInt($(ele).find('.level_num').html())
+      rl.cnb = parseInt($(ele).find('[name="cnb"]').val())
+      rl.cne = parseInt($(ele).find('[name="cne"]').val())
+      rl.re = []
+      $(ele).find('#rewards-count').find('.equipitem').each(function(i, ele) {
+        rl.re.push(pi.to_json(ele))
+      })
+      msg.pa.box.push(rl)
+    })
+
+    if (this.check_msg(msg)) {
+      return false
+    }
+    return JSON.stringify(msg)
+  }
+
+  activitySetting.to_html = function(msg) {
+    msg = !$.isEmptyObject(msg) && msg ? msg : default_msg
+    if (typeof msg[1] === 'number'){ msg.splice(1, 1)}
+    console.dir(msg)
+    try {
+      var source_json = $.parseJSON(this.get_json())
+    } catch (e) {
+      var source_json = {}
+    }
+    msg = $.extend(source_json, msg)
+    console.dir(source_json)
+
+    var html = get_views('Activity-setting-tpl', msg)
+    this.contEle.html(html)
+    resize_level_num()
+    resize_level_num(1)
+  }
+
+  //状态
+  activitySetting.get_status = function(data) {
+    // console.log('get status', typeof data)
+    // console.log(data)
+
+    if ($.isEmptyObject(data) || !data || data["open"] == false) {
+      return '<span class="label label-danger">已关闭</span>'
+    }
+
+    if (data["open"] == false) {
+      return '<span class="label label-danger">活动不存在</span>'
+    }
+
+    var status = ''
+    var st = data.ab
+    var et = data.ae
+
+    var in_time_range = this.system_timestamp >= st && this.system_timestamp <= et
+    if (in_time_range) {
+      status = '<span class="label label-success">已开启</span>'
+    } else {
+      status = '<span class="label label-primary" title="开启时段' + timestamp_to_datetime_str(st) + '- ' + timestamp_to_datetime_str(et) + '">未开始</span>'
+    }
+    return status
+  }
+
+  activitySetting.to_template_json = function(data) {
+    return data
+  }
+</script>

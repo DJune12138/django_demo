@@ -1,0 +1,160 @@
+
+<style>
+.rebate-item{
+    border: 1px solid #AAAAAA;
+    padding: 5px 5px 5px 15px;
+    border-radius: 4px;
+    margin-top: 5px;
+    width: 500px;
+}
+
+
+</style>
+
+<!-- 模版开始 -->
+<script id="rebate-setting-tpl" type="text/template">
+<div id="rebate-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+        <th>活动时段:</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data.st ? it.w.timestamp_to_datetime_str(data.st ? data.st : Date.parse(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:30"}}" %>">
+            到
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : Date.parse(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>领取奖励截止时间:</th>
+        <td>
+            <input type="text" name="rdt" class="Wdate" value="<%=data.rdt ? it.w.timestamp_to_datetime_str(data.rdt ? data.rdt : Date.parse(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>" >
+        </td>
+       
+    </tr>
+    <tr>
+        <th>总共可以领取的次数:</th>
+        <td>
+            <input type="number" min=0 name="trt" class="input-number input-mini" value="<%=data.trt ? data.trt : 0 %>" >
+        </td>
+    </tr>
+    <tr>
+        <th>每天可以领取的次数:</th>
+        <td>
+            <input type="number" min=0 name="pdt" class="input-number input-mini" value="<%=data.pdt ? data.pdt : 0 %>" >
+        </td>
+    </tr>
+
+    <tr><th>返利列表:</th>
+        <td><a id="add-rebate-item-btn" href="javascript:;" onclick="add_rebate_item()">[增加返利条件]</a></td>
+    </tr>
+        <tr><th></th>
+        <td id="rebate-item-cont">
+            <%var rl=data.rl;%>
+            <% for (var i in rl){%>
+                <%=it.w.get_rebate_item_html(rl[i])%>
+            <%}%>
+        </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<script id="rebate-item-tpl" type="text/template">
+    <div class="rebate-item">
+    充 :
+    <input  type="number" min=0  name="pay" class="input-number not-empty input-sm" value="<%=it.data[0]%>">
+    每次能领 :
+    <input type="number" min=0   name="receive" class="input-number not-empty input-sm" value="<%=it.data[1]%>">
+    <a href="javascript:;" onclick="$(this).parent().remove()">X</a>
+   </div>
+</script>
+<!-- 模版结束 -->
+
+
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+
+function get_rebate_item_html(array){
+    console.dir(array)
+    return get_views('rebate-item-tpl',array)
+}
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(){
+    if (!this.check_empty_input()){return false}
+     var msg =  {
+        "rdt": 0,       //领取奖励截止时间戳
+        "trt": 0,       //总共可以领取的次数
+        "pdt" :0,       //每天可以领取的次数
+        "st" :   0,     // 抢购活动开始时间(时间戳)
+        "et" :   0,      // 抢购活动结束时间(时间戳)
+        "rl" : []        //[1000, 100], [2000, 200] 表示冲1000每次能领100，冲2000每次能领200 
+    }
+
+    //开启时间
+     msg['st'] = datetime_str_to_timestamp( this.contEle.find('[name="st"]').val() )
+     msg['et'] = datetime_str_to_timestamp( this.contEle.find('[name="et"]').val() )
+     msg['rdt'] = datetime_str_to_timestamp( this.contEle.find('[name="rdt"]').val() )
+     if ( msg['rdt'] <= msg['et']) {
+        alert('领取奖励截止时间不能小于结束时间!')
+        return false
+     }
+     if ( msg['st'] >= msg['et']) {
+        alert('开始时间不能小于等于结束时间!')
+        return false
+     }
+     msg['trt'] = parseInt( this.contEle.find('[name="trt"]').val() )
+     msg['pdt'] = parseInt( this.contEle.find('[name="pdt"]').val() )
+
+     var rebate_items = $('#rebate-item-cont .rebate-item')
+     if(rebate_items.length==0){
+        alert('没有设置返利条件!')
+        $('#add-rebate-item-btn').focus();
+        return false
+    }
+     rebate_items.each(function(i,ele){
+        
+        var $rebate_Item = $(ele)
+                                               
+        var pay = parseInt( $rebate_Item.find('[name="pay"]').val() ),
+            receive = parseInt( $rebate_Item.find('[name="receive"]').val())
+        var itemArray = [pay,receive]
+        msg['rl'].push(itemArray)
+     })
+
+     return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    var html = get_views('rebate-setting-tpl',msg)
+    this.contEle.html(html)
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+
+    var in_time_range =   this.system_timestamp >= data.st  && this.system_timestamp <=data.et 
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if (data.tl && !in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data.st)+'- '+ timestamp_to_datetime_str(data.et)+'">未开始</span>'
+    } else if (data.st == 0 && data.et == 0 ) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }
+    return status
+}
+
+function add_rebate_item(){
+    $('#rebate-item-cont').append(
+        get_rebate_item_html(['',''])
+        )
+}
+
+</script>
+
+
+

@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>平台渠道列表</title>
+
+<script type="text/javascript">
+
+
+	function addAgent(ele){
+			art.dialog.open("/server/channel/agent_edit",{title:ele.innerText})
+	}
+
+	function editAgent(ele){
+		if(selectId){
+			art.dialog.open("/server/channel/agent_edit?agent_id="+selectId,{title:ele.innerText})
+		}
+	}
+
+	function addChannel(ele){
+		if (selectId) {
+			art.dialog.open("/server/channel/channel_edit?agent_id="+selectId,{title:ele.innerText})
+		}
+	}
+	function editChannel(ele){
+		//alert(selectId)
+		if (selectId) {
+			art.dialog.open("/server/channel/channel_edit?channel_id=" + selectId,{title:ele.innerText})
+		}
+	}
+	function removeChannel(ele){ 
+		var cids = $('#channel_area :checkbox').serialize()
+		if (cids) { 
+			if (confirmRandom('确定删除吗?')) {
+				window.location.href = "/server/channel/channel_remove?" + cids
+			}
+		}
+	}
+	function BatchEditChannel(){
+		var This = this
+
+		this.get_channel_ids = function(){
+			return $('.channel_tr :checked:visible').serialize()
+		}
+
+		this.open_dialog = function(ele){
+			if (!This.get_channel_ids()) {
+				alert('没有勾选渠道!')
+			} else{
+				$('#batch_edit_channel_dialog').dialog({'title':"渠道配置信息"})
+			}
+		}
+		
+		this.save = function(){
+			var channel_ids_params = This.get_channel_ids()
+			if (!channel_ids_params){
+				alert('没有勾选渠道!')
+				return false
+			}
+			if (!confirm('确定批量保存并生成配置信息?')){
+				return false
+			}
+			$.ajax({
+				url: '/server/channel/channel_make',
+				type: 'POST',
+				dataType: 'json',
+				data:channel_ids_params + '&' + $('#batch_edit_channel_dialog [name]').serialize(),
+			})
+			.done(function(data) {
+				if (data.code == 0){
+					alert('保存成功,已生成配置!')
+				}
+			})
+			.fail(function() {
+				alert('保存失败!')
+			})
+
+		}
+	}
+
+var batch_edit_channel = new BatchEditChannel()
+
+$(function(){
+     $('tr.agent_tr').contextMenu('agent_contextMenu',   
+     {  
+          bindings:   
+          {  
+            'c_add': function(t) {  
+              addChannel(t)
+            }, 
+            'c_edit': function(t){
+              editAgent(t)
+            }
+          }  
+  
+    }); 
+
+ })
+</script>
+{% endblock %}
+{% block content %}
+<div class="bar">
+	<h3>平台渠道管理</h3>
+		<div class="buttons"> <a href="/server/channel/channel_make" class="ask">生成渠道配置</a></div>
+</div>
+
+<!-- 右键菜单 -->
+<div  id="agent_contextMenu" class="contextMenu hide">  
+	<ul>   
+		<li id="c_add" class="btn no-border btn-white">添加子渠道</li>  
+		<li id="c_edit" class="btn no-border btn-white">编辑平台</li>  
+	</ul>  
+</div> 
+
+<!-- 渠道配置信息 -->
+<div id="batch_edit_channel_dialog" class="dialog-div">
+	<div class="row">
+		<div class="col-sm-12">
+		{%include "server/channel_other_edit.html"%}
+		</div>
+		<div class="col-sm-6 col-sm-offset-6">
+
+			<input type="button" class="btn btn-success btn-sm" value="确定" onclick="batch_edit_channel.save()">
+		</div>
+</div>
+
+</div>
+
+<!-- tab -->
+<ul id="nav-list" class="nav nav-tabs" >
+	  <li class="active" >
+	  	<a href="/server/channel/channel_list" >渠道列表</a>
+	  </li>
+</ul>
+
+<div id='datatable_toolbar'>
+
+			<div class="btn-toolbar pull-right">
+
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-success " onclick="addAgent(this)">
+						<i class="icon-plus-sign"></i>添加平台
+					</a>
+
+				</div>
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-primary " onclick="batch_edit_channel.open_dialog(this)">
+						<i class="icon-edit"></i>批量修改配置
+					</a>
+
+				</div>
+
+			</div>
+			<div class="pull-right " style="margin-right: 10px;margin-top: 7px;">
+			<a href="javascript:;" id="open_channel_list-btn">[展开]</a>
+			<a href="javascript:;" id="close_channel_list-btn">[收起]</a>
+			</div>
+	
+</div>
+<table  id="channel_table" class="table" >
+			<thead>
+			<tr>
+				<th >平台名称</th>
+				<th>渠道数量</th>
+				<th>服务器数量</th>
+				<th >账号</th>
+				<th >密码</th>
+				<th >创建时间</th>
+				<th >登录次数</th>
+				<th >登录IP</th>
+				<th >最后时间</th>
+			</tr>
+			</thead>
+			<tbody id="channel_area">
+			{%for agent in agents %}
+				<tr class="select_tr agent_tr"  trid='{{agent.id}}' >
+					<td class="details-control pointer" title="查看子渠道">
+						<b>{{agent.alias}}-{{agent.name}}</b>
+						{% with  agent.channel.all as channel_all %}
+						{% if channel_all %}
+						<div style="display:none">
+							<table class="table-bordered" style="margin:0px 100px 0px 10%;width:50">
+								<thead>
+								<tr>
+									<th><input type="checkbox"   checkbox-area='agent_{{agent.id}}' all=true ></th>
+									<th>渠道ID</th>
+									<th>渠道名(渠道key)</th>
+									<th>创建时间</th>
+									<th>操作</th>
+								</tr>
+								</thead>
+								<tbody id="agent_{{agent.id}}" class="agent_{{agent.id}}">
+								{% for channel in channel_all %}
+								<tr class="select_tr channel_tr" trid="{{channel.id}}">
+									<td><input type="checkbox"  value="{{channel.id}}" name="cid"></td>
+									<td>{{channel.id}}</td>
+									<td>{{channel.name}}({{channel.channel_key}})</td>
+									<td>{{channel.create_time|date:"Y-m-d H:i:s"}}</td>
+									<td>
+									<a href="/server/channel/channel_edit?channel_id={{channel.id}}&agent_id={{agent.id}}" class="openDialog">[编辑]</a>
+
+									{%if request.admin.is_root%}
+									<a href="javascript:void(0);" id="{{channel.id}}" class="ajax delChannel" onclick="remove_channel(this)" tip="确定删除？">[删除]</a>
+									{%endif%}
+											
+									</td>
+								</tr>
+								
+								{% endfor %}
+								</tbody>
+							</table>
+						</div>
+						{%endif%}
+						{%endwith%}
+					</td>
+
+					<td >{{agent.channel.all|length}}</td>
+					<td >{{agent.server.all|length}}</td>
+					<td><a href="/server/channel/agent_edit?agent_id={{agent.id}}" class="openDialog">{{agent.username}}</a></td>
+					<td>{{agent.password}}</td>
+					<td>{{agent.create_time|date:"Y-m-d H:i:s"}}</td>
+					<td>{{agent.login_count}}</td>
+					<td>{{agent.last_ip}}</td>
+					<td>{{agent.last_time|date:"Y-m-d H:i:s"}}</td>
+				</tr>
+			{%endfor%}
+			</tbody>
+</table>
+
+<script type="text/javascript">
+		 	var opt = {
+					//"sScrollY": '200px',//document.documentElement.clientHeight*0.6 + 'px',
+					//"bScrollCollapse": true,
+					//"sScrollX": "100%",
+                    //"sScrollXInner": "100%",
+					"bStateSave": false, 
+					"bProcessing": false, //是否显示正在处理的提示 
+					"iDisplayLength":-1,//默认每页显示的记录数
+					"bPaginate": false, // 是否使用分页
+					// "bAutoWidth": true,//列的宽度会根据table的宽度自适应 
+					//"bSortClasses":true,
+					"bLengthChange": false,
+					"oSearch":{
+						"sSearch": "",//默认的框文字
+						"bRegex":true,//支持正则搜索
+					},
+					"bInfo": false,
+					 "oLanguage": {
+					 "sSearch": "筛选:",//
+					 "sZeroRecords": "没有匹配记录",
+					  //"sInfo":'',
+					 },
+					 "aoColumnDefs":[],
+				}
+			var oTable = $('#channel_table').dataTable(opt)
+			$('#datatable_toolbar').appendTo(oTable.parent().find('.datatable_toolbar'))
+
+            oTable.find('tbody').on('click', 'td.details-control', function () {
+		        var nTr = $(this).closest('tr')[0];
+		        if ( oTable.fnIsOpen(nTr) ){
+		        	oTable.fnClose( nTr );
+		        	$(nTr).removeClass('shown');
+		        } else {
+		        	var html = $(nTr).find('div:hidden').html()
+		        	if (html) {
+		        		oTable.fnOpen( nTr, html, 'chlid-tr' );
+		        	}
+		        }
+
+		    });
+
+			oTable.on("mousedown", ".select_tr", function(e) {
+			  $(".selected").not(this).removeClass("selected");
+			  var This = $(this)
+
+			  selectId = 0
+			  This.toggleClass("selected");
+			  if (This.hasClass('selected')) {
+			  	selectId = This.attr('trid') ? This.attr('trid') : This.find(':checkbox').val()
+			  }
+			})
+
+			// $('td.details-control').each(function(){
+			// 	$(this).click()
+			//  })
+
+function open_channel_list(){
+	            $('td.details-control').each(function () {
+		        var nTr = $(this).closest('tr')[0];
+
+	        	var html = $(nTr).find('div:hidden').html()
+	        	if (html) {
+	        		oTable.fnOpen( nTr, html, 'chlid-tr' );
+	        	}
+		    });
+}
+
+function close_channel_list(){
+	            $('td.details-control').each(function () {
+		        var nTr = $(this).closest('tr')[0];
+	        	oTable.fnClose( nTr );
+	        	$(nTr).removeClass('shown');
+
+
+		    });
+}
+
+function ajax_do(url,method){
+	$.ajax({
+			url: url,
+			type: method,
+			success:function(data) {
+				var data = JSON.parse(data)
+				if (data["code"] == 0){
+				    swal({
+				        title:data["msg"],
+				        type:"success",
+				        timer: 1000,
+ 					   	showConfirmButton: false
+			    	})
+				    setTimeout(function(){
+		            location.reload()
+		        	},1000)
+			    }else{
+			    	swal({
+				        title:data["msg"],
+				        type:"warning"
+			    	})
+			    }
+			    },
+			error:function(er){
+				swal({
+					title:"保存失败",
+					type:"error"
+				})
+			}
+    })
+}
+
+function remove_channel(ele){
+	swal({
+	  title: "确认删除?",
+	  type: "warning",
+	  showCancelButton: true,
+	  confirmButtonColor: "#DD6B55",
+	  confirmButtonText: "确认",
+	  cancelButtonText: "取消",
+	  closeOnConfirm: false
+	},
+	function(){
+	  var id = ele.id;
+		var url = '/server/channel/channel_remove?channel_id='+id;
+		ajax_do(url,"GET")
+	});
+}
+
+$(function(){
+	$('#open_channel_list-btn').click(function(event) {
+		open_channel_list()
+	});
+	$('#close_channel_list-btn').click(function(event) {
+		close_channel_list()
+	});
+})
+
+</script>
+
+<div>
+{%if new_list%}
+	<h4>待开通的渠道</h4>
+	<table class="list">
+		<tr>
+			<th>名称</th>
+			<th width="100">操作</th>
+		</tr>
+		{%for item in new_list%}
+		<tr>
+			<td>{{item.channel_key}}</td>
+			<td>
+				<!-- <a href="/manage/channel/edit/0?key={{item.channel_key}}">开通</a> -->
+				<a href="/server/channel/channel_edit?channel_id={{item.id}}" class="openDialog">开通</a>
+			</td>
+		</tr>
+		{%endfor%}
+	</table>
+{%endif%}
+</div>
+{% endblock %}

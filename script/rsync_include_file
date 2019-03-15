@@ -1,0 +1,3 @@
+analys/views/pay/pay.py
+templates/pay/pay_channel_edit.html
+templates/pay/pay_channel_list.html

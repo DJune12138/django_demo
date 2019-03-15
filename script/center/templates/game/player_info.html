@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>玩家信息</title>
+<style>
+#iframe_cont{
+	height:80%;
+	width: 100%
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+ <ul id="nav-list" class="nav nav-tabs" >
+	  <li class="active">
+	  	<a href="/game/player/role_info?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_name}}" >角色信息</a>
+	  </li>
+	{% if request.allow_menu.角色装备信息%}
+	  <li ><a href="/game/equip/equip_info?player_id={{player_id}}&&server_id={{server_id}}&player_name={{player_name}}">装备信息</a></li>
+	{%endif%}
+
+	{% if request.allow_menu.角色后宫信息%}
+    <li ><a href="/game/equip/equip_item_info?player_id={{player_id}}&&server_id={{server_id}}&player_name={{player_name}}">背包道具信息</a></li>
+    {%endif%}
+
+	{% if request.allow_menu.角色英雄信息%}
+	<!--   <li ><a href="/game/pilot/pilot_info?player_id={{player_id}}&&server_id={{server_id}}&player_name={{player_name}}">宠物信息</a></li> -->
+	{%endif%}
+
+	{% if request.allow_menu.角色操作记录%}
+	  <li ><a href="/query/view/角色操作记录?template=table&player_id={{player_id}}&page_size=1000" >角色操作记录</a></li>
+	{%endif%}
+
+	{% if request.allow_menu.角色邮件信息%}
+	  <!-- <li ><a href="/game/player/mail_info?player_id={{player_id}}&&server_id={{server_id}}&player_name={{player_name}}">邮件信息</a></li> -->
+		<!-- <li ><a href="/game/player/mail_info?server_id={{server_id}}">公共邮件信息</a></li> -->
+	{%endif%}
+
+
+</ul>
+<script type="text/javascript">
+$(function(){
+	var player_iframe = $('#player_iframe')
+	$('#nav-list a').click(function(){
+		var This = $(this)
+		$('#nav-list li').removeClass('active')
+		var url = $(this).attr('href')
+		player_iframe.attr('src',url)
+		This.parent('li').addClass('active')
+		return false
+	})
+
+})
+</script>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box ">
+			<div class="widget-header widget-header-small">
+				<h5>账号信息</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-down"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered  player-info-table">
+						<tr><td>帐号名(类型):</td><td>{{account_info.link_key}}({{account_info.user_type}})</td>
+							<td>角色名:</td><td>
+<!--input type="text" class="input-sm" name="player_name" value="{{account_info.player_name}}">
+							{% if request.allow_menu.修改角色名 or request.admin.is_root %}
+							<a href="javascript:0" style="display:none" id="change_player_name_btn">[修改]</a>
+							{%endif%} -->
+                            {{account_info.player_name}}
+						</td>
+							<td>角色ID:</td><td>{{account_info.player_id}}</td>
+							<td>创建时间:</td><td>{{account_info.create_time|date:'Y-m-d H:i:s'}}</td>
+						</tr>
+						<tr>
+							<td>帐号状态:</td><td>{{account_info.status|player_status}}</td>
+							<td></td><td></td>
+							<td>最后登录IP:</td><td>{{account_info.last_ip}}</td>
+							<td>最后登录时间:</td><td>{{account_info.last_time|date:'Y-m-d H:i:s'}}</td>
+						</tr>
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+
+<div class="hr"></div>
+</div>
+
+
+
+<div id="iframe_cont" >
+<iframe id="player_iframe" frameborder='0' width='100%' height='100%' src='/game/player/role_info?player_id={{player_id}}&server_id={{server_id}}'  onload='$(this).height($(this).contents().find("body").height()+100)' ></iframe>
+</div>
+
+
+
+
+<script>
+var player_id = {{player_id}}
+var player_name = '{{player_name}}'
+var server_id = player_id >> 20
+var old_player_name = '{{player_name}}'
+
+var change_player_name_sure_btn = $('#change_player_name_btn')
+
+//---同步后台名字
+$('[name="player_name"]').keyup(function(event) {
+		var new_player_name = this.value
+
+		if (old_player_name == new_player_name){
+			change_player_name_sure_btn.hide()
+
+		} else{
+			change_player_name_sure_btn.show()
+		}
+})
+
+change_player_name_sure_btn.click(function(event) {
+	if(!confirm('确定修改角色名吗?')){
+		return false
+	}
+	var player_name = $('[name="player_name"]').val()
+
+	$.ajax({
+		url: '/game/player/change_player_name',
+		type: 'POST',
+		dataType: 'json',
+		data: {player_name: player_name,player_id:player_id},
+	})
+	.done(function(data) {
+		if (data.code==0){
+			$.dialog('修改成功!')
+			change_player_name_sure_btn.hide()
+		} else {
+			$.dialog(data.msg)
+		}
+		old_player_name = player_name
+	})
+	.fail(function() {
+		alert('发生错误')
+	})
+
+	
+});
+</script>
+{% endblock %}

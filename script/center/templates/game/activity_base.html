@@ -1,0 +1,111 @@
+{% load mytags %} 
+
+{% include 'game/resource_editor.html' %}
+<!-- 活动设置基类 -->
+<script type="text/javascript">
+    // 活动设置
+    function ActivitySetting(){
+        var This = this
+        this.contEle = null
+        this.system_datetime_str = "{{model.now|date:"Y-m-d H:i:s"}}" //服务器的时间字符串
+        this.system_timestamp = "{{model.timestamp}}"                 //服务器的时间戳
+
+        // this.status_map ={
+        //     -1:'错误',
+        //     1:"进行中",
+        //     2:"已开启",
+        //     3:"已关闭"
+        // }
+        this.event_map = {'json-save':"保存json到配置",
+                          'json-output':"导出json"
+                         }
+
+        this.get_status = function(obj){
+            /*
+                活动的状态
+            */
+
+        }
+
+
+        this.get_json = function(event_name){
+            /*
+               从控件转为JSON 重写这个方法, 
+            */
+            return JSON.stringify({})
+        }
+
+        this.to_html = function(obj){
+            /*
+                从对象转为到HTML代码 重写这个方法, 
+            */
+        }
+
+        this.to_template_json = function(json_obj){
+            /*
+
+            导出到模版处理
+            */
+            return json_obj
+        }
+
+
+        this.get_template_json = function(){
+          /*
+            
+          */
+          var json_str = this.get_json()
+
+
+          var json_obj = this.to_template_json( $.parseJSON(json_str))
+
+          return JSON.stringify(json_obj)
+
+        }
+        this.check_empty_input = function(err_callback){
+            /*
+                空值检查
+            */
+
+            var inputs = this.contEle.find('input[name]')
+            var allow = true
+            for (var i=0;i<inputs.length;i++) {
+                     if (!inputs[i].value && !$(inputs[i]).attr('allow_empty') ) {
+                         err_callback ? err_callback(inputs[i]) : 0
+                         inputTooltip(inputs[i],'<b class="red">不能为空值!</b>',3000)
+                         inputs[i].focus()
+                         allow = false
+                         break
+                     }
+                     if(!$(inputs[i]).attr('allow_zero')){
+                         if (parseFloat(inputs[i].value)==0) {
+                            err_callback ? err_callback(inputs[i]) : 0
+                            inputTooltip(inputs[i],'<b class="red">不能为0!</b>',3000)
+                            inputs[i].focus()
+                            allow = false
+                            
+                         }
+                     }
+
+
+            }
+            return allow
+        }
+        this.check_msg = function(obj){
+          /*
+
+          */
+        }
+    }
+
+    var activitySetting = new ActivitySetting()
+</script>
+
+
+{% if model.id %}
+    <!-- 载入活动的模版 -->
+    {% if model.activity_template%}
+    {% include model.activity_template with model=model%}
+    {%endif%}
+
+{%endif %}

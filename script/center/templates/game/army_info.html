@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% load mytags%}
+{% block header%}
+<title>星盟信息</title>
+<style>
+.pb td{
+    line-height: 38px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<h3>星盟信息</h3>
+
+<div class="row">
+ <div class="col-sm-12">
+<form id="army-from" action="" method="post">
+<table id="conditions-table" class="table">
+    <tbody>
+        <tr>
+            <th>服务器选择</th>
+            <td>{% include "widgets/group_server_select.html" with group_servers_dict=group_servers_dict %}</td>
+        </tr>
+        <tr>
+            <th>星盟名</th>
+            <td>
+                <input type="text" name="army_name" value="{{army_name}}"/>
+                <input type="submit" class="btn btn-sm" value="查询">
+            </td>
+
+        </tr>
+    </tbody>
+</table>
+</from>
+</div>
+</div>
+{%if result%}
+<div class="container">
+<div class="row">
+<div class="col-xs-12 widget-container-span ui-sortable">
+        <div class="widget-box ">
+            <div class="widget-header widget-header-small">
+                <h5>星盟 {{result.na}} 的基础信息</h5>
+                <div class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="widget-body">
+                <div class="widget-body-inner" >
+                <div class="widget-main no-padding">
+                    <table class="table table-bordered player-info-table pb">
+                       <!--  <tr><td colspan="8"><b>基础信息</b></td></tr> -->
+                        <tr>
+                            <td>名称：</td><td >
+                            <input type="text" class="input-sm" name="new_army_name" value="{{result.na}}">
+                            <a href="javascript:0" style="display:none" id="change_army_name_btn">[修改]</a>
+
+
+                            </td>
+                            <td>编号：</td><td >{{result.gid}}</td>
+                            <td>等级：</td><td >{{result.gll}}</td>
+                            <td>国家:</td><td >{{result.gki|game_country}}</td>
+                            
+                        </tr>
+                        <tr>
+                            <td>创建时间：</td><td>{{result.gct|timestamp2datetime}}</td>
+                            <td>当前人数：</td><td >{{result.mn}}</td>
+                            <td>盟徽等级:</td><td>{{result.flv}}</td>
+                            <td>人数上限:</td><td>{{result.mc}}</td>
+                        </tr>
+                        <tr><td ><b>科技信息</b></td>
+                            <td ><b>等级</b></td>
+                            <td ><b>经验</b></td>
+                            <td colspan="4"> <input type="button" id="save-keji-btn" class="btn btn-xs btn-primary" value="保存科技"></td>
+                        </tr>
+
+
+                            {% for b in player_info.pbd %}
+                              {% if forloop.counter0|divisibleby:4 %}<tr>{%endif%}
+                                <td>{{b.id|game_building}}</td><td>{{b.lv}}</td>
+                               {% if forloop.counter|divisibleby:4 %}</tr>{%endif%}
+                            {%endfor%}
+
+
+                        {% with result.sc.sc as keji_list %}
+
+                            {% for keji in keji_list%}
+                            <tr>
+                                <td>{{keji.name}}</td><td>{{keji.slv}}</td>
+                                <td  >{{keji.sexp}}</td>
+                                <td colspan="5"><input type="number" sid="{{keji.sid}}" placeholder='追加' class="keji input-number input-small" value=""></td>
+                            </tr>
+                            {%endfor%}
+
+                        {% endwith %}
+                    </table>
+                </div>
+                </div>
+            </div>
+        </div>
+</div>
+</div>
+<div class="row">
+<div class="col-xs-12">
+            <div class="widget-box ">
+            <div class="widget-header widget-header-small">
+                <h5>星盟成员及贡献排行</h5>
+                <div class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="widget-body">
+                <div class="widget-body-inner" >
+                <div id="member-cont" class="widget-main no-padding">
+                    <!-- 成员模板容器 -->
+                </div>
+                </div>
+            </div>
+        </div>
+</div>
+</div>
+</div>
+<script id="member-tpl" type="text/template">
+    <table class="table table-bordered player-info-table pb ">
+    <thead>
+        <tr><th><b>角色ID</b></th><th><b>玩家名</b></th><th><b>贡献值</b></th><th><b>贡献排名</b></th><th><b>军衔</b></th></tr>
+    </thead>
+        <%var member_list=it.data;%>
+        <% for(var i in member_list){%>
+            <%var member=member_list[i];%>
+        <tr>
+            <td><%=member.pi%></td>
+            <td><%=member.mna%></td>
+            <td><%=member.co%></td>
+            <td><%=member.of == 0 ? '无' : (parseInt(i)+1)%></td>
+            <td><%=it.w.army_title_map[member.of.toString()] ? it.w.army_title_map[member.of.toString()] : member.of%></td>
+        </tr>
+        <%}%>
+
+    </table>
+</script>
+
+
+<script>
+var army_name = '{{result.na}}'
+var member_num = '{{result.mn}}'
+var post_url = '/game/army/army_science_modify'
+var army_title_map = {{army_title|json_dumps|safe}}
+$(function(){
+
+    $.ajax({
+        url: '/game/army/query_army_member',
+        type: 'POST',
+        dataType: 'json',
+        data: {server_id: {{server_id}},army_name:army_name,member_num:member_num},
+        timeout:15000
+    }).done(function(data) {
+        if (data.code == 0){
+            var member_list = data.content
+            var html = get_views('member-tpl',member_list)
+            $('#member-cont').html(html)
+            $('#member-cont .table').DataTable({"bInfo":false,"bLengthChange":false,"bPaginate":false,"oLanguage": {"sSearch": "筛选:"}})
+        }
+    })
+    .fail(function(o,x,t) {
+            $('#member-cont').html('获取星盟成员' + x)
+        
+    })
+
+
+})
+function get_msg(){
+    var msg = []
+    var keji_array = []
+    $('.keji').each(function(i,ele){
+        var keji_level = $(ele).val()
+        var sid = $(ele).attr('sid')
+        keji_level = keji_level ? parseInt(keji_level) : 0
+        sid = sid ? parseInt(sid) : 0
+        if ( sid >0 ) {
+            keji_array.push([sid,keji_level])
+        }
+    })
+    msg.push(army_name)
+    msg.push(keji_array)
+    return JSON.stringify(msg)
+}
+$('#save-keji-btn').click(function(){
+    if (!confirm('确定修改科技吗?') ){return false}
+    var server_id = $('[name="server_id"]').val()
+    $.ajax({
+        url: post_url,
+        type: 'POST',
+        dataType: 'json',
+        data: {"msg":get_msg(),"server_id":server_id},
+        timeout:15000,
+    })
+    .done(function(data) {
+
+        $.dialog(data.msg)
+        if (data.code == 0){
+            $('#army-from').submit();
+        }
+    })
+    .fail(function(o,t,x) {
+         $.dialog(x)
+    })
+
+    
+})
+
+
+
+
+var change_army_name_sure_btn = $('#change_army_name_btn')
+$('[name="new_army_name"]').keyup(function(event) {
+        var new_army_name = this.value
+
+        if (army_name == new_army_name){
+            change_army_name_sure_btn.hide()
+
+        } else{
+            change_army_name_sure_btn.show()
+        }
+})
+
+// 下面是修改星盟名
+change_army_name_sure_btn.click(function(event) {
+    if(!confirm('确定星盟名吗?')){
+        return false
+    }
+    var new_army_name = $('[name="new_army_name"]').val()
+    var server_id = {{server_id}}
+    $.ajax({
+        url: '/game/army/change_army_name',
+        type: 'POST',
+        dataType: 'json',
+        data: {old_name: army_name,new_name:new_army_name,server_id:server_id},
+    })
+    .done(function(data) {
+        if (data.code==0){
+            $.dialog('修改成功!')
+            change_player_name_sure_btn.hide()
+            army_name = new_army_name
+        } else {
+            $.dialog(data.msg)
+        }
+    })
+    .fail(function() {
+        alert('发生错误')
+    })
+});
+
+</script>
+{%endif%}
+{% endblock %}

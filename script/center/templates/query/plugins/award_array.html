@@ -1,0 +1,36 @@
+{% include 'game/resource_editor.html' %}
+
+<script>
+  //输入处理
+  dataTableOption.convertInputDataFuncs.push(function(data) {
+    return data
+  })
+
+  var old_type_index = TH['奖励类型'] ? TH['奖励类型'] : TH['奖励'] || TH['赠送资源'] || TH['升级消耗资源'] || TH['消耗资源']
+  var type_index = [
+    old_type_index,
+    TH['系统给与奖励数'],
+    TH['掠夺对方奖励数'],
+    TH['升级消耗资源'],
+    TH['领取奖励'],
+	TH['兑换道具ID'],
+	TH['奖励ID/奖励数量'],
+	TH['消耗资源类型/数量'],
+  ]
+
+  //输出处理
+  dataTableOption.convertOutputDataFuncs.push(function(data) {
+    LIST_DATA = data.list_data
+    for (var i in LIST_DATA) {
+      var row = LIST_DATA[i]
+      for (var j in type_index) {
+        if (type_index[j] == null || type_index[j] == undefined || type_index[j] == '')
+          continue;
+        row[type_index[j]] = resourec_prize(row[type_index[j]]);
+      }
+    }
+    return data
+  })
+</script>
+
+

@@ -1,0 +1,458 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>日历事件</title>
+<script src="/static/assets/js/fullcalendar.min.js"></script>
+<script src="/static/assets/js/bootbox.min.js"></script>
+<script src="/static/assets/js/jquery.ui.touch-punch.min.js"></script>
+<script src="/static/assets/js/jquery-ui-1.10.3.custom.min.js"></script>
+<script src="/static/assets/js/typeahead-bs2.min.js"></script>
+<link rel="stylesheet" href="/static/assets/css/fullcalendar.css" />
+
+<style>
+#cal-rwin { font-family: "微软雅黑"; }
+#cal-rwin div, #cal-rwin p{ text-align: left; margin: 10px 0;}
+#cal-rwin input, #cal-rwin select, #cal-rwin textarea{ width: 400px; padding: 5px; border-radius: 5px!important; margin: 0; }
+#btn-block button{ margin-left: 5px!important; display: inline-block; }
+#cal-rwin option, #cal-rwin select{ color: #FFFFFF;}
+.item-name { margin: 0; padding: 10px 5px; border-bottom: 1px dotted #808080; font-size: 14px; color: #696969; font-style: italic; }
+.item-time input{ width: auto!important; }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="page-content" style="font-family: '微软雅黑'">
+    <div class="page-header">
+        <h1>
+            日历事件记录
+            <small>
+                <i class="icon-double-angle-right"></i>
+                Logging in calendar
+            </small>
+        </h1>
+    </div><!-- /.page-header -->
+
+    <div>
+        <form action="" method="post">
+            <input type="text" name="sdate" class="Wdate" placeholder="start" value="{{sdate}}" />&nbsp;to
+            <input type="text" name="edate" class="Wdate" placeholder="end" value="{{edate}}" />
+            <input type="submit" class="btn btn-sm btn-grey" value="查 询"/>
+        </form>
+    </div>
+
+    <div class="red">Tips: 默认展示本月日志事件, 可筛选时间进行其他事件查询</div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <!-- PAGE CONTENT BEGINS -->
+
+            <div class="row">
+                <div class="col-sm-9" id="cal_wrap">
+                    <div class="space"></div>
+
+                    <div id="calendar"></div>
+                </div>
+
+                <div class="dialog-div" id="cal-rwin">
+                    <div>
+                        <p class="item-name">事件标题</p>
+                        <p class="item-con"><input type="text" name="title"/></p>
+                    </div>
+
+                    <div>
+                        <p class="item-name">编辑信息</p>
+                        <p class="item-con">
+                            <label>创建者：<strong id="creator" class="blue"> - </strong></label>&nbsp;&nbsp;&nbsp;
+                            <label>最近编辑者：<strong id="editor" class="red"> - </strong></label>&nbsp;&nbsp;&nbsp;
+                            <label>修改时间：<strong id="motime" class="grey"> - </strong></label>
+                        </p>
+                    </div>
+
+                    <div >
+                        <p class="item-name">事件类别</p>
+                        <p class="item-con">
+                            <select name="clsname" class="label-info" onchange="$(this).attr('class', $(this).val());">
+                                <option value="label-info" class="label-info">普通</option>
+                                <option value="label-grey" class="label-grey">取消</option>
+                                <option value="label-success" class="label-success">已完成</option>
+                                <option value="label-yellow" class="label-yellow">未完成</option>
+                                <option value="label-purple" class="label-purple">需要跟进</option>
+                                <option value="label-important" class="label-important">非常重要</option>
+                            </select>
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="item-name">时间选择</p>
+                        <p class="item-con item-time">
+                            <input type="text" class="Wdate" name="start" placeholder="start" />
+                            <input type="text" class="Wdate" name="end" placeholder="end" />
+                            <input type="checkbox" name="all_day" onclick="all_day_status()" /> 全日
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="item-name">内容摘要</p>
+                        <p class="item-con"><textarea name="descript" cols="30" rows="10"></textarea></p>
+                    </div>
+
+                    <div>
+                        <p class="pull-right" id="btn-block">
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- PAGE CONTENT ENDS -->
+        </div><!-- /.col -->
+    </div><!-- /.row -->
+</div><!-- /.page-content -->
+
+<script type="text/javascript">
+    function all_day_status(){
+        $("[name='all_day']").prop("disabled", false);
+        var is_check = $("[name='all_day']").prop("checked");
+        if(is_check){
+            $(".item-time").find(".Wdate").prop("disabled", true)
+        }else{
+            $(".item-time").find(".Wdate").prop("disabled", false)
+        }
+    }
+
+    function createButton(btn_json, target_id){
+        $("#"+target_id).html('');
+        if(btn_json){
+            var return_btns = {};
+            for(var i in btn_json){
+                var label = btn_json[i].label,
+                    className = btn_json[i].className,
+                    callback = btn_json[i].callback;
+                var btn = $("<button>", {class:"btn "+className, html:label, id:"btn_"+i});
+                btn.click(callback);
+                if(target_id){
+                    $("#"+target_id).append(btn)
+                }else{
+                    return_btns[i] = btn;
+                }
+            }
+            if(return_btns.length > 0){
+                return return_btns
+            }
+        }
+    }
+
+    jQuery(function($) {
+        /* initialize the external events
+            -----------------------------------------------------------------*/
+        /* initialize the external events
+            -----------------------------------------------------------------*/
+	$('#external-events div.external-event').each(function() {
+
+		// create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
+		// it doesn't need to have a start or end
+		var eventObject = {
+			title: $.trim($(this).text()) // use the element's text as the event title
+		};
+
+		// store the Event Object in the DOM element so we can get to it later
+		$(this).data('eventObject', eventObject);
+
+		// make the event draggable using jQuery UI
+		$(this).draggable({
+			zIndex: 999,
+			revert: true,      // will cause the event to go back to its
+			revertDuration: 0  //  original position after the drag
+		});
+
+
+	});
+
+
+
+	/* initialize the calendar
+	-----------------------------------------------------------------*/
+
+//	var date = new Date();
+//	var d = date.getDate();
+//	var m = date.getMonth();
+//	var y = date.getFullYear();
+
+    var event_arr = [];
+    {% for item in models %}
+        event_arr.push({
+            id : "{{item.id}}",
+            title : "{{item.event}}",
+            start : new Date("{{item.start}}"),
+            end : new Date("{{item.end}}"),
+            allDay : {{item.all_day}} == 1 ? true : false,
+            className : "{{item.class_name}}",
+            descript : "{{item.descript}}",
+            creator : "{{item.creator}}",
+            editor : "{{item.editor}}",
+            modifyTime : "{{item.update_time}}"
+        })
+    {% endfor %}
+
+    /**
+    * 将传入的日期对象格式话
+    * @param date 传入的日期对象
+    * return String
+    */
+    function timeFormat(inDate){
+        if(!inDate){
+            return null;
+        }
+        var year = inDate.getFullYear(),
+            month = inDate.getMonth() + 1,
+            day = inDate.getDate(),
+            hour = inDate.getHours(),
+            minute = inDate.getMinutes(),
+            second = inDate.getSeconds();
+
+        if(month < 10){
+            month = "0" + month;
+        }
+
+        if(day < 10){
+            day= "0" + day;
+        }
+
+        if(hour < 10){
+            hour= "0" + hour;
+        }
+
+        if(minute < 10){
+            minute= "0" + minute;
+        }
+
+        if(second < 10){
+            second = "0" + second;
+        }
+
+        return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
+    }
+
+	var calendar = $('#calendar').fullCalendar({
+		buttonText: {
+			prev: '<i class="icon-chevron-left"></i>',
+			next: '<i class="icon-chevron-right"></i>'
+		},
+
+		header: {
+			left: 'prev,next today',
+			center: 'title',
+			right: 'month,agendaWeek,agendaDay'
+		},
+
+		events: event_arr,
+
+		editable: true,
+		droppable: true, // this allows things to be dropped onto the calendar !!!
+		drop: function(date, allDay) { // this function is called when something is dropped
+
+			// retrieve the dropped element's stored Event Object
+			var originalEventObject = $(this).data('eventObject');
+			var $extraEventClass = $(this).attr('data-class');
+			// we need to copy it, so that multiple events don't have a reference to the same object
+			var copiedEventObject = $.extend({}, originalEventObject);
+
+			// assign it the date that was reported
+			copiedEventObject.start = date;
+			copiedEventObject.allDay = allDay;
+			if($extraEventClass) copiedEventObject['className'] = [$extraEventClass];
+
+			// render the event on the calendar
+			// the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
+			$('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+
+			// is the "remove after drop" checkbox checked?
+			if ($('#drop-remove').is(':checked')) {
+				// if so, remove the element from the "Draggable Events" list
+				$(this).remove();
+			}
+		}
+		,
+		selectable: true,
+		selectHelper: true,
+		select: function(start, end, allDay) {
+            //初始化
+            $("#cal-rwin").find("input,textarea").val('');
+            $(".label-info").prop("selected", true);
+            $("[name='clsname']").attr("class", "label-info");
+            $("#creator, #editor, #motime").html(' - ');
+
+            var $dialog = $("#cal-rwin");
+            var options = {
+                start : start,
+                end : end,
+                startf : timeFormat(start),
+                endf : timeFormat(end),
+                allDay : allDay
+            };
+
+            $("[name='start']").val(options.startf);
+            $("[name='end']").val(options.endf);
+
+            $("[name='all_day']").prop("checked", allDay);
+            $(".item-time").find("input").prop("disabled", true);
+
+            createButton({
+                save : {
+                    label : "<i class='icon-ok'></i> 确定",
+                    className : "btn-sm btn-info",
+                    callback : function(){
+                        var title = $("[name='title']").val();
+                        if(title.length > 0){
+                            options.title = title;
+                            options.descript = $("[name='descript']").val();
+                            options.className = $("[name='clsname']").attr("class");
+
+                            $.ajax({
+                                url : "/system/calevents/calendar_save",
+                                type : "GET",
+                                cache : false,
+                                async : false,
+                                dataType : "json",
+                                data : options,
+                                success :  function(r){
+                                    if(r.code == 0){
+                                        if(!(typeof r.id === "undefined")){
+                                            options.id = r.id;
+                                            options.creator = r.creator;
+                                        }
+                                        calendar.fullCalendar('renderEvent', options, true);
+                                        $dialog.dialog().close();
+                                    }else{
+                                        $dialog.dialog({"title" : "消息结果", "content": r.msg})
+                                    }
+                                },
+                                error : function(){
+                                    $dialog.dialog({"title" : "消息结果", "content": "网络出错!"})
+                                }
+                            })
+                        }
+                    }
+                },
+                "close" : {
+                    "label" : "<i class='icon-remove'></i> 关闭",
+                    "className" : "btn-sm btn-grey",
+                    "callback" : function(){
+                        $dialog.dialog().close();
+                    }
+                }
+            }, "btn-block");
+
+			calendar.fullCalendar('unselect');
+            var _top = parent.document.documentElement.scrollTop ||parent.document.body.scrollTop;
+            $dialog.dialog({"title" : "添加新的日历事件"});
+		}
+		,
+		eventClick: function(calEvent, jsEvent, view) {
+            var $dialog = $("#cal-rwin");
+            $("#creator, #editor, #motime").html(' - ');
+            $("[name='title']").val(calEvent.title);
+            $("[name='descript']").val(calEvent.descript);
+            $("[name='start']").val(timeFormat(calEvent.start));
+            $("[name='end']").val(timeFormat(calEvent.end));
+            $("[name='all_day']").prop("checked", calEvent.allDay);
+            $("[name='clsname']").val(calEvent.className).attr("class", calEvent.className);
+            $("#creator").html(calEvent.creator);
+            $("#editor").html(calEvent.editor);
+            $("#motime").html(calEvent.modifyTime);
+            all_day_status();
+
+            createButton({
+                "edit" : {
+                    "label": "<i class='icon-save'></i> 保存",
+                    "className" : "btn-sm btn-success",
+                    "callback" : function(){
+                        var options = {
+                            eid : calEvent.id,
+                            title : $("[name='title']").val(),
+                            descript : $("[name='descript']").val(),
+                            startf : $("[name='start']").val(),
+                            endf : $("[name='end']").val(),
+                            allDay : $("[name='all_day']").prop("checked"),
+                            className : $("[name='clsname']").val()
+                        };
+
+                        calEvent.title = options.title;
+                        calEvent.descript = options.descript;
+                        calEvent.allDay = options.allDay;
+                        calEvent.className = options.className;
+                        calEvent.start = new Date(options.startf);
+                        if(options.endf != "")
+                            calEvent.end = new Date(options.endf);
+
+                        $.ajax({
+                            url : "/system/calevents/calendar_edit",
+                            type : "GET",
+                            cache : false,
+                            async : false,
+                            dataType : "json",
+                            data : options,
+                            success : function(r){
+                                if(r.code == 0){
+                                    calEvent.editor = r.editor;
+                                    calEvent.modifyTime = r.time;
+                                    calendar.fullCalendar('updateEvent', calEvent);
+                                    $("#btn-block").html('');
+                                    $dialog.dialog().close();
+                                }else{
+                                    $dialog.dialog({"title" : "消息结果", "content": r.msg})
+                                }
+                            },
+                            error : function(){
+                                $dialog.dialog({"title" : "消息结果", "content": "网络出错!"})
+                            }
+                        });
+                        return false;
+                    }
+                },
+                "delete" : {
+                    "label" : "<i class='icon-trash'></i> 删除",
+                    "className" : "btn-sm btn-danger",
+                    "callback" : function(){
+                        $.ajax({
+                            url : "/system/calevents/calendar_delete",
+                            type : "GET",
+                            cache : false,
+                            async : false,
+                            dataType : "json",
+                            data : {eid : calEvent.id},
+                            success : function(r){
+                                if(r.code == 0){
+                                    calendar.fullCalendar('removeEvents' , function(ev){
+                                        return (ev._id == calEvent._id);
+                                    })
+                                    $("#btn-block").html('');
+                                    $dialog.dialog().close();
+                                }else{
+                                    $dialog.dialog({"title" : "消息结果", "content": "删除失败!"})
+                                }
+                            },
+                            error : function(){
+                                $dialog.dialog({"title" : "消息结果", "content": "网络出错!"})
+                            }
+                        });
+                        return true;
+                    }
+                },
+                "close" : {
+                    "label" : "<i class='icon-remove'></i> 关闭",
+                    "className" : "btn-sm btn-grey",
+                    "callback" : function(){
+                        $dialog.dialog().close();
+                    }
+                }
+            }, "btn-block");
+            var _top = parent.document.documentElement.scrollTop ||parent.document.body.scrollTop;
+            $dialog.dialog({title : "修改日历事件"});
+		}
+	})
+})
+</script>
+
+{% endblock %}

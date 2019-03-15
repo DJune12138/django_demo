@@ -1,0 +1,255 @@
+<style>
+.gift-item{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+}
+.margin10{
+    margin: 10px
+}
+.equipitem{
+    display: block
+}
+.reward_cont{
+    display: inline-table;
+}
+.didnum{
+    width: 25px;
+}
+</style>
+<!-- 模版开始 -->
+<script id="SimplePay-setting-tpl" type="text/template">
+<div id="SimplePay-activity-cont">
+<%var data=it.data;%>
+<table class="form">
+    <tr>
+        <th>活动开始时间</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data.st ? it.w.timestamp_to_datetime_str(data.st ? data.st : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>充值结束时间</th>
+        <td>
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>领取结束时间</th>
+        <td>
+            <input type="text" class="Wdate" name="rdt" value="<%=data.rdt ? it.w.timestamp_to_datetime_str(data.rdt ? data.rdt : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td id="gift-item-cont">
+            <%var ra=it.data.srls;%>
+            <% for (var i in ra){%>
+                <%=it.w.get_gift_item_html(ra[i])%>
+            <%}%>
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+        <a style="float:right" id="add-gift-item-btn" href="javascript:;" onclick="add_gift_item()">[添加礼包]</a>
+        </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<script id="gift-item-tpl" type="text/template">
+<div class="gift-item">
+  <div>
+    <b>礼包<span class="condition_num"></span>:</b>
+     <input type="text" class="didnum input-sm" name="did" readonly="readonly" value="<%=it.data.did ?it.data.did :'1'%>">
+     <a style="float:right" href="javascript:;" onclick="$(this).closest('.gift-item').remove();resize_condition_num()" class="gray">[删除]</a>
+    <br>
+    礼包名称:
+    <input type="text" name="pn" class="not-empty input-sm" maxlength=7 value="<%=it.data.pn ?it.data.pn :''%>">*最多7个汉字*
+    &nbsp&nbsp&nbsp
+    礼包图片ID:
+    <input type="text" name="ptid" class="input-number not-empty input-small" maxlength=8 allow_zero="true" value="<%=it.data.ptid ? it.data.ptid : 0%>">
+    <br>
+    单笔充值区间:
+    <input type="number" min=0  name="sa" class="input-number not-empty input-small" value="<%=it.data.sa%>">
+      到
+    <input type="number" min=0  name="ea" class="input-number not-empty input-small" value="<%=it.data.ea%>">
+    <br>
+    最大领取次数:
+    <input type="number" min=0  name="met" class="input-number not-empty input-small" value="<%=it.data.met%>">
+    <br>
+    <b class="margin10">奖励列表:</b><a href="javascript:;" onclick="add_reward_item(this)">[添加]</a>
+    <div class="reward_cont margin10">
+            <%var ra=it.data.ra;%>
+            <% for (var i in ra){%>
+                <%=it.w.ri.get_item_html(ra[i])%>
+            <%}%>
+    </div>
+  </div>
+
+</div>
+</script>
+<!-- 模版结束 -->
+
+
+<script type="text/javascript">
+
+//添加礼包
+function add_gift_item(){
+    var did
+    $('.gift-item').each(function(i,ele){
+        did = $(ele).find('[name="did"]').val()
+    })
+    if ($('.gift-item').length >=16){
+        alert('礼包总数已达上限')
+        return false
+    }
+    obj = default_msg.srls[0]
+    $('#gift-item-cont').append(
+        get_gift_item_html(obj)
+        )
+    resize_condition_num()
+
+    setid(did)
+}
+
+function get_gift_item_html(obj){
+    return get_views('gift-item-tpl',obj)
+}
+
+function add_reward_item(ele){
+    if ($(ele).parents('.gift-item').find('.equipitem').length >=4){
+        alert('该礼包奖励数已达上限')
+        return false
+    }
+    var reward_cont = $(ele).next('.reward_cont')
+    reward_cont.append(ri.get_item_html())
+}
+
+function resize_condition_num(){
+    $('.condition_num').each(function(i,ele){
+        $(this).html(i+1)
+    })
+}
+
+var id = 1
+
+function setid(did){
+    if (did){
+        id = parseInt(did) + 1
+    }
+    $('#gift-item-cont').find('.gift-item:last').find('[name="did"]').val(id)
+}
+
+var ri = new ResourceInput()
+
+var default_msg ={
+                        "st" : 0,//开始时间
+                        "rdt" : 0,//领取奖励截止时间
+                        "srls" ://礼包列表
+                        [
+                                {
+                                        "did" : 1,//礼包id，客户端可无视
+                                        "ptid":0,
+                                        "ea" : 200,//endAmount充值结束范围
+                                        "met" : 1,//maxExchangeTimes最大兑换次数
+                                        "pn" : "",//packName礼包名称
+                                        "ra" : //strRewardAction奖励
+                                        [
+                                                {
+                                                        "aid" : 1,
+                                                        "v" : 100
+                                                },
+                                                {
+                                                        "aid" : 1,
+                                                        "v" : 100
+                                                }
+                                        ],
+                                        "sa" : 100//startAmount充值开始范围
+                                }
+                        ],
+                        "et" : 0//结束时间
+                }
+
+<!-- 这里重写活动的参数配置 -->
+
+activitySetting.get_json = function(event_name) {
+    if (!this.check_empty_input()) {
+        return false
+    }
+    var msg = {
+        "st": 0,//开始时间
+        "et" : 0,//结束时间
+        "rdt": 0,//领取奖励截止时间
+        "srls": []     //礼包列表
+    }
+    msg.st = datetime_str_to_timestamp(this.contEle.find('[name="st"]').val())
+    msg.et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+    msg.rdt = datetime_str_to_timestamp(this.contEle.find('[name="rdt"]').val())
+    msg.srls = []
+    $('.gift-item').each(function(i,ele){
+        var rl = {}
+        rl.did = parseInt($(ele).find('[name="did"]').val())
+        rl.ptid = parseInt($(ele).find('[name="ptid"]').val())
+        rl.sa = parseInt($(ele).find('[name="sa"]').val())
+        rl.ea = parseInt($(ele).find('[name="ea"]').val())
+        rl.met = parseInt($(ele).find('[name="met"]').val())
+        rl.pn = $(ele).find('[name="pn"]').val()
+        rl.ra = []
+        $(ele).find('.equipitem').each(function(i,ele){
+            rl.ra.push(ri.to_json(ele))
+        })
+        msg.srls.push(rl)
+    })
+
+    console.dir(msg)
+
+    return JSON.stringify(msg)
+}
+activitySetting.to_html = function(msg) {
+    msg = !$.isEmptyObject(msg) && msg ? msg : default_msg
+    try {
+        var source_json = $.parseJSON(this.get_json())
+    }catch(e){
+        var source_json = {}
+    }
+    msg = $.extend(source_json,msg)
+    console.dir(source_json)
+
+    var html = get_views('SimplePay-setting-tpl', msg)
+    this.contEle.html(html)
+    resize_condition_num()
+}
+
+//状态
+activitySetting.get_status = function(data){
+    if ( $.isEmptyObject(data) || data.id==0 || !data) {
+
+        return '<span class="label label-danger">已关闭</span>'
+    }
+
+    var status = ''
+    console.dir(data)
+    var st = data.st
+    var et = data.et
+
+    var in_time_range =   this.system_timestamp >= st  && this.system_timestamp <=et
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(st)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    }
+
+    return status
+}
+
+activitySetting.to_template_json = function(data){
+    delete data['kid']
+    return data
+}
+
+
+</script>

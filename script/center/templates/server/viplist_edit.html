@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>VIP编辑</title>
+
+<script type="text/javascript" >
+function editFinish(result) {
+  $("#tip_box").html(result);
+  $("#tip_box").dialog();
+
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    <a href="">VIP编辑</a> ->VIP编辑
+    <div class="buttons">
+       <a href="/question/viplist/">返回</a>
+   </div>
+</div>
+
+<form action="/question/viplist_save?model_id={{model.id}}" method="post">
+    <table class="form">
+        <tr>
+            <th>角色ID：</th><td><input type="text" name="player_id" readonly="readonly" value="{{model.player_id}}" /></td>
+        </tr>
+        <tr>
+            <th>服务器ID：</th><td><input type="text" name="server_id" readonly="readonly" value="{{model.server_id}}" /></td>
+        </tr>
+        <tr>
+            <th>特权礼包领取状态：</th><td><input type="text" name="privilege_type" value="{{model.privilege_type}}" />(0,'未验证'),(1,'未领取'),(2,'已领取')</td>
+        </tr>
+        <tr>
+            <th>每日礼包领取状态：</th><td><input type="text" name="everyday_type" value="{{model.everyday_type}}" />(1,'未领取'),(2,'已领取')</td>
+        </tr>
+<tr>
+    <th></th>
+    <td><input type="submit" value="保存" /></td>
+</tr>
+</table>
+</form>
+{% endblock %}

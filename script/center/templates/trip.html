@@ -1,0 +1,42 @@
+
+<!-- trip -->
+<link rel="stylesheet" href="/static/assets/trip/trip.min.css" />
+<script src="/static/assets/trip/trip.min.js"></script>
+
+<script>
+
+
+
+
+$(function(){
+
+
+var _trip = new Trip(
+	[
+
+	 { sel : $("#system_menu_btn"), content : "这里切换系统菜单按钮", expose : true ,position : 'e' , callback : function(){
+	 	$("#user_menu_btn").click()
+	 }},
+	 { sel : $("#user_menu_btn"), content : "这里用户自定菜单菜单按钮", expose : true ,position : 'e', callback : function(){
+	 	$("#system_menu_btn").click()
+
+	 }}
+
+	],{
+	prevLabel:'上一个',
+	nextLabel:'下一个',
+	finishLabel:'没有了,亲~',
+	showNavigation : true,
+  	showCloseBox : true,
+  	backToTopWhenEnded : true,
+  	delay : -1
+  	}
+)
+
+	_trip.start()
+})
+</script>
+
+
+
+

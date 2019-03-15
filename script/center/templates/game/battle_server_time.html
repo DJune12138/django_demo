@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load mytags%}
+{% block header%}
+<title>{{gmp.server.name}} 时间</title>
+{% endblock %}
+
+
+{% block content %}
+<form method="post" action=""> 
+    <input type="hidden" name="server_time_str" value="{{server_time|timestamp2datetime}}">
+<table class="table table-bordered form">
+
+    <tr>
+        <th>物理机时间:</th>
+        <td class="server_time">{{real_time|timestamp2datetime}}
+        </td>
+    </tr>
+
+    <tr>
+        <th>已增加时间:</th>
+        <td >{{add_day}} 天 {{add_hour}} 时 {{add_minute}} 分 {{add_second}} 秒
+        </td> 
+    </tr>
+
+    <tr>
+        <th>跨服战现在时间:</th>
+        <td class="server_time">{{server_time|timestamp2datetime}}
+            
+        </td>
+    </tr>
+
+<!--     <tr>
+        <th>增加时间:</th>
+        <td>
+            <input type="number" name="day" class=" input-sm" maxlength=1 max=6 min=0 value="{{day}}"> 天
+            <input type="number" name="hour" class=" input-sm" maxlength=2  max=23 min=0 value="{{hour}}"> 时
+            <input type="number" name="minute" class=" input-sm" maxlength=2  max=59 min=0 value="{{minute}}"> 分
+            <input type="number" name="sec" class=" input-sm" maxlength=2  max=59 min=0 value="{{hour}}"> 秒
+    </tr> -->
+
+    <tr>
+        <th>修改时间:</th>
+        <td>
+            <input type="text" name="modify_time" class="Wdate" value="{{server_time|timestamp2datetime}}">
+
+    </tr>
+
+    <tr>
+        <th></th>
+        <td>
+            <input type="submit" class="btn btn-primary" value="确定">* 增加时间不能超过10天 *
+        </td>
+    </tr>
+</table>
+</from>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box collapsed">
+			<div class="widget-header widget-header-small">
+				<h5>同步游戏服时间</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-down"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+				<table class="table table-bordered roll_broadcast_table">
+                    <tr>
+                        <th></th>
+                        <td>
+                            <div class="sub-menu-1">
+                            {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=select_server_ids%}
+                            </div>
+                        </td>
+                    </tr>
+					<tr>
+                        <th></th>
+						<td style="text-align: center">
+							<input type="button" id="send" class="btn btn-sm btn-success" value="同步">
+                            PS:时间少于跨服服务器的不同步.
+						</td>
+                    </tr>
+				</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<script>
+
+setInterval(function(){
+    $('.server_time').each( function(i, ele) {
+         var This = $(ele)
+         var this_time_str = This.text()
+         var now_server_time = datetime_str_to_timestamp(this_time_str)
+         now_server_time += 1
+         This.html(timestamp_to_datetime_str(now_server_time))
+    });
+},
+1000)
+
+$('#send').click(function(){
+    var kuafu_sid = {{ server_id }}
+	var server_ids = get_server_ids(true)
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!');
+		return
+	}
+
+    var msg = {}
+    msg.kid = kuafu_sid
+    msg.sids = JSON.stringify(server_ids)
+
+    $.ajax({
+		url: '',
+		dataType:'json',
+		type: 'POST',
+		data: msg,
+        timeout: 5000,
+	})
+    .done(function(data) {
+        art.dialog( {"title":"信息","content":"success:[" + data.success + "],failed:[" + data.failed +"]"})
+    })
+    .fail(function(a,b,c) {
+        alert('失败')
+    })
+
+})
+
+
+</script>
+{% endblock %}

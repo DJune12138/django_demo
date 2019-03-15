@@ -1,0 +1,15 @@
+
+<div>
+	<table>
+	{% for k,info in model_other.get_data_detail.items%}
+		<tr><th>{{info.name}}:</th>
+			<td><input name="{{k}}" type="text" value="{{info.value}}">
+				{%if info.remark%}
+					*{{info.remark}}
+				{%endif%}
+				
+			</td>
+		</tr>
+	{%endfor%}
+	</table>
+</div>

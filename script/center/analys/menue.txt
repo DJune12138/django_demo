@@ -1,0 +1,386 @@
+\#格式: 索引 菜单名 url(只是全选也需要占位) 类型(0 不显示菜单,记录日志,1 不显示菜单,不记录日志 ,2 显示菜单,记录日志)
+
+0 充值统计
+	0.1 充值流水 /pay/list
+		0.1.0 直冲_界面 /pay/add/zhichong 0
+		0.1.1 直冲_确定 /pay/do_add 0
+		0.1.2 补单 /pay/pay_fix 0
+		0.1.3 人工审核 /pay/check 0
+		0.1.4 审核发放 /pay/confirm 0
+	0.2 充值用户 /query/view/充值用户
+	0.3 充值金额段人数和比例 /query/view/充值金额段人数和比例
+	0.4 充值用户剩余金币 /query/view/充值用户剩余金币
+	0.5 充值时间段统计 /query/view/充值时间段统计
+	0.6 每服务器充值总金额 /query/view/每服务器充值总金额
+	0.7 付费用户玩家等级分布 /query/view/付费用户玩家等级分布
+	0.8 服务器总玩家剩余金币 /query/view/服务器总玩家剩余金币
+
+30 平台查询
+	30.1 平台充值 /query/view/平台充值
+	30.2 平台角色转化 /query/view/平台角色转化
+	30.3 渠道注册量 /query/view/渠道注册量
+	30.4 渠道激活量 /query/view/渠道激活量
+	30.5 滚服创建统计 /query/view/滚服创建统计
+	30.6 滚服角色列表 /query/view/滚服角色列表
+	30.7 滚服日留存 /query/view/滚服日留存
+	30.8 新增玩家充值 /query/view/新增玩家充值
+
+1 角色创建/在线/流失
+	1.0 角色信息排序 /game/player/player_list
+	1.1 注册与角色创建统计 /query/view/注册与角色创建统计
+	1.2 角色创建统计
+		1.2.0 创建时段统计 /query/view/创建时段统计
+	1.3 在线统计
+		1.3.0 实时在线人数 /query/view/实时在线人数
+		1.3.1 在线趋势统计 /query/view/在线趋势统计
+		1.3.2 在线时长统计 /query/view/在线时长统计
+		1.3.3 实时在线统计 /query/view/实时在线统计
+	1.4 登录统计
+		1.4.0 登录时间段 /query/view/登录时间段
+		1.4.1 登录次数分布 /query/view/登录次数分布
+		1.4.2 回头登录统计 /query/view/回头登录统计
+	1.5 流失统计
+		1.5.0 游戏流失率 /query/view/游戏流失率
+		1.5.1 流失玩家等级分布 /query/view/流失玩家等级分布
+		1.5.2 过图进度统计 /query/view/过图进度统计
+		1.5.3 新手指引各步骤用户流失 /query/view/新手指引各步骤用户流失
+	1.6 活跃统计
+		1.6.0 活跃玩家等级分布 /query/view/活跃玩家等级分布
+		1.6.0 活跃玩家国家分布 /query/view/活跃玩家国家分布
+	1.7 玩家数统计 /query/view/玩家数统计
+	1.8 机型分辨率及IMEI统计 /query/view/机型分辨率及IMEI统计
+	1.9 留存统计
+		1.9.0 日留存统计 /query/view/新增日留存统计
+		1.9.1 周留存统计 /query/view/新增周留存统计
+		1.9.2 月留存统计 /query/view/新增月留存统计
+	1.10 账号角色转化 /query/view/角色转化
+	1.10 时间段内用户数统计 /query/view/时间段用户数统计
+
+2 游戏数据统计
+	2.1 玩家分布
+		2.1.0 登录时间段内玩家国家分布 /query/view/登录时间段内玩家国家分布
+		2.1.1 玩家等级及等级段分布 /query/view/等级及等级段分布
+	2.2 资源统计
+	2.2.1 军令统计
+			2.2.1.1 军令消耗统计 /query/view/军令消耗方式与数量统计
+			2.2.1.2 当前军令统计 /query/view/当前军令统计
+			2.2.1.3 军令获得方式与数量统计 /query/view/军令获得方式与数量统计
+			2.2.1.4 军令收支统计 /query/view/军令收支统计
+		2.2.2 军功统计
+			2.2.2.1 军功消耗统计 /query/view/军功消耗方式与数量统计
+			2.2.2.2 当前军功统计 /query/view/当前军功统计
+			2.2.2.3 军功获得方式与数量统计 /query/view/军功获得方式与数量统计
+			2.2.2.4 军功收支统计 /query/view/军功收支统计
+		2.2.3 威望统计
+			2.2.3.1 威望消耗统计 /query/view/威望消耗方式与数量统计
+			2.2.3.2 当前威望统计 /query/view/当前威望统计
+			2.2.3.3 威望获得方式与数量统计 /query/view/威望获得方式与数量统计
+			2.2.3.4 威望收支统计 /query/view/威望收支统计
+		2.2.4 粮食统计
+			2.2.4.1 粮食消耗统计 /query/view/粮食消耗方式与数量统计
+			2.2.4.2 当前粮食统计 /query/view/当前粮食统计
+			2.2.4.3 粮食获得方式与数量统计 /query/view/粮食获得方式与数量统计
+			2.2.4.4 粮食收支统计 /query/view/粮食收支统计
+		2.2.5 木材统计
+			2.2.5.1 木材消耗统计 /query/view/木材消耗方式与数量统计
+			2.2.5.2 当前木材统计 /query/view/当前木材统计
+			2.2.5.3 木材获得方式与数量统计 /query/view/木材获得方式与数量统计
+			2.2.5.4 木材收支统计 /query/view/木材收支统计
+		2.2.6 铁矿统计
+			2.2.6.1 铁矿消耗统计 /query/view/铁矿消耗方式与数量统计
+			2.2.6.2 当前铁矿统计 /query/view/当前铁矿统计
+			2.2.6.3 铁矿获得方式与数量统计 /query/view/铁矿获得方式与数量统计
+			2.2.6.4 铁矿收支统计 /query/view/铁矿收支统计
+		2.2.7 银币统计
+			2.2.7.1 银币消耗统计 /query/view/银币消耗方式与数量统计
+			2.2.7.2 当前银币统计 /query/view/当前银币统计
+			2.2.7.3 银币获得方式与数量统计 /query/view/银币获得方式与数量统计
+			2.2.7.4 银币收支统计 /query/view/银币收支统计
+	2.3 道具统计
+		2.3.1 玩家装备统计 /query/view/玩家装备统计
+		2.3.2 装备品质数量统计 /query/view/装备品质数量统计
+		2.3.3 装备部位数量统计 /query/view/装备部位数量统计
+		2.3.4 寻访道具明细统计 /query/view/寻访道具明细统计
+		2.3.5 征战道具明细统计 /query/view/征战道具明细统计
+		2.3.6 装备卖出、分解流水记录
+			2.3.6.0 分解流水 /query/view/分解流水
+			2.3.6.1 道具出手 /query/view/普通道具出手记录
+		2.3.7 日常任务道具明细统计 /query/view/日常任务道具明细统计
+		2.3.8 兵符购买明细统计 /query/view/兵符购买明细统计
+		2.3.9 玩家装备明细 /query/view/玩家装备明细
+		2.3.10 装备洗练明细 /query/view/洗练属性替换
+		2.3.11 宝石系统操作明细统计
+			2.3.11.0 合成流水 /query/view/合成流水
+			2.3.11.1 镶嵌流水 /query/view/镶嵌拆卸流水
+			2.3.11.2 兑换流水 /query/view/兑换流水
+	2.4 金币及消费点统计
+		2.4.0 玩家金币统计 /query/view/玩家金币统计
+		2.4.1 金币收入方式与数量统计 /query/view/金币项目方式与数量统计?huode=true
+		2.4.2 金币消耗点与数量统计 /query/view/金币项目方式与数量统计?xiaohao=true
+		2.4.3 金币收支统计 /query/view/金币收支统计
+		2.4.4 金币获得明细 /query/view/金币流水?huode=true
+		2.4.5 金币消耗点明细 /query/view/金币流水?xiaohao=true
+		2.4.6 首次消费点统计 /query/view/首次消费点统计
+		2.4.7 消费时段统计 /query/view/消费时段统计
+	2.5 部队武将统计
+		2.5.0 武将统计 /query/view/武将统计
+		2.5.2 武将等级统计 /query/view/武将等级统计
+		2.5.3 阵法统计 /query/view/阵法统计
+	2.6 任务统计
+		2.6.0 主线任务统计 /query/view/任务统计
+		2.6.1 活跃度统计 /query/view/活跃度
+	2.7 活动统计
+		2.7.0 国王争霸信息统计 /query/view/国王争霸信息统计
+		2.7.1 群雄争霸信息统计 /query/view/群雄争霸流水
+	2.8 官职统计 /query/view/官职统计
+	2.9 PVE推图统计 /query/view/PVE推图统计
+
+	2.11 集市统计
+		2.11.0 金币消耗明细 /query/view/金币消耗明细
+		2.11.1 军令获得明细 /query/view/军令获得明细
+		2.11.2 军功获得明细 /query/view/军功获得明细
+		2.11.3 威望获得明细 /query/view/威望获得明细
+		2.11.4 粮食获得明细 /query/view/粮食获得明细
+		2.11.5 木材获得明细 /query/view/木材获得明细
+		2.11.6 铁矿获得明细 /query/view/铁矿获得明细
+		2.11.7 银币获得明细 /query/view/银币获得明细
+		2.11.8 金币购买次数统计 /query/view/金币购买次数统计
+
+3 玩家数据查询
+	3.1 玩家角色管理 /player/player/player_list
+		3.1.0 角色信息 /game/player/role_info 0
+		3.1.1 修改角色信息 /game/player/player_modify 0
+			3.1.1.0 修改角色名 /game/player/change_player_name 0
+		3.1.2 解封号 /player/player/player_block 0
+		3.1.3 发消息 /game/send 0
+		3.1.4 踢下线 /game/player/player_kick 0
+		3.1.5 直冲 /pay/add/zhichong 0
+		3.1.6 解禁言 /game/player/player_shutup 0
+		3.1.7 发送资源 /game/player/send_resouces 0
+		3.1.8 角色操作记录 /query/view/角色操作记录 0
+		3.1.9 玩家信息 /game/player/player_info 0
+		3.1.8 角色装备信息 /game/equip/equip_info 0
+		3.1.9 装备修改 /game/equip/equip_modify 0
+		3.1.10 英雄修改 /game/equip/pilot_modify 0
+		3.1.11 征战明细 /query/view/征战明细 0
+		3.1.12 金币流水 /query/view/金币流水 0
+		3.1.13 登录日志 /query/view/登录日志 0
+		3.1.14 角色后宫信息 /game/player/concubine_info 0
+		3.1.15 角色英雄信息 /game/pilot/pilot_info 0
+		3.1.16 角色邮件信息 /game/player/mail_info 0
+	3.2 国家查询
+		3.2.0 国家信息查询 /query/view/国家信息查询
+		3.2.1 加入国家log记录 /query/view/玩家国家变更记录
+		3.2.2 国家信息统计 /query/view/国家信息统计
+	3.3 VIP礼包查询 /query/view/VIP领取记录
+	3.4 内部号管理 /query/view/内部号列表
+		3.4.0 内部号_注册 /player/player/inside_player_register 0
+		3.4.0 内部号_取消 /player/player/inside_player_remove 0
+
+4 游戏管理操作
+	4.1 游戏活动列表 /game/activity/activity_list
+		4.1.0 游戏活动_编辑 /game/activity/activity_edit 0
+		4.1.1 游戏活动_保存 /game/activity/activity_save 0
+		4.1.2 游戏活动_查询 /game/activity/activity_query 0
+		4.1.3 游戏活动_开启 /game/activity/activity_on 0
+		4.1.4 游戏活动_关闭 /game/activity/activity_off 0
+		4.1.5 游戏活动_活动状态 /game/activity/activity_status 0
+		4.1.6 游戏活动_参数配置 /game/activity/activity_setting 0
+		4.1.7 游戏活动_参数历史 /game/activity/activity_setting?is_read=true 0
+		4.1.8 游戏活动_模版列表 /game/activity_template/list 0
+		4.1.9 游戏活动_模版保存 /game/activity_template/save 0
+		4.1.10 游戏活动_模版删除 /game/activity_template/remove 0
+		4.1.11 游戏活动_删除 /game/activity/activity_remove 0
+	4.2 活动修改记录 /query/view/活动修改记录
+	4.7 游戏活动管理 /game/activity/activity_manage
+	4.3 发送邮件 /game/player/send_mail 2
+	4.4 游戏帮助 /help/list
+		4.4.1 帮助_上传 /help/upload 0
+		4.4.2 帮助_生成 /help/filecreate 0
+		4.4.3 帮助_导入 /help/import 0
+		4.4.4 帮助_导出 /help/export 0
+	4.5 用户协议 /game/agreeinfo/create_agreeinfo 2
+	4.6 发送资源权限 - 0
+		4.3.0 发送_银币 - 1
+		4.3.1 发送_金票 - 1
+		4.3.2 发送_金币 - 1
+		4.3.3 发送_粮食 - 1
+		4.3.4 发送_木材 - 1
+		4.3.5 发送_铁 - 1
+		4.3.6 发送_军功 - 1
+		4.3.7 发送_威望 - 1
+		4.3.8 发送_军令 - 1
+		4.3.9 发送_主角经验 - 1
+		4.3.10 发送_装备道具 - 1
+		4.3.11 发送_武将 - 1
+		4.3.12 发送_秀女 - 1
+		4.3.13 发送_红包币 - 1
+		4.3.15 发送_群英币 - 1
+		4.3.16 发送_拜帖 - 1
+
+5 运营工具
+	5.0 公告管理 /notice/list
+		5.0.1 公告_编辑 /notice/edit 0
+		5.0.2 公告_保存 /notice/save 0
+		5.0.3 公告_删除 /notice/remove 0
+		5.0.4 公告_生成 /notice/create 0
+		5.0.5 图片_上传 /system/upload/img 0
+	5.1 游戏服管理 /server/server/server_list
+		5.1.1 游戏服_编辑 /server/server/server_edit 0
+		5.1.2 游戏服_删除 /server/server/server_remove 0
+		5.1.3 游戏服_保存 /server/server/server_save 0
+		5.1.4 服务器参数 /game/server/server_info 0
+		5.1.5 滚动公告 /game/server/roll_broadcast 0
+		5.1.6 同步表 /log/log/log_syncdb 0
+		5.1.7 修改服务器状态 /server/server/server_status_edit?action=change_status 0
+		5.1.7 修改版本号 /server/server/server_status_edit?action=change_version 0
+		5.1.9 合服配置 /server/server/server_merge 0
+		5.1.10 生成服务器列表 /server/server/server_make 0
+		5.1.11 显示服务器信息 /server/server/server_msg 0
+	5.2 服分区管理 /group/list
+		5.2.1 分区_编辑 /group/edit 0
+		5.2.2 分区_删除 /group/save 0
+		5.2.3 分区_保存 /group/remove 0
+		5.2.4 分组_编辑 /grouplist/edit 0
+		5.2.5 分组_删除 /grouplist/save 0
+		5.2.6 分组_保存 /grouplist/remove 0
+	5.3 渠道管理 /server/channel/channel_list
+		5.3.1 渠道_编辑 /server/channel/channel_edit 0
+		5.3.2 渠道_保存 /server/channel/channel_save 0
+		5.3.3 渠道_删除 /server/channel/channel_remove 0
+		5.3.4 渠道_数据 /query/views/渠道数据 0
+		5.3.5 平台_编辑 /server/channel/agent_edit 0
+		5.3.6 平台_保存 /server/channel/agent_save 0
+		5.3.7 平台_删除 /server/channel/agent_remove 0
+		5.3.8 渠道信息_生成 /server/channel/channel_make 0
+	5.4 版本更新管理 /upgrade/list
+		5.4.1 更新_编辑 /upgrade/edit 0
+		5.4.2 更新_保存 /upgrade/save 0
+		5.4.3 更新_删除 /upgrade/remove 0
+		5.4.4 更新_生成更新json文件 /upgrade/make 0
+		5.4.5 更新_清除旧文件 /upgrade/clear 0
+	5.5 游爱帐号管理 /user/list
+		5.5.1 封号 /user/lock?is_lock=1 0
+		5.5.2 解封 /user/lock?is_lock=0 0
+		5.5.3 改密码 /user/password 0
+		5.5.4 清密保 /user/mibao/clear 0
+		5.5.5 改密保 /user/mibao/modify 0
+		5.5.6 游爱账号_解锁 /user/unlock 0
+		5.5.7 修改帐号状态 /user/user_status_edit 0
+	5.6 日历&事件 /system/calevents/calendar_list
+	5.7 礼包卡管理 /card/batch/
+		5.7.1 礼包卡_编辑 /card/batch/edit 0
+		5.7.2 礼包卡_保存 /card/batch/save 0
+		5.7.3 礼包卡_删除 /card/batch/del/ 0
+		5.7.4 礼包卡_生成 /card/create/ 0
+		5.7.5 礼包卡_导出 /card/export 0
+	5.8 跨服战管理 /server/battle_server/battle_server_list
+	5.9 商城管理
+		5.9.0 商品管理 /game/shop/shop_list 0
+			5.9.0.0 商品_编辑 /game/shop/shop_daily_edit 0
+			5.9.0.1 商品_保存 /game/shop/shop_daily_save 0
+			5.9.0.2 商品_删除 /game/shop/shop_daily_remove 0
+			5.9.0.3 商品_添加 /game/shop/shop_daily_create 0
+		5.9.1 每日限购 /game/shop/shop_daily_list
+		5.9.2 限时抢购武将 /game/shop/flash_sale_pilot
+	5.10 推送管理 /push/list
+		5.10.0 生成推送消息 /push/create 0
+		5.10.1 添加 /push/edit 0
+		5.10.2 保存 /notice/save 0
+
+6 客服
+	6.1 问题列表 /question/list
+		6.1.1 问题回复 /question/answer 0
+		6.1.2 编辑问题分类 /log/dict/edit/?key=question_category 0
+		6.1.3 保存问题分类 /log/dict/save/?id=59 0
+	6.2 问题导出 /query/view/问题导出 2
+	6.3 VIP列表 /question/viplist
+
+7 系统管理
+	7.1 模块管理 /system/menu/menu_list
+		7.1.1 模块_添加 /system/menu/menu_edit 0
+		7.1.2 模块_删除 /system/menu/menu_remove 0
+		7.1.3 模块_保存 /system/menu/menu_save 0
+	7.2 管理员设置 /system/admin/admin_list
+		7.2.1 管理员_添加 /system/admin/admin_edit 0
+		7.2.2 管理员_编辑 /system/admin/admin_remove 0
+		7.2.3 管理员_保存 /system/admin/admin_save 0
+	7.3 角色管理 /system/role/role_list 0
+		7.3.1 角色_编辑 /system/role/role_edit 0
+		7.3.2 角色_删除 /system/role/role_remove 0
+		7.3.2 角色_保存 /system/role/role_save 0
+	7.3 日志类管理 /log/log/log_list
+		7.3.1 日志_编辑 /log/log/log_edit 0
+		7.3.2 日志_删除 /log/log/log_remove 0
+		7.3.3 日志_保存 /log/log/log_delete 0
+		7.3.4 日志类同步查询 /log/log/log_syncdb 0
+	7.4 字典管理 /log/dict/list
+		7.4.1 字典_编辑 /log/dict/ 0
+		7.4.2 字典_保存 /log/dict/save/ 0
+		7.4.3 字典_删除 /log/dict/delete/ 0
+	7.5 查询管理 /query/list
+		7.5.1 查询_编辑 /query/edit 0
+		7.5.2 查询_删除 /query/remove 0
+		7.5.3 查询_保存 /query/save 0
+		7.5.4 查询_导出 /query/view?is_export=true 0
+		7.5.5 清除缓存 /query/clear/cache 0
+		7.5.6 查询权限 /query/view 0
+	7.6 统计管理 /statistic/list
+		7.6.1 统计_编辑 /statistic/edit 0
+		7.6.2 统计_保存 /statistic/save 0
+		7.6.3 统计_删除 /statistic/remove 0
+		7.6.4 统计_执行 /statistic/execute 0
+	7.8 用户类型管理 /player/type
+	7.9 充值通道管理 /pay/channel/list
+	7.10 同步模型 /sync/backstage/
+	7.11 GM协议管理 /game/gm/list
+		7.11.0 查询白名单 /game/gm/1102/ 0
+		7.11.1 修改_白名单 /game/gm/1103 0
+
+8 数据分析
+	8.0 消耗金币排行 /query/view/消耗金币排行
+	8.1 活跃用户剩余金币 /query/view/活跃用户剩余金币
+	8.2 基本数据统计报表 /query/view/基本数据统计报表
+	8.3 时间段内活动数据报表 /query/view/时间段内活动数据报表
+	8.4 运营对账 /query/view/充值流水
+	8.5 运营报表
+		8.5.0 日报 /query/view/运营日报
+		8.5.1 周报 /query/view/运营周报
+		8.5.2 月报 /query/view/运营月报
+		8.5.3 新玩家收入贡献 /query/view/新玩家收入贡献
+		8.5.4 每日数据统计 /query/view/每日数据统计
+		8.5.5 用户生命周期 /query/view/用户生命周期
+	8.6 收入统计
+		8.6.0 渠道明细 /query/view/渠道收入明细
+		8.6.1 实时收入 /query/view/实时收入
+	8.7 在线统计
+		8.7.0 实时在线人数 /query/view/实时在线人数
+
+9 游戏数据排行榜
+	9.0 充值用户排行榜 /query/view/充值用户排行榜
+	9.1 消耗金币排行 /query/view/消耗金币排行
+	9.2 金币流水排行 /query/view/金币流水排行
+	9.3 银币流水排行 /query/view/银币流水排行
+	9.4 威望流水排行 /query/view/威望流水排行
+	9.5 军令消耗排行 /query/view/军令消耗排行
+	9.6 竞技场TOP300排行 /query/view/竞技场TOP300排行
+	9.7 军衔排行 /query/view/军衔排行
+	9.8 寻访武器排行 /query/view/寻访武器排行
+	9.9 寻访披风排行 /query/view/寻访披风排行
+	9.10 玩家等级排行 /query/view/玩家等级排行
+	9.11 战斗力排行榜 /query/view/战斗力排行榜
+	9.12 贸易排行 /query/view/贸易排行
+	9.13 推图排行 /query/view/玩家推图排行
+	9.14 单服充值排行 /query/view/单服充值排行
+	9.15 征战进度排行榜 /query/view/征战进度排行榜
+	9.16 群英会排行榜 /query/view/群英会排行榜
+
+10 查询权限 /query/view
+
+29 必须权限  0
+	29.1 主页 /index 1
+	29.2 首页 /home 1
+	29.3 修改自己密码 /system/admin/admin_edit_self 0
+	29.4 字典_接口 /log/dict/interface 1
+	29.5 用户自定义菜单 /system/menu/user_menu_list 1
+	29.6 消息列表 system/message/message_list 1

@@ -1,0 +1,94 @@
+[2019-02-15 14:44:27]  ERROR django.request pid:5808 base.py:224  Internal Server Error: /card_service/
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 112, in get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "F:\youai\script\api\card\views\__init__.py", line 453, in card
+    send_gift(card_no, player_id, server_id)
+  File "F:\youai\script\api\card\views\__init__.py", line 312, in send_gift
+    gift = card_batch.prize
+AttributeError: 'QuerySet' object has no attribute 'prize'
+[2019-02-15 14:47:41]  ERROR django.request pid:13104 base.py:224  Internal Server Error: /card_service/
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 112, in get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "F:\youai\script\api\card\views\__init__.py", line 453, in card
+    send_gift(card_no, player_id, server_id)
+  File "F:\youai\script\api\card\views\__init__.py", line 311, in send_gift
+    card_batch = CardBatch.objects.get(key=card_key)
+  File "E:\Python27\lib\site-packages\django\db\models\manager.py", line 151, in get
+    return self.get_queryset().get(*args, **kwargs)
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 304, in get
+    num = len(clone)
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 77, in __len__
+    self._fetch_all()
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 857, in _fetch_all
+    self._result_cache = list(self.iterator())
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 220, in iterator
+    for row in compiler.results_iter():
+  File "E:\Python27\lib\site-packages\django\db\models\sql\compiler.py", line 713, in results_iter
+    for rows in self.execute_sql(MULTI):
+  File "E:\Python27\lib\site-packages\django\db\models\sql\compiler.py", line 786, in execute_sql
+    cursor.execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\backends\util.py", line 69, in execute
+    return super(CursorDebugWrapper, self).execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\backends\util.py", line 53, in execute
+    return self.cursor.execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\utils.py", line 99, in __exit__
+    six.reraise(dj_exc_type, dj_exc_value, traceback)
+  File "E:\Python27\lib\site-packages\django\db\backends\util.py", line 53, in execute
+    return self.cursor.execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\backends\mysql\base.py", line 124, in execute
+    return self.cursor.execute(query, args)
+  File "E:\Python27\lib\site-packages\MySQLdb\cursors.py", line 205, in execute
+    self.errorhandler(self, exc, value)
+  File "E:\Python27\lib\site-packages\MySQLdb\connections.py", line 36, in defaulterrorhandler
+    raise errorclass, errorvalue
+ProgrammingError: (1146, "Table 'yx_center.card_batch' doesn't exist")
+[2019-02-15 15:46:42]  ERROR django.request pid:12296 base.py:224  Internal Server Error: /card_service/
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 112, in get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "F:\youai\script\api\card\views\__init__.py", line 462, in card
+    send_gift(card_no, player_id, server_id)
+  File "F:\youai\script\api\card\views\__init__.py", line 316, in send_gift
+    GM_str = '#gmMail ' + player_id + u' 礼包卡奖励 礼包卡奖励 '
+TypeError: cannot concatenate 'str' and 'int' objects
+[2019-02-15 15:47:30]  ERROR django.request pid:10088 base.py:224  Internal Server Error: /card_service/
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 112, in get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "F:\youai\script\api\card\views\__init__.py", line 462, in card
+    send_gift(card_no, player_id, server_id)
+  File "F:\youai\script\api\card\views\__init__.py", line 322, in send_gift
+    gmp = GMProtocol(int(server_id))
+  File "F:\youai\script\api\card\util\base.py", line 708, in __init__
+    self.server = server_model if server_model != None else Server.objects.get(id=server_id)
+  File "E:\Python27\lib\site-packages\django\db\models\manager.py", line 151, in get
+    return self.get_queryset().get(*args, **kwargs)
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 304, in get
+    num = len(clone)
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 77, in __len__
+    self._fetch_all()
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 857, in _fetch_all
+    self._result_cache = list(self.iterator())
+  File "E:\Python27\lib\site-packages\django\db\models\query.py", line 220, in iterator
+    for row in compiler.results_iter():
+  File "E:\Python27\lib\site-packages\django\db\models\sql\compiler.py", line 713, in results_iter
+    for rows in self.execute_sql(MULTI):
+  File "E:\Python27\lib\site-packages\django\db\models\sql\compiler.py", line 786, in execute_sql
+    cursor.execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\backends\util.py", line 69, in execute
+    return super(CursorDebugWrapper, self).execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\backends\util.py", line 53, in execute
+    return self.cursor.execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\utils.py", line 99, in __exit__
+    six.reraise(dj_exc_type, dj_exc_value, traceback)
+  File "E:\Python27\lib\site-packages\django\db\backends\util.py", line 53, in execute
+    return self.cursor.execute(sql, params)
+  File "E:\Python27\lib\site-packages\django\db\backends\mysql\base.py", line 124, in execute
+    return self.cursor.execute(query, args)
+  File "E:\Python27\lib\site-packages\MySQLdb\cursors.py", line 205, in execute
+    self.errorhandler(self, exc, value)
+  File "E:\Python27\lib\site-packages\MySQLdb\connections.py", line 36, in defaulterrorhandler
+    raise errorclass, errorvalue
+OperationalError: (1054, "Unknown column 'servers.last_time' in 'field list'")

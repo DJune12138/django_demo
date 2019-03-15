@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>消息发送</title>
+<style>
+body
+{
+	overflow-x : hidden;
+	padding:0;
+}
+table.form{width:100%;margin:0}
+.form th{width:60px}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="bar">
+	{% if  player_id%}
+	<b>{{player_id}}-{{player_name}}</b>
+	{%else%}
+	服务器 消息广播
+	{%endif%}
+</div>
+<form method="post" action="/game/send?server_id={{server_id}}&player_id={{player_id}}&player_name={{player_name}}">
+	{% if  player_id%}
+	<input type="hidden" name="msg_type" value="0">
+	{%else%}
+	<input type="hidden" name="msg_type" value="1">
+	{%endif%}
+	<table class="form">
+		{%if not player_id  %}
+<!-- 		<tr>
+			<th width="160px">接收分区:</th>
+			<td>
+				<select name="net_id">
+					<option value="-10">新手区</option>
+					<option value="-1">老手区</option>
+				</select>
+			</td>
+		</tr> -->
+		<tr>
+			<th >服务器:</th>
+			<td>
+				{% include "widgets/group_server_select.html" with server_id=server_id%}
+			</td>
+		</tr>
+		<tr>
+			<th>原因:</th>
+			<td>
+				<input type="text" name="cause" value="">
+			</td>
+		</tr>
+		{%endif%}
+
+		<tr>
+			<th>内容:</th>
+			<td>
+				<textarea name="content"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<th>操作:</th>
+			<td colspan="2">
+
+				<input type="submit" value="发送" />
+				
+			</td>
+		</tr>
+	</table>
+</form>
+{% endblock %}

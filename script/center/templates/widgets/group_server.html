@@ -1,0 +1,346 @@
+<!-- 服务器-->
+
+
+{% if not models %}
+    <div>
+        {%if not not_grouping %}
+            <div class="table-menu">
+                <a href="javascript:;" class="active" onclick="{{name_prefix}}change_server_list(-1)">全部</a>
+                {% for g in group_servers_dict%}
+                    <a href="javascript:;" onclick="{{name_prefix}}change_server_list({{g.0}})">{{g.1}}</a>
+                {%endfor%}
+            </div>
+        {%endif%}
+        <div class="table_toolbar">
+            <label><input type="checkbox"  checkbox-area='{{name_prefix}}server_area'>全选</label>
+            <input placeholder="搜索"  type="text" value="" onkeyup="searchTableCheckbox(this.value,'{{name_prefix}}server_area')">
+            开服时段:<input class="Wdate1 input-sm" onfocus="WdatePicker()" type="text" id="{{name_prefix}}server_stime">
+             -<input class="Wdate1 input-sm" onfocus="WdatePicker()" type="text" id="{{name_prefix}}server_etime">
+{#            世界等级: <select id="world_level_begin"></select>-<select id="world_level_end"></select>#}
+            <label><input id="{{name_prefix}}select_all_server" type="checkbox" onclick="{{name_prefix}}select_all_by_create_time()">筛选</label>
+            <label><input id="{{name_prefix}}not_select_chile" type="checkbox"  />不选子服</label>
+            <label><a href="javascript:;" class="btn-xs btn-danger" onclick="change_salve_list(this)">隐藏子服</a></label>
+             <a href="javascript:;"  onclick="enfoldment('{{name_prefix}}server_area')" style="float:right">[折叠]</a>
+        </div>
+        <div id="{{name_prefix}}server_area" class="enfoldment">
+            <table id="{{name_prefix}}group_server_table" class="table table-bordered" >
+                {% for g,servers in group_servers_dict.items %}
+                    <tr id="{{name_prefix}}area_{{g.0}}">
+                        <th width="150">
+                            <label><input type="checkbox" name="{{name_prefix}}server_group_id"  checkbox-area="{{name_prefix}}server_{{g.0}}_area" value="{{g.0}}" {% if g.id in select_group_ids %}checked="checked"{% endif %}>{{g.1}}</label>
+                        </th>
+                        <td width="700">
+                            <div id="{{name_prefix}}server_{{g.0}}_area" >
+                                {% for s in servers %}
+                                    {% if s.id != -1 %}
+                                        <label title="服务器id:{{s.id}} 开服时间:{{s.create_time|date:'Y-m-d h:i:s'}}">
+                                            <input type="checkbox" name="{{name_prefix}}server_id" value="{{s.id}}" {{name_prefix}}master_id="{{s.master_id}}" create_time="{{s.create_time|date:'Y-m-d h:i:s'}}" {% if s.id in select_server_ids or s.id == server_id %}checked="checked"{% endif %}>
+                                        </label>
+                                        {{s.name}}-({{s.id}})
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div>
+        <div id="{{name_prefix}}server_area" class="enfoldment">
+            <table id="{{name_prefix}}group_server_table" class="table table-bordered" >
+                {% for group_name, servers in list_record.items %}
+                    <tr>
+                        <th width="150" style="Text-align:Center">
+                            <input type="checkbox" class="all_input">
+                            {{ group_name }}
+                        </th>
+                        <td width="700">
+                            <div>
+                                {% for s in servers %}
+                                    {% if s.id != -1 %}
+                                        <label title="服务器id:{{s.id}} 开服时间:{{s.create_time|date:'Y-m-d h:i:s'}}">
+                                            <input type="checkbox" name="{{name_prefix}}server_id" value="{{s.id}}" {{ name_prefix }}master_id="{{ s.master_id }}" create_time="{{ s.create_time|date:'Y-m-d h:i:s' }}" {% if s.id in select_server_ids or s.id == server_id %}checked="checked"{% endif %}>
+                                        </label>
+                                        {{ s.name }}-({{ s.id }})&nbsp;&nbsp;&nbsp;
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+
+<script type="text/javascript">
+    // 分组的全选与全不选
+    $('.all_input').click(function () {
+        if ($(this).is(":checked")){
+            $(this).closest('tr').find('input').prop('checked',true)
+        }
+        else {
+            $(this).closest('tr').find('input').prop('checked',false)
+        }
+    });
+
+    // var day_level = {39: 1, 49: 3, 59: 8,69: 15, 79: 25, 89: 39, 99: 61};
+    var ${{name_prefix}}server_area = $('#{{name_prefix}}server_area')
+    var last_choose_group = -1
+
+    function ajax_do(key){
+    if (sessionStorage[key] == undefined){
+        $.ajax({
+               type : "GET",
+               url : "/log/dict/interface?key=" + key,
+               datatype : "json",
+               cache : false,
+                async:false,
+        })
+        .done(function (data) {
+                    sessionStorage[key]=data
+        })
+    }
+}
+
+    $(document).ready(function(){
+        var key_l = ['world_level']
+        for (var i in key_l){
+            ajax_do(key_l[i])
+        }
+    })
+
+    var day_level = $.parseJSON(sessionStorage['world_level'])
+    console.log(day_level)
+
+    //添加世界等级
+    function add_world_Html(){
+        var world_level_html = '<option value="null">请选择</option>';
+        for(var i in day_level){
+            world_level_html += '<option value="'
+            world_level_html += i
+            world_level_html += '" >'
+            world_level_html += i
+            world_level_html += '</option>'
+        }
+        $("#world_level_begin").append(world_level_html);
+        $("#world_level_end").append(world_level_html);
+    }
+    add_world_Html();
+
+    // c
+    function {{name_prefix}}select_all_by_create_time(){
+        var stimeEle = $('#{{name_prefix}}server_stime')
+        var etimeEle = $('#{{name_prefix}}server_etime')
+        var _checked = $('#{{name_prefix}}select_all_server').is(':checked');
+        var is_select_child = $('#{{name_prefix}}not_select_chile').is(":checked")
+        var wlb = parseInt($("#world_level_begin").val())
+        var wle = parseInt($("#world_level_end").val())
+
+        if (stimeEle.val() && etimeEle.val()){
+            var stimeCondition = datetime_str_to_timestamp(stimeEle.val())
+            var etimeCondition = datetime_str_to_timestamp(etimeEle.val())
+            if (last_choose_group == -1){
+                    var obj = "input[name='{{name_prefix}}server_id']"
+                }else{
+                    var obj = "#server_"+last_choose_group+"_area>label>input[name='{{name_prefix}}server_id']"
+                }
+
+            $(obj).each(function(i,ele){
+                var This = $(ele)
+                var master_id = parseInt(This.attr('{{name_prefix}}master_id'))
+                var server_id = parseInt(This.val())
+                var server_create_time = datetime_str_to_timestamp(This.attr('create_time'))
+                This.closest('label').css('background','white')
+                var __checked = _checked
+                if (server_create_time>=stimeCondition&&server_create_time<=etimeCondition){
+                    if(is_select_child&&master_id!=server_id){//不选子服
+                        __checked = false
+                    }
+                    This.prop('checked',__checked);
+                    if (__checked){
+                        This.closest('label').css('background','beige')
+                    }
+                }
+            })
+        }
+
+        if (wlb || wle){
+            if(wlb && wle && wlb <= wle){
+                now = datetime_str_to_timestamp(GetDatetimeStr())
+                var day_level_begin = day_level[wlb]
+                var day_level_end = day_level[wle]
+                //到达最大等级。。
+                if (day_level_end == day_level["99"]){
+                    day_level_end = 999999
+                }
+                $("input[name='{{name_prefix}}server_id']").each(function(i,ele){
+                    var This = $(ele)
+                    This.prop('checked',false)
+                })
+                if (last_choose_group == -1){
+                    var obj = "input[name='{{name_prefix}}server_id']"
+                }else{
+                    var obj = "#server_"+last_choose_group+"_area>label>input[name='{{name_prefix}}server_id']"
+                }
+                $(obj).each(function(i,ele){
+                    var This = $(ele)
+                    var master_id = parseInt(This.attr('{{name_prefix}}master_id'))
+                    var server_id = parseInt(This.val())
+                    var server_create_time = datetime_str_to_timestamp(This.attr('create_time'))
+                    This.closest('label').css('background','white')
+                    var __checked = _checked
+                    //开服到现在的秒数
+                    var distance_day = parseInt((now - server_create_time)/86400)
+                    if (day_level_begin <= distance_day && distance_day <= day_level_end){
+                        if(is_select_child&&master_id!=server_id){//不选子服
+                        __checked = false
+                        }
+                        This.prop('checked',__checked);
+                        if (__checked){
+                            This.closest('label').css('background','beige')
+                        }
+                    }
+                })
+            }else{
+                alert("请选择两个世界等级!")
+                return
+            }
+
+            }
+    }
+
+    //显示|隐藏子服
+    function change_salve_list(ele){
+        var _show = true
+        if ($(ele).text() == '隐藏子服'){
+            $(ele).text('显示子服')
+            $(ele).attr('class','btn-xs btn-info')
+
+        }
+        else if ($(ele).text() == '显示子服'){
+            $(ele).text('隐藏子服')
+            $(ele).attr('class','btn-xs btn-danger')
+            _show = false
+        }
+
+        $("input[name='{{name_prefix}}server_id']").each(function(i,ele){
+            var This = $(ele)
+            var master_id = parseInt(This.attr('{{name_prefix}}master_id'))
+            var server_id = parseInt(This.val())
+            if(master_id!=server_id){
+                if (_show){
+                    This.parent().hide()
+                }
+                else{
+                    This.parent().show()
+                }
+            }
+        })
+    }
+
+    // 隐藏服务组
+    function {{name_prefix}}change_server_list(gID){
+        var trs = $('#{{name_prefix}}group_server_table tr')
+        trs.show()
+        last_choose_group = gID
+        if (gID >= 0) {
+            trs.not('#{{name_prefix}}area_' + gID).hide()
+        }
+    }
+
+    // 获取服务器名
+    function get_{{name_prefix}}server_name(server_id){
+        return $('#{{name_prefix}}server_area [name="{{name_prefix}}server_id"][value="'+server_id+'"]:first').parent('label').text()
+    }
+
+    // 获取服务器id列表
+    function get_{{name_prefix}}server_ids(is_master_id){
+            var {{name_prefix}}server_id_list = []
+            $('#{{name_prefix}}server_area [name="{{name_prefix}}server_id"]').each(function(i,ele){
+                var Ele = $(ele)
+                var value = null
+                if ( Ele.is(':checked')) {
+                    value = is_master_id ? Ele.attr('{{name_prefix}}master_id'): Ele.val()
+                    if (value) {
+                        value = parseInt(value)
+                        Ele.parent('label').removeClass('label-warning').removeClass('label-success')
+                        if ($.inArray(value, {{name_prefix}}server_id_list)<0 && value!==null) {
+                           {{name_prefix}}server_id_list.push(value)
+                       }
+                    }
+                }
+
+            })
+            return {{name_prefix}}server_id_list
+    }
+
+
+    function change_done_{{name_prefix}}server_status(sever_id) {
+        ${{name_prefix}}server_area.find('[name="{{name_prefix}}server_id"][{{name_prefix}}master_id="'+sever_id+'"]:checked').prop('checked',false).parent('label').addClass('label-success')
+    }
+    function change_err_{{name_prefix}}server_status(sever_id) {
+        ${{name_prefix}}server_area.find('[name="{{name_prefix}}server_id"][{{name_prefix}}master_id="'+sever_id+'"]:checked').parent('label').addClass('label-warning')
+    }
+
+$(function(){
+    $('#{{name_prefix}}server_area :checkbox').click(function(){
+        var This = $(this)
+        var thats = $('#{{name_prefix}}server_area :checkbox[value="'+ This.val()+'"][name="'+ This.attr('name') +'"]').not(this)
+        thats.prop({"checked":This.is(":checked")})
+        change_checkbox_background(thats)
+    })
+})
+</script>
+
+
+
+
+<div id="{{name_prefix}}process-div" class="dialog-div" >
+    <div class="row" style="min-width:90%">
+        <div id="{{name_prefix}}process-bar" ></div>
+        <table id="{{name_prefix}}process-table" class="table table-bordered">
+            <thead>
+                <tr><th>服务器ID</th><th>状态</th></tr>
+            </thead>
+            <tbody  id="{{name_prefix}}process-table-cont">
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+// 服务器状态进度类
+
+function {{name_prefix}}ServerProcess(){
+    var This = this
+    this.process_cont =  $('#{{name_prefix}}process-div')
+    this.process_table_cont  = $('#{{name_prefix}}process-table-cont')
+    this.process_bar = $('#{{name_prefix}}process-bar')
+    // 生成服务器状态行
+    this.make_tr_for_server_id = function(server_id){
+        var tr =  '<tr><td>' + get_{{name_prefix}}server_name(server_id) + '</td><td class="{{name_prefix}}process_' + server_id+'"></td></tr>'
+        this.process_table_cont.append(tr)
+    }
+
+    this.add_status_to_table = function(server_id,text){
+        This.process_table_cont.find('.{{name_prefix}}process_' + server_id).append(text)
+    }
+    this.clear_status = function(server_id){
+        This.process_table_cont.find('.{{name_prefix}}process_' + server_id).html('')
+    }
+    this.get_server_status_cont = function(server_id){
+        return  This.process_table_cont.find('.{{name_prefix}}process_' + server_id)
+    }
+    this.show = function(dialog_setting){
+        This.process_table_cont.html('')
+        This.process_cont.dialog(dialog_setting)
+    }
+
+}
+
+</script>

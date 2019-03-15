@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}添加礼包抽奖{% endblock %}
+{% block header %}
+<style type="text/css">
+	.select_area ul li {
+		list-style-type: none;
+		padding: 1px 0;
+		display: inline;
+		width: 200px;
+		float: left;
+	}
+	.input_area ul li {
+		list-style-type: none;
+		padding: 1px 0;
+		display: inline;
+		width: 250px;
+		float: left;
+	}
+	.input_area ul li label {
+		text-align:right;
+		width:100px;
+	}	
+	.clear {
+		clear: both;
+		margin-top: 3px;
+	}
+	.batch {
+		width:100%;
+		padding:6px;
+	}
+	.batch .sub-menu-1 label {
+		display: inline-block;
+		width: 100px;
+		padding-right: 6px;
+		text-align: right;
+		color: #36588a;
+	}
+	table#tb-prize {
+		width:600px;
+	}
+	table#tb-prize, table#tb-prize th, table#tb-prize input.key-val, table#tb-prize input.v-val{
+		text-align:center;
+	}
+	.prize-config-add {
+		font-size:14px;
+		font-weight:bold;
+		color:#009900;
+		padding:3px;
+		border:1px solid #098D38;
+	}
+	.prize-config-del {
+		color:red;
+	}
+	.v-val {
+		width:80px;
+	}
+	.key-val {
+		width:80px;
+	}
+</style>
+{% endblock %}
+{% block content %}
+<div id="bar">
+	<a href="/card/prize/?status=1">礼包卡抽奖管理 </a> -> 添加抽奖 <div class="buttons"> <a href="{{last_url}}">返回</a> </div>
+</div>
+<div class="batch">
+<form action="/card/prize/save?id={{model.id}}" method="post">
+	<input type="hidden" name="last_url" value="{{last_url}}"/>
+	<table class="form">
+		<tr>
+			<th>礼包卡抽奖名：</th><td>
+			<input type="text" name="name" value="{{model.name}}" />（建议15字符以内）
+			</td>
+		</tr>		
+		<tr>
+			<th>生效时间：</th>
+			<td>
+			<input type="text" name="start_time"  value="{% if model.id %}{{model.start_time|date:"Y-m-d H:i:s"}}{% else%}{{model.start_time}}{% endif %}" class="Wdate"/>
+			</td>
+		</tr>
+		<tr>
+			<th>失效时间：</th>
+			<td>
+			<input type="text" name="end_time" value="{% if model.id %}{{model.end_time|date:"Y-m-d H:i:s"}}{% else%}{{model.end_time}}{% endif %}" class="Wdate"/>
+			</td>
+		</tr>		
+		<tr>
+			<th>抽奖配置：</th>
+			<td>
+				<div style="text-align:right;width:580px;"><a href="javascript:void(0);" class="prize-config-add">+添加</a></div>
+				<table id="tb-prize">
+					<thead>
+						<th>礼包卡KEY</th><th>概率值</th><th>备注</th><th>操作</th>
+					</thead>
+					<tbody>
+						{% if config %}
+						{% for item in config %}
+						<tr class="MyRow">
+							<td><input type="text" name="key[]" value="{{item.0}}" class="key-val"/></td>
+							<td><input type="text" name="v[]" value="{{item.1.v}}" class="v-val"/></td>
+							<td><input type="text" name="prize[]" value="{{item.1.prize}}" class="prize-val"/></td>
+							<td><a href="javascript:void(0);" class="prize-config-del">删除</a></td>
+						</tr>
+						{% endfor %}
+						{% else %}
+						<tr class="MyRow">
+							<td><input type="text" name="key[]" value="" class="key-val"/></td>
+							<td><input type="text" name="v[]" value="" class="v-val"/></td>
+							<td><input type="text" name="prize[]" value="" class="prize-val"/></td>
+							<td><a href="javascript:void(0);" class="prize-config-del">删除</a></td>
+						</tr>					 	
+						{% endif %}
+					</tbody>
+				</table>
+				<div>说明：<i>概率值为正整数，礼包卡KEY抽奖概率 =（概率值 / 概率值总和）%</i></div>
+			</td>
+		</tr>
+		<tr>
+			<th>备注内容：</th><td><textarea name="remark" style="width:600px;height:60px;">{{model.remark}}</textarea></td>
+		</tr>
+		<tr>
+			<th></th>
+			<td>
+			<input type="submit" value="保存" id="save_batch"/>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('.prize-config-add').live('click', function(){
+		var v=$("#tb-prize");//得到表格的jquery对象       
+		//所有的数据行有一个.MyRow的Class,得到数据行的大小
+		//var vcount=$("#tbin tr").filter(".MyRow").size()+1;//表格有多少个数据行 
+		var vTr = '<tr class="MyRow">';
+		vTr += '<td><input type="text" name="key[]" value="" class="key-val"/></td>';
+		vTr += '<td><input type="text" name="v[]" value="" class="v-val"/></td>';
+		vTr += '<td><input type="text" name="prize[]" value="" class="prize-val"/></td>';
+		vTr += '<td><a href="javascript:void(0);" class="prize-config-del">删除</a></td>';
+		vTr += '</tr>"';
+		v.append(vTr);//把副本单元格对象添加到表格下方	
+	});
+	$('.prize-config-del').live('click', function(){
+		if (confirm('确定删除？')) {
+			$(this).parent().parent().remove();	
+		}
+		return false;
+	});	
+	
+});
+</script>
+{% endblock %}

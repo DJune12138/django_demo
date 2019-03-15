@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <title>后台同步管理</title>
+    <script>
+        $(document).ready(function(){
+            var model_id;
+            $("#select_btn").click(function(){
+                removeDebugTemplate();
+                $('.serv_tips').remove();
+                var selectModel = $('#models option:selected');
+                var selectServ = $('input[name="serv_id"]:checked');
+                var serv_ids = [];
+                for(var i=0; i<selectServ.length; i++){
+                    serv_ids.push($(selectServ[i]).val());
+                }
+                serv_ids = serv_ids.join(',');
+                model_id = selectModel.val();
+                //推送数据列表
+                getPushDataList("/sync/backstage", {Modelid : model_id, Servid: serv_ids});
+            });
+
+            //获取指定后台的推送数据
+            $(".remote").click(function(){
+                removeDebugTemplate();
+                $('.local_sync').css('display', 'none');
+                $('input[name="serv_id"]:checked').removeAttr('checked');
+                model_id = $('#models option:selected').val();
+                var selectServ = $(this).parent().siblings().first().find("input");
+                selectServ.attr('checked', 'checked');
+                var requestData = {Modelid : model_id, Servid : selectServ.val(), is_remote : 1};
+                console.log(requestData);
+                getPushDataList("/sync/backstage", requestData);
+
+                $(this).siblings('.local_sync').css('display', 'inline');
+            })
+
+            //数据推送事件
+            $("#push_btn, .local_sync").click(function(){
+                var pushNodes = $('input[name="push_id"]:checked');
+                var servNodes;
+                var is_local;   //是否同步到本地
+                if($(this).attr('href')){
+                    servNodes = $(this).parent().siblings().first().children("input");
+                    is_local = 1;
+                }else{
+                    servNodes = $('input[name="serv_id"]:checked');
+                }
+                if(pushNodes.length == 0){
+                    $(this).siblings('span').text('请选择需要推送的数据!');
+                    return
+                }else{
+                    $(this).siblings('span').text('')
+                }
+
+                $('.serv_tips').remove();
+                $('.push_tips').remove();
+
+                //一个后台发送一条ajax请求
+                for(var i= 0; i<servNodes.length; i++){
+                    var servObj = $(servNodes[i]);
+                    var init_var = initPushVariate();
+                    dataPushHandler(servObj, init_var.pushList, init_var.count, init_var.getCount, is_local);
+                }
+            });
+
+            //ajax获取推送数据列表
+            function getPushDataList(url, data){
+                $.get(url, data, function(responseTxt){
+                    $('#push_tab').remove();
+                    if(responseTxt){
+                        $('#Form').append(responseTxt);
+                    }
+                    if(data.is_remote){
+                        $("#push_btn").attr('disabled', true);
+                    }else{
+                        $('.local_sync').css('display', 'none');
+                        $("#push_btn").removeAttr('disabled')
+                    }
+                })
+            }
+
+            //初始化数据推送的数据列表和用于ajax回调递归的计数变量
+            function initPushVariate(){
+                var pushNodes = $('input[name="push_id"]:checked');
+                var pushList = [];
+                for(var i=0; i<pushNodes.length; i++){
+                    pushList.push($(pushNodes[i]));
+                }
+                pushList.reverse();
+                var count = pushList.length;
+                var getCount = 0;
+                return {"pushList":pushList, "count": count, "getCount":getCount};
+            }
+
+            function updateServerStatus(servObj){
+                servObj.after("<span class='serv_tips' style='font-size: 10px; color: green'>同步完成</span>")
+            }
+
+            function dataPushHandler(servObj, pushList, count, getCount, is_local){
+                var pushObj = pushList.pop();
+                var push_id = pushObj.val();
+                var serv_id = servObj.val();
+                var serv_name = $(servObj.parent().siblings()[1]).find('a').text();
+                var syncStatus = pushObj.parent().siblings('.status');
+                var post_request = {Modelid: model_id, Servid: serv_id, Pushid: push_id, is_local: is_local};
+                console.log(post_request);
+                $.get('/sync/backstage/push', post_request, function(responseTxt){
+                    var result = eval('(' + responseTxt + ')');
+                    if(result.code == 0){
+                        syncStatus.append("<span class='push_tips' style='font-size10px; color: green;margin-left: 10px;'><span style='color: #808080'>["+serv_name+"]</span> OK</span>");
+                        //pushObj.removeAttr('checked');
+                    }else{
+                        syncStatus.append("<span class='push_tips' style='font-size10px; color: #ff0000;margin-left: 10px;'><span style='color: #808080'>["+serv_name+"]</span> FAIL</span>");
+                        $(".push_tips").attr('title', result.msg);
+                    }
+                    getCount++;
+                    if(count > getCount){
+                        dataPushHandler(servObj, pushList, count, getCount,is_local)     //递归请求
+                    }else{
+                            updateServerStatus(servObj)     //执行完一个后台所有需要推送的数据后，修改状态
+                    }
+                })
+            }
+
+            function removeDebugTemplate(){
+                var removeElements = $(".list").nextAll();
+                removeElements.remove();
+            }
+        })
+    </script>
+    <style>
+        .operation a{
+            margin-left: 5px;
+        }
+        .local_sync{
+            display: none;
+            color: green;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    <span>后台同步管理</span>
+    <div class="buttons">
+        <a href="/sync/backstage/edit">添加</a>
+        <a href="">返回</a>
+    </div>
+</div>
+<div>
+<form action="" method="post" id="Form">
+    <div class="sub-menu-1">
+        <select name="model" id="models" style="width: 200px;">
+            {% for key,value in model_list.items %}
+            <option value="{{key}}">{{value}}</option>
+            {% endfor %}
+        </select>
+        <input type="button" id="select_btn" value="查询" />
+        <input type="button" id="push_btn" value="数据推送" disabled="disabled" />
+        <span style="color: #ff0000; margin-left: 10px;"></span>
+    </div>
+
+    <table class="table table-bordered ">
+        <thead>
+            <tr>
+                <th width="20"><input type="checkbox" checkbox-area="checkbox_area"/></th>
+                <th width="40">ID</th>
+                <th width="100">后台名称</th>
+                <th width="200">Url</th>
+                <th width="120">Key</th>
+                <th width="80">创建时间</th>
+                <th width="180">操作</th>
+            </tr>
+        </thead>
+        <tbody id="checkbox_area">
+            {% for serv in serv_list  %}
+            <tr>
+                <td><input type="checkbox" value="{{serv.id}}" name="serv_id"/></td>
+                <td>{{serv.id}}</td>
+                <td>
+                    <a href="javascript:void(0);">{{serv.name}}</a>
+                </td>
+                <td>{{serv.url}}</td>
+                <td>{{serv.key}}</td>
+                <td>{{serv.time}}</td>
+                <td class="operation">
+                    <a href="/sync/backstage/remove?sync_id={{serv.id}}" class="del" style="margin-left: 0px;">删除</a>
+                    <a href="/sync/backstage/edit?sync_id={{serv.id}}">编辑</a>
+                    <a href="javascript:void(0);" class="remote">获取数据</a>
+                    <a href="javascript:void(0);" class="local_sync">同步本地</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+</div>
+{% endblock %}

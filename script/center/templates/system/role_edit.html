@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>角色编辑</title>
+{% endblock %}
+
+{% block content %}
+{% with model_name='Role' url_prefix='/system/role/role_'  %}
+<div class="bar">
+	<a href="{{url_prefix}}list">角色管理</a> -> 角色资料编辑
+	<div class="buttons">
+		<a class="btn btn-app btn-grey btn-xs radius-4 pull-right submit">保存</a>
+	</div>
+</div>
+
+<form action="{{url_prefix}}save?id={%if is_copy %}0{% else %}{{role.id}}{% endif %}" method="post">
+    <div>
+				<div class="tabbable ">
+					<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+						<li class="active">
+							<a data-toggle="tab" href="#tab1">
+								<i class="icon-user bigger-110"></i>角色信息
+							</a>
+						</li>
+						<li class="">
+							<a data-toggle="tab" href="#tab2">
+								<i class="icon-dashboard bigger-110"></i>模块权限
+							</a>
+						</li>
+
+						<li class="">
+							<a data-toggle="tab" href="#tab3">
+								<i class="blue "></i>游戏分区
+							</a>
+						</li>
+
+						<li class="">
+							<a data-toggle="tab" href="#tab4">
+								<i class="icon-rocket"></i>渠道
+							</a>
+						</li>
+						{% if request.admin.is_manager and not role.type%}
+						<li class="">
+							<a data-toggle="tab" href="#tab5">
+								<i class="icon-user"></i>管理角色
+							</a>
+						</li>
+						{%endif%}
+
+						{% if request.admin.is_root %}
+						<li class="">
+							<a data-toggle="tab" href="#tab6">
+								<i class="cus-application-cascade"></i>游戏平台
+							</a>
+						</li>
+						{%endif%}
+					</ul>
+
+					<div class="tab-content">
+						<div id="tab1" class="tab-pane active">
+							<table class="form">
+								<tr>
+									<th>角色类型:</th>
+									<td>
+										<select id="role_type_select" name="type" svalue="role.type">
+											{%for v,n in role.TYPE_CHOICES %}
+												{% if v != 0 or  request.admin.is_root %}
+												<option value="{{v}}" {%if role.type == v%}selected="selected"{%endif%}>{{n}}</option>
+												{%endif%}
+											{%endfor %}
+										</select>
+									</td>
+								</tr>
+								<tr>
+									<th>角色名：</th>
+									<td><input type="text" name="name" value="{{role.name}}" /></td>
+								</tr>
+								<tr>
+									<th>备注：</th>
+									<td><textarea name="remark">{{role.remark}}</textarea></td>
+								</tr>
+							</table>
+						</div>
+
+						<div id="tab2" class="tab-pane">
+							<div class="alert alert-info">
+									<button type="button" class="close" data-dismiss="alert">
+										<i class="icon-remove"></i>
+									</button>
+										可见的模块权限.
+										<strong>注意!</strong>  必须的权限 要勾选!
+									<br>
+							</div>
+							<div >
+								{% include "widgets/menu_list.html" with list_record=menus select_ids=role.resource_ids.menu %}
+
+							</div>
+						</div>
+
+						<div id="tab3" class="tab-pane">
+							<div class="alert alert-info">
+											<button type="button" class="close" data-dismiss="alert">
+												<i class="icon-remove"></i>
+											</button>
+											<strong>注意!</strong>
+												勾选分区后,此角色将拥有这个分区下的所有服务器权限.
+											<br>
+							</div>
+							<div class="">
+								{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_group_ids=role.resource_ids.server_group select_server_ids=role.resource_ids.server %}
+							</div>
+						</div>
+
+						<div id="tab4" class="tab-pane">
+							<div class="alert alert-info">
+									<button type="button" class="close" data-dismiss="alert">
+										<i class="icon-remove"></i>
+									</button>
+									<strong></strong>
+										可管理的渠道,勾选平台后,此角色将拥有这个平台下的所有渠道权限.
+									<br>
+							</div>
+							<div class="">
+								{% include "widgets/agent_channel.html" with agent_channels_dict=agent_channels_dict select_channel_ids=role.resource_ids.channel select_agent_ids=role.resource_ids.agent%}
+							</div>
+						</div>
+						{% if request.admin.is_manager  %}
+						<div id="tab5" class="tab-pane">
+							<div class="alert alert-info">
+									<button type="button" class="close" data-dismiss="alert">
+										<i class="icon-remove"></i>
+									</button>
+									<strong></strong>
+										可管理的角色.
+									<br>
+							</div>
+							<div class="">
+								{% for r in roles%}
+								<label><input type="checkbox" value="{{r.id}}" name="manager_role_id" {%if r.id in role.resource_ids.role %}checked="checked" {%endif%}>{{r.name}}</label>
+								{%endfor%}
+							</div>
+						</div>
+						{% endif %}
+
+						{% if request.admin.is_root  %}
+						<div id="tab6" class="tab-pane">
+							<div class="alert alert-info">
+									<button type="button" class="close" data-dismiss="alert">
+										<i class="icon-remove"></i>
+									</button>
+									<strong></strong>
+										可查询的游戏平台
+									<br>
+							</div>
+							<div class="">
+								{% include "widgets/platform.html" with platform_list=platforms select_platform_ids=role.resource_ids.platform select_agent_ids=role.resource_ids.agent is_id=1%}
+							</div>
+						</div>
+						{% endif %}
+
+
+					</div>
+				</div>
+	</div>
+
+</form>
+{% endwith %}
+{% endblock %}

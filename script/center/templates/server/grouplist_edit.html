@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>服务器分组编辑</title>
+
+<script type="text/javascript" >
+function editFinish(result) {
+  $("#tip_box").html(result);
+  $("#tip_box").dialog();
+
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    <a href="/group/list">分区管理</a> -> 服务器分组编辑
+    <div class="buttons">
+       <a href="/group/list">返回</a>
+   </div>
+</div>
+
+<form action="/grouplist/save?model_id={{model.id}}" method="post">
+    <table  class="form">
+        <tr>
+            <th>分组标识：</th><td><input type="text" name="key"  class="letter" value="{{model.key}}" /> 字母数据,确保唯一</td>
+        </tr>
+        <tr>
+            <th>分组名：</th><td><input type="text" name="name" value="{{model.name}}" /></td>
+        </tr>
+        <tr>
+            <th>排序：</th><td>
+            <input type="number"  class="input-mini" name="order" size="5" value="{{model.order}}" />
+            数字小的排前面</td>
+        </tr>
+        <tr>
+            <th>大区所属：</th>
+            <td width="150">
+        {% for g,servers in group_servers_dict.items %}
+                <label><input type="radio" name="group_id" value="{{g.id}}" onclick="change_serverlist({{g.id}})" {% if g.id == select_group_id %}checked="checked"{% endif %}>{{g.name}}</label>
+        {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <th></th>
+            <td>PS:大区只能选一个,保存后不能更改.</td>
+        </tr>
+        <tr>
+        <tr><th></th>
+        <td>
+        <table id="grouplist_server" class="table table-bordered" >
+        {% for g,servers in group_servers_dict.items %}
+        <tr id="area_{{g.id}}">
+            <th>{{g.name}}</th>
+            <td width="500">
+                {% for item in servers %}
+                <label title="服务器id:{{item.id}} 开服时间:{{item.create_time|date:'Y-m-d h:i:s'}}">
+                <input type="checkbox" name="server_id" value="{{item.id}}" master_id="{{item.master_id}}" {% if item.id in select_server_ids or item.id == server_id %}checked="checked"{% endif %}>{{item.name}}-({{item.id}})
+                </label>
+                {% endfor %}
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+        </td>
+        </tr>
+<tr>
+    <th></th>
+    <td><input type="submit" value="保存" /></td>
+</tr>
+</table>
+</form>
+
+<div id="qifu_div" style="display:none">
+    <div id="qifu_items"></div>
+    <div><input type="button" value="添加" id="qifu_add"/><input type="button" value="保存" id="qifu_save"></div>
+</div>
+<script>
+function change_serverlist(gID){
+    $('#grouplist_server tr').show()
+    if (gID > 0){
+        $('#grouplist_server tr').not('#area_'+gID).hide()
+    }
+
+}
+
+</script>
+    {% endblock %}

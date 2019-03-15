@@ -1,0 +1,155 @@
+{% include 'game/resource_editor.html' %}
+
+<script type="text/javascript">
+//标题为   -,	ID	服务器	渠道	收信用户ID	申请人	审核人	创建日期	邮件标题	邮件内容	奖励内容	类型	状态	操作
+$QUERY_TABLE.find('tbody:first').attr('id','checkbox-area');
+$QUERY_TABLE.find('thead th').eq(TH['-']).html('<input type="checkbox" checkbox-area="checkbox-area">');
+recharge_status_map = {"1":'充值返利未发送',"2":'充值返利已发送',"3":'物品奖励未发送',"4":'物品奖励已发送'}
+
+function resetPlayerCheckbox(){
+	$QUERY_TABLE.find('tbody :checkbox[value]').prop('checked',false)
+}
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+
+    LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+	var new_list_data = []
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+		var mark_status = row[TH['标记状态']]
+
+		new_row[TH['-']] = '<input type="checkbox" name="username" data-status="'+ mark_status + '"value="'+ row[TH['玩家账号']] +'">'
+		if(mark_status == '0'){
+		new_row[TH['标记状态']] = '未标记';
+		}else{
+			var _mark_status = $.parseJSON(mark_status)
+			var _t = []
+			for(var i in _mark_status){
+				 _t.push(recharge_status_map[_mark_status[i]])
+			}
+			new_row[TH['标记状态']] = _t
+		}
+		new_list_data.push(new_row)
+	}
+    data.list_data = new_list_data
+	return data
+}
+)
+
+</script>
+
+<div class="sub-menu-1">
+	服务器选择：
+	<select name="server_id">
+	{% for g,servers in group_servers_dict.items %}
+	  	{%for s in servers%}
+	  	<option value={{s.id}}>{{s.name}}--({{s.id}})</option>
+	  	{% endfor %}
+	{% endfor %}
+	</select>
+  <input id="mark" type="button"  value="批量标记">
+  <input id="send_rebate" type="button"  value="批量发送返利">
+</div>
+
+<script type="text/javascript">
+
+var messageModal = $("#messageModal");
+var ModalBody = messageModal.find(".modal-body");
+
+$("#mark").click(function(){
+	var allEle = $QUERY_TABLE.find("input[name='username']");
+	var server_id = $('select[name=server_id]').val();
+	var users = [];
+	for(i = 0;i<allEle.length;i++){
+		if(allEle.eq(i).is(":checked")){
+			console.log(allEle.eq(i).val())
+			users.push(allEle.eq(i).val())
+		}
+	}
+	var data = {}
+	data['users'] = JSON.stringify(users)
+	data['server_id'] = server_id
+	$.ajax({
+        url: '/player/user/sign_charge_user',
+        type: 'POST',
+        dataType:'json',
+        data: data,
+    })
+    .done(function(data){
+    	for(i = 0;i<allEle.length;i++){
+    		if(allEle.eq(i).is(":checked")){
+    	allEle.eq(i).parents("td").siblings().eq(3).text("已标记")
+        }
+	}
+	$.dialog({"fixed": true,"content":data.msg}) 
+	// $SEARCH.trigger('click')
+    })
+})
+
+$("#send_rebate").click(function(){
+	var allEle = $QUERY_TABLE.find("input[name='username']");
+	var server_id = $('select[name=server_id]').val();
+	var users = {};
+	for(i = 0;i<allEle.length;i++){
+		if(allEle.eq(i).is(":checked")){
+			var mark_status = allEle.eq(i).data("status");
+			if(mark_status != 0){
+				if($.inArray(2,mark_status) < 0){
+					users[allEle.eq(i).val()] = allEle.eq(i).parents("td").next().next().text()
+				}
+			}else{
+				users[allEle.eq(i).val()] = allEle.eq(i).parents("td").next().next().text()
+			}	
+		}
+	}
+	var data = {}
+	data['users'] = JSON.stringify(users)
+	data['server_id'] = server_id
+	$.ajax({
+        url: '/player/user/send_rebate_user',
+        type: 'POST',
+        dataType:'json',
+        data: data,
+    })
+    .done(function(data){
+    	for(i = 0;i<allEle.length;i++){
+    		if(allEle.eq(i).is(":checked")){
+    	allEle.eq(i).parent("td").siblings().eq(3).text("已标记")
+        }
+	}
+	$.dialog({"fixed": true,"content":data.msg}) 
+	// $SEARCH.trigger('click')
+    })
+})
+
+
+$("#batch_del").click(function(){
+	var allEle = $QUERY_TABLE.find("input[name='id']");
+	var ids = [];
+	for(i = 0;i<allEle.length;i++){
+		if(allEle.eq(i).is(":checked")){
+			console.log(allEle.eq(i).val())
+			ids.push(allEle.eq(i).val())
+		}
+	}
+	$.ajax({
+        url: '/game/mail_list/del_mail',
+        type: 'POST',
+        data: "ids="+JSON.stringify(ids)
+    })
+    .done(function(msg) {
+    	for(i = 0;i<allEle.length;i++){
+    		if(allEle.eq(i).is(":checked")){
+    		allEle.eq(i).parents("tr").remove()
+    	}
+	}
+        // $.dialog({"fixed": true,"content":msg})
+        ModalBody.empty()
+        ModalBody.append("<p style='text-align:center;font-size:16px;'>"+msg+"</p>")
+        messageModal.modal("show")
+    })
+        $SEARCH.trigger('click')
+})
+</script>

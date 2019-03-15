@@ -1,0 +1,663 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>服务器编辑</title>
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	<a href="/server/server/server_list">服务器列表</a> -> 服务器编辑 
+	<div class="buttons">
+		<a class="btn btn-app btn-grey btn-xs radius-4 pull-right submit">保存</a>
+	</div>
+</div>
+
+<form action="/server/server/server_save?sid={% if is_copy %}0{%else%}{{model.id}}{%endif%}" method="post" >
+	
+<div>
+	<div class="tabbable ">
+		<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+			<li class="active">
+				<a data-toggle="tab" href="#tab1">
+					<i class="icon-info bigger-110"></i>信息
+				</a>
+			</li>
+
+			{% if request.allow_menu.配置 %}
+			<li class="">
+				<a data-toggle="tab" href="#tab2">
+					<i class="icon-wrench bigger-110"></i>配置
+				</a>
+			</li>
+			{% endif %}
+
+			<!--{% if request.allow_menu.分区 %}-->
+			<!--<li class="">-->
+				<!--<a data-toggle="tab" href="#tab3">-->
+					<!--<i class="blue "></i>分区-->
+				<!--</a>-->
+			<!--</li>-->
+			<!--{% endif %}-->
+<!-- {% if request.allow_menu.排序 %} {% else %} disabled="true" {% endif %} -->
+		</ul>
+		<div class="tab-content">
+			<div id="tab1" class="tab-pane active">
+				<div >
+					<table class="form">
+						<tr>
+							<th>服务器ID：</th><td>
+							<input type="text" name="new_server_id" value="{% if is_copy %}0{%else%}{{model.id}}{%endif%}" style=" width:50px;" /><span style=" color:red; font-size:18px; font-weight:800;">(不能随便修改ID，会影响到服务分区)</span>
+							</td>
+						</tr>
+						<tr>
+							<th>服务器名称：</th><td>
+							<input type="text" name="name" value="{{model.name}}" />
+							</td>
+						</tr>
+						<tr>
+							<th>别名:</th><td>
+							<input type="text" name="alias" value="{{model.alias}}" />
+							</td>
+						</tr>
+						<tr>
+							<th>服务器状态：</th><td>
+							<select name="status" onclick="del_remark()">
+								{%for item in model.STATUS_CHOICES%}
+								<option value="{{item.0}}"{%ifequal model.status item.0%} selected="selected"{%endifequal%}>{{item.1}}</option>
+								{%endfor%}
+							</select></td>
+						</tr>
+						<tr>
+							<th>推荐标识：</th><td>
+							<select name="commend">
+								{%for item in model.COMMEND_CHOICES%}
+								<option value="{{item.0}}"{%ifequal model.commend item.0%} selected="selected"{%endifequal%}>{{item.1}}</option>
+								{%endfor%}
+							</select></td>
+						</tr>
+						<!-- <tr>
+						  <th>IOS服：</th>
+						  <td>
+							<label class="inline">
+								<input type="checkbox"  value="1" {%ifequal model.is_ios 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="is_ios" role="checkbox" class="FormElement ace ace-switch ace-switch-5">
+								<span class="lbl"></span>
+								</label>
+								* 说明:是否标记为IOS服务器.
+							</td>
+						</tr>
+						<tr>
+							<th>针对客户端版本：</th>
+							<td>
+							<input type="text" name="client_ver" size="50" value="{{model.client_ver}}" />
+							输入数字部份即可,多个用逗号隔开
+							</td>
+						</tr>
+						<tr>
+							<th>要求最低版本：</th><td>
+							<input type="text" class="input-small" name="require_ver" size="5" value="{{model.require_ver}}" />
+							输入数字部份即可</td>
+						</tr> -->
+						<tr>
+							<th>开服时间:</th>
+							<td>
+								<input type="text" name="create_time" class="Wdate" value="{{model.create_time_str}}" />
+							</td>
+						</tr>
+						<tr>
+							<th>备注：</th><td>	<textarea name="remark">{{model.remark}}</textarea></td>
+						</tr>
+						<!--<tr>-->
+							<!--<th>排序：</th><td>-->
+							<!--<input type="number"  class="input-mini" name="order" size="5" value="{{model.order}}" {% if request.allow_menu.排序 %} {% else %} disabled="true" {% endif %}/>-->
+							<!--数字小的排前面</td>-->
+						<!--</tr>-->
+						<!--<tr>-->
+							<!--<th>分组ID：</th><td>-->
+							<!--<input type="number"  class="input-mini" name="tabId" size="5" value="{{model.tabId}}" />-->
+							<!--</td>-->
+						<!--</tr>-->
+						<tr>
+							<th>分组ID：</th>
+							<td>
+								<select name="tabId">
+									{% for id, name in m.items %}
+										{% if tab_id == id %}
+											<option value="{{ id }}" selected>{{ name }}</option>
+										{% else %}
+											<option value="{{ id }}">{{ name }}</option>
+										{% endif %}
+									{% endfor %}
+								</select>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+
+			<div id="tab2" class="tab-pane ">
+				<div >
+				<table class="form">
+					<tr>
+						<th>服务器IP及端口：</th><td>
+						<input type="text" name="game_addr" value="{{model.game_addr}}" />
+						:
+						<input type="text" name="game_port" size="4" value="{{model.game_port}}" />
+						默认2008</td>
+					</tr>
+					<!-- <tr>
+						<th>战报URL：</th><td>
+						<input type="text" name="report_url" size="50" value="{{model.report_url}}" />
+						默认为http://游戏接入IP</td>
+					</tr> -->
+{#                    <tr>#}
+{#                        <th>游戏数据库IP及端口：</th>#}
+{#                        <td><input type="text" name="game_db_addr_port" value="{{ model.game_db_addr_port }}">例：127.0.0.1:8080</td>#}
+{#                    </tr>#}
+{#                    <tr>#}
+{#                        <th>游戏数据库名称：</th>#}
+{#                        <td><input type="text" name="game_db_name" value="{{ model.game_db_name }}"></td>#}
+{#                    </tr>#}
+{#                    <tr>#}
+{#                        <th>游戏数据库连接用户名：</th>#}
+{#                        <td><input type="text" name="game_db_user" value="{{ model.game_db_user }}"></td>#}
+{#                    </tr>#}
+{#                    <tr>#}
+{#                        <th>游戏数据库连接密码：</th>#}
+{#                        <td><input type="text" name="game_db_password" value="{{ model.game_db_password }}"></td>#}
+{#                    </tr>#}
+					<tr>
+						<th>日志数据库配置：</th><td>
+						<textarea name="log_db_config" class="check_json" >{{model.log_db_config}}</textarea>
+						<a href="javascript:void(0)" id="quick_setting">[快速配置]</a> 
+					</td>
+					</tr>
+
+					<!--<tr>-->
+						<!--<th>附加开关:</th>-->
+						<!--<td class="server_switch_cont">-->
+							<!--<label class="inline">-->
+							<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="isOpenGuide">新手引导开启-->
+							<!--</label>-->
+							<!--<label class="inline">-->
+							<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="offVoice" >关闭语音-->
+							<!--</label>-->
+							<!--<label class="inline">-->
+							<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="offMonthCard" >关闭月卡-->
+							<!--</label>-->
+							<!--<label class="inline">-->
+							<!--<input type="checkbox" value="all" offval="No" role="checkbox" class="server_switch" key="off_share_type" >关闭分享-->
+							<!--</label>-->
+							<!--<label class="inline">-->
+								<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="offGiftCard" >关闭VIP界面礼品卡-->
+							<!--</label>-->
+							<!--<label class="inline">-->
+								<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="switchFight" >切换普通战斗模式-->
+							<!--</label>-->
+                            <!--<label class="inline">-->
+								<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="offShopMonthCardPacket" >关闭商城界面“月卡红包”页卡-->
+							<!--</label>-->
+                            <!--<label class="inline">-->
+								<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="offShopPayExchange" >关闭商城界面“充值兑换”页卡-->
+							<!--</label>-->
+                            <!--<label class="inline">-->
+								<!--<input type="checkbox" value="1" offval="No" role="checkbox" class="server_switch" key="offChatRedPacket" >关闭聊天界面“红包”按钮-->
+							<!--</label>-->
+                            <!--<label class="inline">-->
+								<!--<input type="checkbox" value="http://" offval="No" role="checkbox" class="server_switch" key="facebook_fans" >facebook粉丝地址-->
+							<!--</label>-->
+						<!--</td>-->
+					<!--</tr>-->
+
+					<tr>
+						<th>附加JSON数据：</th><td>	<textarea name="json_data">{{model.json_data}}</textarea>
+						<br>* JSON格式,不用加{}
+			            JSON格式,不用加{}</td>
+					</tr>
+				</table>
+				</div>
+			</div>
+			<div id="tab3" class="tab-pane">
+				<div >
+					{% with select_group=model.group_set.all %}
+					{%for item in list_group%}
+						<label><input type="checkbox" name="group_id" value="{{item.id}}" {%if item in select_group %}checked="checked"{%endif%} />{{item.name}}</label>
+					{%endfor%}
+					{%endwith%}
+				</div>
+			</div>
+
+		</div>
+
+	</div>
+</div>
+</form>
+
+
+
+
+<div id="new_player_div" style="display:none">
+	输入客户端提交地址:<input type="text" value="" name="statistic_url" style="width:300px"/>
+	<input type="button" value="保存" id="new_player_save" >
+    <br><span id="new_player_address_example"></span>
+</div>
+
+<script>
+
+function del_remark(){
+    $('[name="remark"]').html('')
+}
+
+var other_json_input_ele = $('[name="json_data"]')
+
+function get_other_json(){
+	try{
+		return JSON.parse('{'+other_json_input_ele.val() +'}')
+	}catch(e){
+		return {}
+	}
+}
+function add_data_to_other_json(key,value){
+  var json_data = get_other_json()
+  json_data[key] = value
+  other_json_input_ele.val(JSON.stringify(json_data).replace(/^\{|\}$/g,''))
+}
+
+function delete_other_json_data(key){
+ var json_data = get_other_json()
+ if (key in json_data) {
+ 	 delete json_data[key]
+ 	 other_json_input_ele.val(JSON.stringify(json_data).replace(/^\{|\}$/g,''))
+	}
+}
+
+function server_switch_init(){
+	var json_data = get_other_json()
+	for (var k in json_data){
+		var checkbox_ele = $('.server_switch_cont').find('[key="' + k +'"]:checkbox')
+		console.dir(checkbox_ele)
+		if ( checkbox_ele.attr('value') == json_data[k] ) {
+			checkbox_ele.prop({'checked':true})
+		}
+	}
+}
+
+$('.server_switch').click(function(){
+	var $this = $(this)
+	var is_check =  $this.is(':checked')
+	var key = $this.attr('key'),
+		value = $this.attr('value')
+		value = !isNaN(value) ? parseFloat(value) : value
+	if (is_check){
+		add_data_to_other_json(key,value)
+	} else {
+		delete_other_json_data(key)
+	}
+})
+
+
+$('#checked_same_channel').click(function(){
+	$.getJSON("?action=get_group_channel&server_id={{model.id}}",{},function(data){
+		$('#select_channel_area :checkbox').each(function(i,ele){
+			var This = $(ele)
+				if($.inArray(parseInt(This.val()),data)>=0){
+					This.attr('checked','checked')
+				}
+				
+	})
+	})
+
+})
+</script>
+
+
+<div id="setting_div_dialog"  style="display:none">
+	<div style="overflow:hidden">
+		<div style="float:left">
+			<table id="setting_input_cont">
+			</table>	
+			<input type="button" id="save_setting" value="保存">
+		</div>
+		<div style="float:left;width:240px">
+			<div >
+				<pre style="font-size:12px">
+* 样例配置字符:
+服名: 测试999服
+内部名称: mhtx_test_s999a
+ServerID: 999
+mysqlDBName: ss_logic999
+IP/域名: mhtx.game.test999.yhzbonline.com
+游戏端口: 8888
+mysql地址: 14.29.87.101
+mysql端口: 3316
+gm端口: 8009
+
+<!--** ** ** ** ** ** ** ** ** ** ** -->
+
+<!--(特别提醒:红色*号的行非必要填写) -->
+
+<!--** ** ** ** ** ** ** ** ** ** ** -->
+				</pre>
+				<textarea id="quick_text" style="width:230px;height:200px" placeholder="粘贴运维给的配置"></textarea>
+				<br>
+				<input type="button" id="analysis_setting" value="解析">
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+function contains(arr, obj) {  
+    var i = arr.length;  
+    while (i--) {  
+        if (arr[i] === obj) {  
+            return true;  
+        }  
+    }  
+    return false;  
+}  
+	function ServerSetting() {
+		var This = this
+		var line_sep = /:/ //行分割符号
+		var input_cont = $('#setting_input_cont')
+
+		this.config = {}
+
+		this.init = function(){
+				This.load_settings()
+				$('#save_setting').bind('click',function(){
+					This.save()
+				})
+				$('#analysis_setting').bind('click',function(){
+					This.analysis_text()
+				})
+		}
+		
+
+		var ConfigFunctions = {
+			log_db_config:function(k,v,this_config){
+				try {
+					var _config = v?$.parseJSON(v):{}
+
+					for (var i in this_config['keys']){
+						var k = this_config['keys'][i]
+					 	_config[k] = _config[k]?_config[k]:""
+					}
+					return JSON.stringify(_config)
+				} catch(e) {
+					alert('日志配置解析错误')
+					return "{}"
+				}
+			},
+			load_battlefield_port:function(k,v){
+					var _temp = $('[name="report_url"]').val()
+					if (!_temp){
+						var battlefield_port_match = _temp
+					}else{ 
+					 	var battlefield_port_match = _temp.match(/:(\d+)[/]?$/)
+					}
+						if (battlefield_port_match && battlefield_port_match.length==2){
+							return battlefield_port_match[1]
+						}
+					},
+			save_battlefield_port:function(k,v){
+						return 'http://' + This.config['game_addr'] + ':' + v + '/'
+					},
+
+			}
+
+		// 配置选项
+		this.config_keys_map = {
+			//key [名称,默认值]
+			"name":["服名"],
+			"host":["mysql地址",],
+			"game_addr":["IP/域名",],
+			"game_port":["游戏端口",],
+			"port":["mysql端口",3306],
+			"user":["mysql用户名","root"],
+			"password":["mysql密码","mhtx123123"],
+			"db":["mysqlDBName",],
+			// "mongo_port":["mongodb端口","27017"],
+			// "agent_name":["平台",],
+			// "server_name":["服标识",],
+			// "close_time":["关服时间",],
+			// "limit":["限制",],
+			"ServerID":["ServerID"],
+			"rqVer":["版本?"],
+			"gm_port":["gm端口"],
+			"db_addr":["GM工具db地址"],
+			"mysqldb_addr":["特殊db地址"],
+            // "mongo_user":["mongo用户名","rwuser"],
+            // "mongo_password":["mongo密码","cmgoq8ym3ctl"],
+            // "mongo_host":["mongodb地址"],
+            "battlefield_port":["战报端口",]
+		}
+
+		// input控件要填充的值
+		this.input_config_map = {
+			"new_server_id" : {"keys":["ServerID"]},
+			"name":         {"keys":["name"],"isJson":false,},
+			{# if  request.is_debug #}
+			"game_addr":    {"keys":["game_addr"],"isJson":false},
+			{#endif #}
+			"game_port":    {"keys":["game_port"],"isJson":false},
+			"log_db_config":{"keys":[
+                                    "host",
+									"port",
+									"user",
+									"password",
+									"db",
+									"gm_port"
+                                    // "mongo_host",
+                                    // "mongo_user",
+                                    // "mongo_password",
+									// "mongo_port",
+									// "agent_name",
+									// "close_time",
+									// "server_name",
+									// "limit"
+									],"isJson":true,
+									"load_header":ConfigFunctions.log_db_config,
+							},
+			// "report_url":   {"keys":["battlefield_port"],"isJson":false,
+			// 				"save_header":ConfigFunctions.save_battlefield_port,
+			// 				"load_header":ConfigFunctions.load_battlefield_port
+			// 				},
+		}
+
+		this.not_necessary = ["mongo_host","mongo_user","mongo_password","mongo_port","agent_name","close_time","server_name","limit","battlefield_port"]
+
+		this.save = function(){
+			if (This._input_to_config()) {
+				This.save_settings()
+				$('#setting_div_dialog').dialog().hide()
+			}
+		}
+
+
+		this.save_settings = function(){
+			for(var k in This.input_config_map){
+				var _val = ''
+				var _ic = This.input_config_map[k]
+
+				if (_ic.isJson){
+					var _config = {}
+					for(var i in _ic.keys){
+						var _k = _ic.keys[i]
+						var _v = This.config[_k]
+						_v = !isNaN(_v)&&_v?parseInt(_v):_v
+						_config[_k] = _v
+					}
+					_val = JSON.stringify(_config)
+				}else{
+					_val = This.config[_ic['keys'][0]]
+				}
+
+				if (_ic.save_header){
+					_val = _ic.save_header(k,_val)
+				}
+
+				if(_val){
+					$('[name="'+k+'"]').val(_val)
+				}
+			}
+
+		}
+
+		this.load_settings = function(){
+			for(var k in This.input_config_map){
+				var _ic = This.input_config_map[k]
+				var config_str = $('[name="'+k+'"]').val()
+				if (_ic.load_header){
+					config_str = _ic.load_header(k,config_str,_ic)
+				}
+				if (_ic.isJson){
+					var _config = {}
+					_config = $.parseJSON(config_str)
+					$.extend(This.config,_config);
+				}
+				else{
+					This.config[_ic['keys'][0]] = config_str
+				}
+			}
+		}
+
+		this.check_input_value_for_key = function(key,value) {
+				return This._get_key_config(key)[3] == true ? value!="" ? true : false :true
+		}
+
+		this._input_to_config = function(){
+			var inputs = input_cont.find('tr>td>:text')
+			console.dir(inputs)
+			for (var i=0;i<inputs.length; i++){
+				var _ele = $(inputs[i])
+				var k = _ele.attr('name')
+				var v = _ele.val()
+				if (This.check_input_value_for_key(k,v)) {
+					This.config[k] = v
+				} else {
+					alert(k+' 不能为空!')
+					_ele.focus();
+					return false
+				}
+
+			}
+			return true
+
+		}
+		this._make_input = function(label,name,value,func){
+			// var tr = $('<tr>')
+			// var  td = $('<td>')
+			// var input = $('<input>',{'type':"text",'name':name,'value':value})
+			// tr.append('<td><b>' + label + '</b>(' +name +'):</td>')
+			// td.append(input)
+			// tr.append(td)
+			// return tr
+			var  html = "";
+			html +='<tr>'
+			if(contains(This.not_necessary,name)){
+			html += '<td><b><b style="color:red;">*</b>' + label + '</b>(' +name +'):</td>'
+			}else{
+				html += '<td><b>' + label + '</b>(' +name +'):</td>'
+			}
+			html += '<td>' + '<input type="text" name="'+name+'" value="'+value+'">' + '</td>'
+			html += '</td>'
+			return html
+		}
+
+		this._get_key_config = function(key){
+			if (This.config_keys_map.hasOwnProperty(key)){
+				return This.config_keys_map[key]
+			}
+		}
+		this._get_key_default_val = function(key){
+			return This._get_key_config(key)[1]
+		}
+		this._get_key_func = function(key){
+			return This._get_key_config(key)[2]
+		}
+		this._get_key_name = function(key){
+			return This._get_key_config(key)[0]
+		}
+
+		this.make_inputs = function(){
+			for (var k in This.config){
+				var value = This.config[k]
+				var default_val = This._get_key_default_val(k)
+				var label = This._get_key_name(k)
+				var  func = This._get_key_func(k)
+				value = value?value:default_val?default_val:""
+				var _input = This._make_input(label,k,value,func)
+				input_cont.append(_input)
+			}
+		}
+		this.show = function(){
+			input_cont.html("")
+			This.load_settings()
+			This.make_inputs()
+			$('#setting_div_dialog').dialog({"title":"服务器快速配置",top:"10px"})
+		}
+
+		this.find_config_name_for_str=function(str){
+			for (var k in This.config_keys_map){
+				var congfig_str = This.config_keys_map[k][0]
+				var regExp = new RegExp(congfig_str.toLowerCase())
+				if (regExp.test(str.toLowerCase())){
+					return k
+				}
+			}
+
+		}
+		this.analysis_to_input=function(name,v){
+			var _input = input_cont.find('[name="'+name+'"]')
+			_input.after('<span>解析成功!</span>')
+			_input.val(v.split(/ /,1))
+		}
+
+		this.analysis_text=function(){
+			input_cont.find('tr>td>:text').next('span').remove()
+			var text = $('#quick_text').val(),msg=''
+			var lines = text.split('\n')
+			var msg = ''
+			if (!text){
+				msg = '没有填写配置字符串!'
+			}
+			for(var i in lines){
+				var line = lines[i]
+				if (line){
+					var kv = line.trim().split(line_sep,2)
+					if (kv.length==2){
+						var k = kv[0].trim(),v=kv[1].trim()
+						if (k&&v){
+							var config_name = This.find_config_name_for_str(k)
+							if(config_name){
+								This.analysis_to_input(config_name,v)
+							}
+						}
+					}
+				}
+			}
+
+			if(msg){
+				alert(msg)
+			}
+			
+		}
+
+	This.init()
+	}
+
+$(function(){
+	var server_setting = new ServerSetting()
+	$('#quick_setting').click(function(){
+			server_setting.show()
+	})
+
+	server_switch_init()
+	change_checkbox_background()
+})
+</script>
+
+
+{% endblock %}

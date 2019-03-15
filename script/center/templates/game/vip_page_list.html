@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>VIP页面显示</title>
+<style>
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div id="bar">
+    VIP页面列表
+	<div class="buttons" > <a href="/game/vip_page/edit?pid=0" >添加</a> </div>
+</div>
+
+<table class="list">
+	<tr>
+		<th width="80">VIP等级</th>
+        <th>文件路径</th>
+		<th ></th>
+		<th width="80" >操作</th>
+	</tr>
+
+	{% for item in result_list %}
+	<tr>
+		<td>{{item.level}}</td>
+		<td>
+			<a href="/static/vip/{{item.level}}.html" target="_blank">/static/vip/{{item.level}}.html</a>
+		</td>
+		<td>
+
+		</td>
+		<td>
+            <a href="/game/vip_page/edit?pid={{item.level}}" >编辑</a>
+		</td>
+	</tr>
+	{% endfor %}
+
+</table>
+
+<div id="dialog_div">
+</div>
+
+{% include "pager.html" %}
+<script>
+
+</script>
+{% endblock %}

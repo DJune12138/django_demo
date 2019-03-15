@@ -1,0 +1,124 @@
+{% load mytags %}
+
+<!-- 模版开始 -->
+
+<script id="params-setting-tpl" type="text/template">
+    <div class="tpl-cont">
+	<table class="form2">
+        <tr>
+            <th>开始时间：</th>
+            <td><input type="text" class="Wdate" name="st" value="<%=it.data[0] ? it.w.timestamp_to_datetime_str(it.data[0] ? it.data[0] : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        </tr>
+        <tr>
+            <th>结束时间：</th>
+            <td><input type="text" class="Wdate" name="et" value="<%=it.data[1] ? it.w.timestamp_to_datetime_str(it.data[1] ? it.data[1] : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        </tr>
+        <tr>
+            <th>标题：</th>
+            <td><input type="text" name="bt" value="<%=it.data[2] ? it.data[2] : '' %>"></td>
+        </tr>
+		<!-- 这里开始配置服务器参数字段 -->
+
+        <tr>
+            <th>配置列表</th>
+            <td><a href="javascript:void(0)" onclick="add_item(this)">[添加]</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="items">
+                <% for (k in it.data[3]){ %>
+                    <%var params=it.data[3][k];%>
+                    <%=it.w.get_items_html(params)%>
+                <%}%>
+            </td>
+        </tr>
+
+	</table>
+    </div>
+</script>
+
+<script id="items-tpl" type="text/template">
+        <div class="items-cont">
+            <a href="javascript:void(0)" style="float:right" onclick="del_item(this)">[删除]</a>
+                渠道:<input type="text" class="input-small" name="ch" value="<%=it.data[0] ? it.data[0]:''%>">
+                QQ群:<input type="text" class="input-small" name="qq" value="<%=it.data[1] ? it.data[1]:''%>">
+        </div>
+</script>
+<!-- 模版结束 -->
+
+
+
+<!-- 这里重写参数打折的参数配置 -->
+<script type="text/javascript">
+var default_msg = [0,0,'',[[]]]
+
+
+function get_items_html(obj){
+    return get_views('items-tpl',obj)
+}
+
+function add_item(ele){
+    var obj = default_msg[3]
+    var html = get_items_html(obj)
+    $(ele).parents('.tpl-cont').find('#items').append(html)
+}
+
+function del_item(ele){
+    if (confirm("确定要删除吗？")){
+        $(ele).parent('.items-cont').remove()
+    }
+}
+
+activitySetting.get_json = function(){
+    //msg:[开始时间,结束时间,'',[[], ... ,..., ...]]
+   	var msg = []
+    var st = datetime_str_to_timestamp(this.contEle.find('[name="st"]').val())
+    var et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+    var bt = this.contEle.find('[name="bt"]').val()
+    msg.push(st)
+    msg.push(et)
+    msg.push(bt)
+    var pls = []
+   	$('.items-cont').each(function(i,ele){
+   		var This = $(ele)
+        var ch = This.find('[name="ch"]').val()
+   		var qq = This.find('[name="qq"]').val()
+     	pls.push([ch,qq])
+
+   	})
+    msg.push(pls)
+    console.dir(msg)
+    return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    console.dir(msg)
+    var html = get_views('params-setting-tpl',msg)
+    this.contEle.html(html)
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+    console.dir(data)
+    var bt = data[0]
+    var et = data[1]
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if ($.isEmptyObject(data)) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }else if (!in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data[0])+'- '+ timestamp_to_datetime_str(data[1])+'">未开始</span>'
+    }
+    return status
+}
+
+
+
+</script>

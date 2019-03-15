@@ -1,0 +1,30 @@
+<script>
+//星盟名称,星盟总贡献,国家,星盟排名
+//星盟信息快捷按钮
+  
+dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+	var server_id = data.server_id
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		
+		{%if request.allow_menu.星盟信息查询 %}
+		var army_name = row[TH['星盟名称']]
+		row[TH['星盟名称']] = '<a href="/game/army/army_info?server_id='+server_id+'&army_name='+army_name+'" class="openDialog" title="点我查询星盟信息" >'+ army_name  +'</a>'
+		{%endif%}
+	}
+	
+  	return data
+
+})
+</script>
+
+
+
+
+
+
+

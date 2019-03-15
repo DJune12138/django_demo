@@ -1,0 +1,136 @@
+[2019-01-08 15:19:10]  ERROR django.request pid:4072 base.py:224  Internal Server Error: /group/edit
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 88, in get_response
+    response = middleware_method(request)
+  File "E:\Python27\lib\site-packages\django\middleware\common.py", line 71, in process_request
+    if (not urlresolvers.is_valid_path(request.path_info, urlconf) and
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 600, in is_valid_path
+    resolve(path, urlconf)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 480, in resolve
+    return get_resolver(urlconf).resolve(path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 339, in resolve
+    sub_match = pattern.resolve(new_path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 223, in resolve
+    return ResolverMatch(self.callback, args, kwargs, self.name)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 230, in callback
+    self._callback = get_callable(self._callback_str)
+  File "E:\Python27\lib\site-packages\django\utils\functional.py", line 32, in wrapper
+    result = func(*args)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 97, in get_callable
+    mod = import_module(mod_name)
+  File "E:\Python27\lib\site-packages\django\utils\importlib.py", line 40, in import_module
+    __import__(name)
+  File "F:\youai\script\center\analys\views\server\group.py", line 18, in <module>
+    from views.widgets import get_group_servers_dict
+  File "F:\youai\script\center\analys\views\widgets.py", line 48
+    for s in other_serv ers:
+                          ^
+SyntaxError: invalid syntax
+[2019-01-08 15:19:15]  ERROR django.request pid:4072 base.py:224  Internal Server Error: /group/edit
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 88, in get_response
+    response = middleware_method(request)
+  File "E:\Python27\lib\site-packages\django\middleware\common.py", line 71, in process_request
+    if (not urlresolvers.is_valid_path(request.path_info, urlconf) and
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 600, in is_valid_path
+    resolve(path, urlconf)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 480, in resolve
+    return get_resolver(urlconf).resolve(path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 339, in resolve
+    sub_match = pattern.resolve(new_path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 223, in resolve
+    return ResolverMatch(self.callback, args, kwargs, self.name)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 230, in callback
+    self._callback = get_callable(self._callback_str)
+  File "E:\Python27\lib\site-packages\django\utils\functional.py", line 32, in wrapper
+    result = func(*args)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 97, in get_callable
+    mod = import_module(mod_name)
+  File "E:\Python27\lib\site-packages\django\utils\importlib.py", line 40, in import_module
+    __import__(name)
+  File "F:\youai\script\center\analys\views\server\group.py", line 18, in <module>
+    from views.widgets import get_group_servers_dict
+  File "F:\youai\script\center\analys\views\widgets.py", line 48
+    for s in other_serv ers:
+                          ^
+SyntaxError: invalid syntax
+[2019-01-08 15:19:38]  ERROR django.request pid:4072 base.py:224  Internal Server Error: /group/list
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 88, in get_response
+    response = middleware_method(request)
+  File "E:\Python27\lib\site-packages\django\middleware\common.py", line 71, in process_request
+    if (not urlresolvers.is_valid_path(request.path_info, urlconf) and
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 600, in is_valid_path
+    resolve(path, urlconf)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 480, in resolve
+    return get_resolver(urlconf).resolve(path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 339, in resolve
+    sub_match = pattern.resolve(new_path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 223, in resolve
+    return ResolverMatch(self.callback, args, kwargs, self.name)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 230, in callback
+    self._callback = get_callable(self._callback_str)
+  File "E:\Python27\lib\site-packages\django\utils\functional.py", line 32, in wrapper
+    result = func(*args)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 97, in get_callable
+    mod = import_module(mod_name)
+  File "E:\Python27\lib\site-packages\django\utils\importlib.py", line 40, in import_module
+    __import__(name)
+  File "F:\youai\script\center\analys\views\server\group.py", line 18, in <module>
+    from views.widgets import get_group_servers_dict
+  File "F:\youai\script\center\analys\views\widgets.py", line 48
+    for s in other_serv ers:
+                          ^
+SyntaxError: invalid syntax
+[2019-01-08 15:19:39]  ERROR django.request pid:4072 base.py:224  Internal Server Error: /card/batch/
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 99, in get_response
+    resolver_match = resolver.resolve(request.path_info)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 339, in resolve
+    sub_match = pattern.resolve(new_path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 339, in resolve
+    sub_match = pattern.resolve(new_path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 223, in resolve
+    return ResolverMatch(self.callback, args, kwargs, self.name)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 230, in callback
+    self._callback = get_callable(self._callback_str)
+  File "E:\Python27\lib\site-packages\django\utils\functional.py", line 32, in wrapper
+    result = func(*args)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 97, in get_callable
+    mod = import_module(mod_name)
+  File "E:\Python27\lib\site-packages\django\utils\importlib.py", line 40, in import_module
+    __import__(name)
+  File "F:\youai\script\center\analys\views\card\batch.py", line 15, in <module>
+    from views.widgets import get_group_servers_dict,get_agent_channels_dict
+  File "F:\youai\script\center\analys\views\widgets.py", line 48
+    for s in other_serv ers:
+                          ^
+SyntaxError: invalid syntax
+[2019-01-08 15:19:40]  ERROR django.request pid:4072 base.py:224  Internal Server Error: /push/list
+Traceback (most recent call last):
+  File "E:\Python27\lib\site-packages\django\core\handlers\base.py", line 88, in get_response
+    response = middleware_method(request)
+  File "E:\Python27\lib\site-packages\django\middleware\common.py", line 71, in process_request
+    if (not urlresolvers.is_valid_path(request.path_info, urlconf) and
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 600, in is_valid_path
+    resolve(path, urlconf)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 480, in resolve
+    return get_resolver(urlconf).resolve(path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 339, in resolve
+    sub_match = pattern.resolve(new_path)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 223, in resolve
+    return ResolverMatch(self.callback, args, kwargs, self.name)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 230, in callback
+    self._callback = get_callable(self._callback_str)
+  File "E:\Python27\lib\site-packages\django\utils\functional.py", line 32, in wrapper
+    result = func(*args)
+  File "E:\Python27\lib\site-packages\django\core\urlresolvers.py", line 97, in get_callable
+    mod = import_module(mod_name)
+  File "E:\Python27\lib\site-packages\django\utils\importlib.py", line 40, in import_module
+    __import__(name)
+  File "F:\youai\script\center\analys\views\server\notice.py", line 14, in <module>
+    from views.widgets import get_group_servers_dict
+  File "F:\youai\script\center\analys\views\widgets.py", line 48
+    for s in other_serv ers:
+                          ^
+SyntaxError: invalid syntax

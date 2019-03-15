@@ -1,0 +1,275 @@
+{% load mytags %}
+<style>
+.items-cont{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+    width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rps-span{
+
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.equipitem {
+     display: block;
+}
+.fnt {
+font-weight: bold;
+font-size: 15px;
+}
+.level_num{
+    font-weight: bold;
+    font-size: 15px;
+}
+</style>
+
+<!-- 模版开始 -->
+<script id="redpack-setting-tpl" type="text/template">
+<div id="redpack-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+        <th>活动ID</th>
+        <td><input type="text" class="input input-sm" readonly="readonly" name="id"  value="<%=data[1] ? data[1] : parseInt(new Date().getTime()/1000)%>"></td>
+    </tr>
+    <tr>
+    <tr>
+        <th>开始时间</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data[2] ? it.w.timestamp_to_datetime_str(data[2] ? data[2] : parseInt(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+            结束时间
+            <input type="text" class="Wdate" name="et" value="<%=data[3] ? it.w.timestamp_to_datetime_str(data[3] ? data[3] : parseInt(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>活动信息</th>
+        <td><a href="javascript:void(0)" onclick="add_item(this)">[添加]</a></td>
+    </tr>
+    <tr>
+        <th></th>
+        <td id="items">
+            <% for (k in data[4]){ %>
+                <%var params=data[4][k];%>
+                <%=it.w.get_items_html(params)%>
+            <%}%>
+        </td>
+    </tr>
+</table>
+</div>
+
+</script>
+
+<script id="items-tpl" type="text/template">
+    <%var data=it.data;%>
+    <div class="items-cont">
+        <label class="fnt">活动信息</label><span class="level_num"></span>:
+        <a href="javascript:void(0)" style="float:right" onclick="$(this).parent().remove()">[删除]</a><br>
+        时间点
+        <input type="text" class="Wdate" name="tt" value="<%=data[0] ? it.w.timestamp_to_datetime_str(data[0] ? data[0] : parseInt(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        <a href="javascript:void(0)" onclick="add_rp(this)">[红包添加]</a>
+        <div class="rps-cont">
+            <% for (var i in data){ %>
+                <%? i == 0 %>
+                    <% continue; %>
+                <%?%>
+                <%=it.w.get_items_html(data[i],'rps')%>
+            <%}%>
+        </div>
+    </div>
+</script>
+
+<script id="rps-tpl" type="text/template">
+    <%var data=it.data;%>
+    <div class="rps-span">
+        <label class="fnt">红包</label><span class="level_num"></span>:
+        <a href="javascript:void(0)" style="float:right" onclick="$(this).parent().remove()">[删除]</a><br>
+        道具ID:<input type="text" class="input-small" name="eid" value="<%=data[0]%>" select-key="redpakeId">
+        红包个数:<input type="text" class="input-small" name="nu" value="<%=data[1]%>"><br>
+        <div class="rd-span">
+            <%var rd_id=data[0];%>
+
+        </div>
+    </div>
+</script>
+
+<script id="rd-tpl" type="text/template">
+    <div class="rd-cont">
+    <%var data=it.data;%>
+        金额:<input type="text" class="" readonly="readonly" style="width: 70px" value="<%=data[1]%>">
+        次数:<input type="text" class="" readonly="readonly" style="width: 60px" value="<%=data[2]%>">
+        类型:<select disabled='disabled'>
+                <option value='-1' <%? data[3]==-1 %> selected = "selected" <%?%>>世界</option>
+                <option value='0' <%? data[3]==0 %> selected = "selected" <%?%>>魏国</option>
+                <option value='1' <%? data[3]==1 %> selected = "selected" <%?%>>蜀国</option>
+                <option value='2' <%? data[3]==2 %> selected = "selected" <%?%>>吴国</option>
+             </select>
+    </div>
+</script>
+
+<!-- 模版结束 -->
+
+
+<!-- 这里重写红包活动的参数配置 -->
+<script type="text/javascript">
+var red_list = {
+        50031:[2,888,40,-1],
+        50032:[2,520,30,-1],
+        50033:[2,300,10,-1],
+        50034:[2,200,5,-1],
+        50035:[2,168,2,-1],
+        50036:[2,888,15,0],
+        50037:[2,300,10,0],
+        50038:[2,168,5,0],
+        50039:[2,888,15,1],
+        50040:[2,300,10,1],
+        50041:[2,168,5,1],
+        50042:[2,888,15,2],
+        50043:[2,300,10,2],
+        50044:[2,168,5,2]
+}
+
+function append_html(){
+    $('[name="eid"]').each(function(i,ele){
+        var val = $(ele).val()
+        var val = parseInt(val)
+        if (val in red_list){
+            var red_l = red_list[val]
+            var html = get_items_html(red_l,'rd')
+            $(ele).parents('.rps-span').find('.rd-cont').remove()
+            $(ele).parents('.rps-span').find('.rd-span').append(html)
+        }
+    })
+}
+
+function do_change(val,input_obj){
+    var val = parseInt(val)
+    if (val in red_list){
+        var red_l = red_list[val]
+        var html = get_items_html(red_l,'rd')
+        input_obj.parents('.rps-span').find('.rd-cont').remove()
+        input_obj.parents('.rps-span').find('.rd-span').append(html)
+    }
+}
+
+function resize_level_num(name) {
+
+    var allow = true
+
+    $('#' + name + '_items').find('.level_num').each(function(i, ele){
+        $(this).parents('.items-cont').find('.fnt').text(name_obj[name])
+        $(this).html(i + 1)
+         allow = false
+    })
+    if (allow) {
+        for (var i in name_list){
+            var name = name_list[i]
+            $('#' + name + '_items').find('.level_num').each(function(i, ele){
+                $(this).parents('.items-cont').find('.fnt').text(name_obj[name])
+                $(this).html(i + 1)
+            })
+        }
+    }
+}
+
+function add_item(ele){
+    var obj = [0,[0,1,0,0]]
+    var html = get_items_html(obj)
+    $(ele).parents('#redpack-activity-cont').find('#items').append(html)
+}
+
+function get_items_html(obj,$name){
+    if ($name == 'rps'){
+        return get_views('rps-tpl',obj)
+    }
+    if ($name == 'rd'){
+        return get_views('rd-tpl',obj)
+    }
+    return get_views('items-tpl',obj)
+}
+
+function add_rp(ele){
+    var obj = [0,1]
+    var html = get_items_html(obj,'rps')
+    $(ele).parents('.items-cont').find('.rps-cont').append(html)
+}
+
+var default_msg = [2,0,0,0,[[0,[0,1]]]]
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(event_name){
+    if (!this.check_empty_input()){return false}
+
+    var msg = [2]
+    msg[1] = parseInt(this.contEle.find('[name="id"]').val())
+    msg[2] = datetime_str_to_timestamp(this.contEle.find('[name="st"]').val())
+    msg[3] = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+    msg[4] = []
+
+    $('.items-cont').each(function(i,ele){
+        var al = []
+        al[0] = datetime_str_to_timestamp($(ele).find('[name="tt"]').val())
+        $(ele).find('.rps-span').each(function(i,ele){
+            var $ele = $(ele)
+            var rl = []
+            rl[0] = parseInt($ele.find('[name="eid"]').val())
+            rl[1] = parseInt($ele.find('[name="nu"]').val())
+            al.push(rl)
+        })
+        msg[4].push(al)
+    })
+
+    console.dir(msg)
+
+    return JSON.stringify(msg)
+}
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    console.dir(msg)
+    var html = get_views('redpack-setting-tpl',msg)
+    this.contEle.html(html)
+    append_html()
+}
+
+
+activitySetting.get_status = function(data){
+    if ( $.isEmptyObject(data) || data[1]==0 || !data) {
+
+        return '<span class="label label-danger">已关闭</span>'
+    }
+
+    var status = ''
+    console.dir(data)
+    var st = data[2]
+    var et = data[3]
+
+    var in_time_range =   this.system_timestamp >= st  && this.system_timestamp <=et
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(st)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    }
+
+    return status
+}
+
+activitySetting.to_template_json = function(data){
+    // 保存问模版的时候 红包id要删除
+    delete data[1]
+    return data 
+}
+
+
+
+</script>

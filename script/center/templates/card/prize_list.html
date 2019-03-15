@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}礼包卡抽奖活动列表{% endblock %}
+{% block header %}
+<style type="text/css">
+	.abutton {
+		padding: 3px 15px;
+		font-size: 12px;
+		text-align: center;
+		text-shadow: #80AD10 0 1px 0;
+		border: 1px solid #80AD10;
+		border-radius: 2px;
+		background: -moz-linear-gradient(center top , #FFFFFF, #CCCCCC) repeat scroll 0 0 transparent;
+		background-image: -webkit-linear-gradient(top, #A5D62D, #9AC827);
+		color: #02C;
+		cursor: pointer;
+		display: inline-block;
+	}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	礼包卡抽奖管理
+	<div class="buttons"> <a href="/card/prize/edit">添加</a></div>
+</div>
+<div class="choose_batch" style="margin-left:40px;">
+	<a href="/card/prize/?status=1" class="abutton">有效抽奖列表</a>
+	<a href="/card/prize/?status=0" class="abutton">失效抽奖列表</a>
+</div>
+<div class="sub-menu-1">
+	<form method="get" action="/card/prize/list">
+		<input type="hidden" name="status" id="status" value="{{status}}"/>
+		名称：<input type="text" name="name" value="{{name}}" placeholder="名称"/>
+		<input type="submit" value="查询" />		
+	</form>
+</div>
+<div style="text-align: right;margin-right:40px;">
+	
+		{% if status == 0 %}
+		<a href="javascript:void(0);" class="prize_recoverall" >一键恢复</a>
+		{% else %}
+		<a href="javascript:void(0);" class="prize_delall" >一键删除</a>
+		{% endif %}
+</div>
+{% if prize %}
+<table border="0" cellpadding="0" cellspacing="0"  class="list" >
+	<thead>
+		<tr>
+			<th width="50">
+			<input type="checkbox" id="card_data" onchange="selectAll(this.id)" class="checkbox_state"/>
+			</th>
+			<th>编号</th><th>名称</th><th>随机串</th><th style="width:250px;">有效时间</th><th>备注</th><th>操作</th>
+		</tr>
+	</thead>
+	<tbody id="card_data_area">
+		{% for item in prize %}
+		<tr>
+			<td>
+			<input type="checkbox" name="id" id="checkbox_{{item.id}}" value="{{item.id}}" class="checkbox_state"/>
+			</td>
+			<td>{{item.id}}</td>
+			<td><a href="/card/prize/edit/?id={{item.id}}">{{item.name}}</a></td>
+			<td>{{item.code}}</td>
+			<td style="color:{% if item.status == 0 %}red{% else %}green{% endif %};">{{item.start_time|date:"Y-m-d H:i:s"}}--{{item.end_time|date:"Y-m-d H:i:s"}}</td>
+			<td>{% if item.remark %}<a href="javascript:void(0);" title="{{item.remark}}" class="batch_box">{{item.remark}}</a>{% else %}无{% endif %}</td>
+			<td>
+				<a href="/card/prize/edit?id={{item.id}}">编辑</a>
+				{% if item.end_time > now %}|
+				{%if item.status == 0 %}
+				<a href="/card/prize/recover/?ids={{item.id}}" class="recover_card" style="color:gray;">恢复</a>
+				{%else%}
+				<a href="/card/prize/del/?ids={{item.id}}" class="del_card" style="color:gray;">删除</a>
+				{% endif %}
+				
+				{% endif %}
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% include "pager.html" %}
+{% else %}
+<div class="sub-menu-1">没有符合条件的结果！</div>
+{% endif %}
+<script>
+	$(document).ready(function() {
+		$(".recover_card").click(function() {
+			if (confirm('确定恢复？')) {
+				return true;
+			} else {
+				return false;
+			}
+		});
+		$(".prize_recoverall").click(function() {
+			if ($("#card_data_area input[type='checkbox']:checked").length == 0) {
+				alert("请选择抽奖类！");
+				return false;
+			}		
+			var ids = [];	
+			if (confirm('确定恢复？')) {
+				$("#card_data_area input[type='checkbox']:checked").each(function(){
+					ids.push($(this).val());
+				});
+				var url = '/card/prize/recover/?ids=' + ids;
+				window.location.href = url;
+				return true;
+			} else {
+				return false;
+			}
+		});		
+		$(".del_card").click(function() {
+			if (confirm("被删除的抽奖将被移入失效抽奖列表，不可再用，您确删除吗？")) {
+				return true;
+			} else {
+				return false;
+			}
+		});
+		$(".prize_delall").click(function() {
+			if ($("#card_data_area input[type='checkbox']:checked").length == 0) {
+				alert("请选择抽奖类！");
+				return false;
+			}			
+			var ids = [];
+			if (confirm("被删除的抽奖将被移入失效抽奖列表，不可再用，您确删除吗？")) {
+				$("#card_data_area input[type='checkbox']:checked").each(function(){
+					ids.push($(this).val());
+				});
+				var url = '/card/prize/del/?ids=' + ids;
+				window.location.href = url;
+				return true;
+			} else {
+				return false;
+			}
+		});
+		var the_url = document.location.href;
+		$('.choose_batch a').each(function(){
+			if(the_url.indexOf($(this).attr('href'))!=-1){
+				$(this).css({"color":"black","font-weight":"bolder"});
+				return;
+			}
+		});		
+	})
+</script>
+{% endblock %}
+

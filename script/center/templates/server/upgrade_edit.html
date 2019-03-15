@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>更新包编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	<a href="/upgrade/list">更新包列表</a> -> 更新包编辑
+	<div class="buttons">
+		<a href="/upgrade/list">返回</a>
+	</div>
+</div>
+
+<form action="/upgrade/save?model_id={{model.id}}" method="post">
+	<table class="form">
+		<tr>
+			<th>版本名及版本号：</th><td><input type="text" name="ver_name" size="7" value="{{model.ver_name}}" />.<input type="text" name="ver_num" size="4" value="{{model.ver_num}}" /> 版本号为SVN版本号</td>
+		</tr>
+		<tr>
+			<th>最低客户端版本:</th><td><input type="text" name="min_client_ver" size="20" class="input-xs input-number" value="{{model.min_client_ver}}" /></td>
+		</tr>
+		<tr>
+			<th>更新备注：</th><td><textarea name="remark">{{model.remark}}</textarea></td>
+		</tr>
+
+		<tr>
+			<th>可更新版本：</th><td><input type="text" name="client_ver" size="50" value="{{model.client_ver}}" /> 输入数字部份即可,多个用逗号隔开</td>
+		</tr>
+
+		<tr>
+			<th><a href="/server/group/group_list">可更服务分区</a>：</th>
+			<td>
+				<label><input type="checkbox" checkbox-area="select_group_area" />全选</label>
+			</td>
+		</tr>
+		<tr>
+			<th></th>
+			<td id="select_group_area">
+				{%for item in group_list%}
+				<label><input type="checkbox" name="group_id" value="{{item.id}}"{%if item in select_group %} checked="checked"{%endif%} /> {{item.name}}</label>
+				{%endfor%}
+			</td>
+		</tr>
+		<tr><th><a href="/manage/channel/list">可更新渠道</a>：</th>
+			<td><hr>
+			</td>
+		</tr>
+		<tr>
+			<th></th>
+				<td>
+					{% include "widgets/agent_channel.html" with agent_channels_dict=agent_channels_dict select_channel_ids=select_channel_ids %}
+				</td>
+			</tr>
+
+			<tr>
+				<th>文件大小描述：</th><td><input type="text" name="filesize" size="7" value="{{model.filesize}}" /> 例如:12.5M</td>
+			</tr>
+
+            <tr>
+              <th>关闭健康游戏公告：</th>
+              <td>
+                <label class="inline">
+                    <input type="checkbox"  value="1" {%ifequal model.notice_switch 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="notice_switch" role="checkbox" class="FormElement ace ace-switch ace-switch-5">
+                    <span class="lbl"></span>
+                    </label>
+                </td>
+            </tr>
+
+			<tr>
+				<th>ios整包更新地址：</th><td><input type="text" name="ios_url" size="50"  value="{{model.ios_url}}" /></td>
+			</tr>
+			<tr>
+				<th>android整包地址：</th><td><input type="text" name="android_url" size="50"  value="{{model.android_url}}" /></td>
+			</tr>
+			<tr>
+				<th>增量包更新地址：</th><td><input type="text" name="increment_url" size="50"  value="{{model.increment_url}}" /></td>
+			</tr>
+			<tr>
+				<th>分包下新地址：</th><td><input type="text" name="subpackage_url" size="50"  value="{{model.subpackage_url}}" /></td>
+			</tr>
+			<tr>
+				<th>分包MD5值：</th><td><input type="text" name="md5_num" size="50"  value="{{model.md5_num}}" /></td>
+			</tr>
+			<tr>
+				<th>下载页面URL：</th><td><input type="text" name="page_url" size="50"  value="{{model.page_url}}" /></td>
+			</tr>
+			<tr>
+				<th>发布时间：</th><td><input type="text" name="create_time" size="50" class="Wdate" value="{{model.create_time_str}}" /></td>
+			</tr>
+
+			<tr>
+				<th>
+
+				</th>
+				<td><input type="submit" value="保存" /></td>
+			</tr>
+		</table>
+		{% csrf_token %}
+	</form>
+	{% endblock %}

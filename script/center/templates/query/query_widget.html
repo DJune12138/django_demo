@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>{{the_query.name}} 插件</title>
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}	
+<form id="form_{{query_analysis.query.id}}">
+<div class="col-xs-12 widget-container-span ui-sortable">
+        <div class="widget-box transparent">
+            <div class="widget-header widget-header-small  header-color-blue">
+                <h6>
+                    {{query_analysis.query.name}}
+                </h6>
+
+
+                <div class="widget-toolbar">
+                    <a href="#" data-action="settings" title="条件设置" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-cog"></i>
+                    </a>
+                        <ul class="dropdown-menu dropdown-navbar pull-right dropdown-menu-not-hide">
+                        	<li data-filter-camera-type="Bravo"><a data-toggle="tab" href="#">条件设置</a></li>
+		            <li data-filter-camera-type="all" >
+
+			{% if has_conditions %}
+					{% for name,config in conditions_configs.items %}
+					{% if config.search and config.name%}
+					<span style="margin-left:10px;display: inline-block;">
+					<b>{{name}}:</b>
+						 {%if config.multiple and config.dict %}
+						 <!-- 多条件 select 定值只能选dict内的值-->
+						<select  name="{{config.name}}"multiple="multiple"{%if config.dict%}chosen_key="{{config.dict}}" value_format="__value__(__key__)" {%endif%} data-placeholder="选择{{name}}.." data-default-value="{{config.value}}"></select>
+						
+						{#% elif config.multiple and config.dict %#}
+
+						{% elif  config.multiple%}
+						<!-- 多条件输入框 -->
+						<textarea name="{{config.name}}" style="vertical-align: middle;min-height: 38px;width:130px" placeholder="支持使用回车,空格 或者,多个输入">{{config.value}}</textarea>
+
+						{% elif config.single %} 
+							{% for k,v in config.value.items%}
+								<label><input name="{{config.name}}" type="radio" class="ace" value="{{k}}" {%if forloop.first%} checked="checked"{%endif%}><span class="lbl">{{v}}</span></label>
+							{%endfor%}
+						{% elif config.fixed%} 
+						<!-- 单条件 checkbox 开关-->
+						<label>
+							<input  name="{{config.name}}" class="ace ace-switch ace-switch-7" value="{{config.dict}}" {%if config.value %}checked="checked" disabled ="true"{%endif%} type="checkbox">
+							<span class="lbl"></span>
+						</label>
+						{% else %}
+						<!-- 单条件输入框 -->
+						<input type="text" name="{{config.name}}" class="{%if '时间' in name %}Wdate{%else%}input-small {%endif%}" {%if config.dict%}select_key="{{config.dict}}" {%endif%}value="{%if '时间' in name %}{{sdate}}{%else%}{{config.value}}{%endif%}" >
+						{%endif%} 
+					{% endif %}
+					</span>
+					{% endfor %}
+			{% endif%}
+
+
+		            </li>
+		            <li data-filter-camera-type="Bravo">刷新间隔:
+		            	<input type="number" id="refresh-num" class="input-small" value="5">分钟
+		            </li>
+
+		            <li data-filter-camera-type="Bravo">项目数:
+		            	<input type="number" name="page_size" class="input-small" value="7">
+		            </li>
+
+		    		 </ul>
+
+                    <a href="#" id="reload_{{query_analysis.query.id}}" data-action="reload">
+                        <i class="icon-refresh"></i>
+                    </a>
+
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+
+<!--                     <a href="#" data-action="close">
+                        <i class="icon-remove"></i>
+                    </a> -->
+                </div>
+            </div>
+
+            <div class="widget-body"><div class="widget-body-inner" style="display: block;">
+                <div class="widget-main">
+                    {% include "query/plugins/图表e.html"%}
+                </div>
+            </div></div>
+        </div>
+</div>
+</form>
+
+
+<script type="text/javascript">
+var $SEARCH_FORM_{{query_analysis.query.id}} = $('#form_{{query_analysis.query.id}}')
+var $RELOAD_BTN = $('#reload_{{query_analysis.query.id}}')
+
+function getFormData_{{query_analysis.query.id}}(){
+	var aObjData = $SEARCH_FORM_{{query_analysis.query.id}}.serializeArray()
+	
+	aObjData.push(
+	 		{"name":"edate","value":GetDatetimeStr()}
+	 )
+	console.dir(aObjData)
+	return aObjData
+}
+var $REFRESH = $('#refresh-num')
+
+</script>
+
+<script type="text/javascript">
+
+
+var ec = new Echarts('charts-div')
+ec.opt.toolbox.show = true
+ec.opt.toolbox.orient = 'vertical'
+ec.opt.toolbox.x = 'right'
+ec.opt.toolbox.y = 'center'
+// ec.opt.legend.orient = 'vertical'
+// ec.opt.legend.x = 'right'
+// ec.opt.legend.y = 'center'
+ec.opt.legend.borderWidth = 1
+
+var refresh_loop = null
+$RELOAD_BTN.click(function(){
+	var data = getFormData_{{query_analysis.query.id}}()
+	$.ajax({
+		url: '{{request.get_full_path}}',
+		type: 'POST',
+		dataType: 'json',
+		data: data,
+	})
+	.done(function(data) {
+		console.dir(data)
+		if(data.list_data.length>0){
+			//ec.opt.title.text = data.query_name
+			ec.push_data(data.list_data,data.fields,true)
+			ec.done()
+		}
+	})
+	.fail(function() {
+		console.log("error");
+	})
+	console.dir(refresh_loop)
+	clearTimeout(refresh_loop)
+	var intervalue = parseInt($REFRESH.val()) * 1000 * 60
+	refresh_loop= setTimeout(function(){
+		$RELOAD_BTN.trigger('click')
+	},intervalue)
+
+})
+
+$RELOAD_BTN.trigger('click')
+
+
+</script>
+
+{% endblock %}
+

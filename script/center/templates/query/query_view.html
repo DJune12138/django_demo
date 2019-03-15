@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>{{the_query.name}}</title>
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}	
+
+<div class="bar">
+	{% if  request.allow_menu.查询管理%}
+	<a href="/log/log/log_list">日志类型列表-></a>
+	<a href="/query/list?log_key={{the_query.log_key}}">查询列表-></a>
+	{% endif %}
+	{{the_query.name}}
+	<div class="buttons">
+		{% if request.allow_menu.清除缓存 %}
+		<a href="/query/clear/cache" class="openDialog">清除缓存</a>
+		{% endif%}
+		{% if request.allow_menu.查询_编辑 and the_query.id%}
+		<a href="/query/edit?query_id={{the_query.id}}" class="openDialog" target='_blank'>编辑</a>
+		{% endif %}
+		{% if  request.allow_menu.查询管理 and the_query.id%}
+		<a href="/query/list?log_type={{the_query.log_type}}">返回</a>
+		{% endif %}
+	</div>
+</div>
+
+<!-- 对管理员公开 -->
+{% if request.allow_menu.查询权限 %}
+<!-- <div class="sub-menu sortable" id="query_nav">
+	{%for item in same_log_key_query_list%}
+	<a href="/query/view?query_name={{item.name}}" {%ifequal item.id the_query.id%} class="active"{%endifequal%}>{{item.name}}</a>
+	{%endfor%}
+</div> -->
+{% endif %}
+
+<div id="search_form"  method="post" >
+
+<div class="widget-box condition ">
+	<div class="widget-header  widget-header-small header-color-blue" >
+			<h5></h5>
+				{% if has_sdate or has_edate%}
+
+					<span>
+						{% if has_sdate %}
+							<span style="display: inline-block;">
+							<b>开始日期:</b><input type="text"  style="font-weight: bold;color: black;" name="sdate" class="Wdate" value="{{sdate}}" />
+							</span>
+						{% endif %}
+						{% if has_edate %}
+							<span style="display: inline-block;">
+							<b>结束日期:</b><input type="text" style="font-weight: bold;color: black;" name="edate" class="Wdate" value="{{edate}}" />
+							</span>
+						{% endif %}
+					<div id="date_select_cont" class="inline  position-relative dropdown-hover">
+						
+								<button data-toggle="dropdown" class="btn btn-primary btn-sm dropdown-toggle">
+									快捷选择
+									<span class="icon-caret-down icon-on-right"></span>
+								</button>
+								<ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-caret dropdown-close pull-right">
+													<li>
+														<a href="javascript:setSelectDate(-2,-2,true);">前天</a>
+													</li>
+
+													<li>
+														<a href="javascript:setSelectDate(-1,-1,true);">昨天</a>
+													</li>
+
+													<li>
+														<a href="javascript:setSelectDate(0,0,true);">今天</a>
+													</li>
+
+													<li>
+														<a href="javascript:setSelectDate(-3,-1,true);">近三天</a>
+													</li>
+
+													<li>
+														<a href="javascript:setSelectDate(-7,-1,true);">近七天</a>
+													</li>
+													<li>
+														<a href="javascript:setSelectDate(-14,-1,true);">近十四天</a>
+													</li>
+													<li>
+														<a href="javascript:setSelectDate(-(new Date().getDay()-1),0,true);">今周</a>
+													</li>
+													<li>
+														<a href="javascript:setSelectDate(-(new Date().getDate()-1),0,true);">今月</a>
+													</li>
+								</ul>
+					</div>
+					</span>
+
+				{% endif %}
+
+                {% if has_sd or has_ed%}
+
+					<span>
+						{% if has_sd %}
+							<span style="display: inline-block;">
+							<b>开始日期:</b><input type="text"  style="font-weight: bold;color: black;" name="sd" class="Wdate" value="{{sd}}" />
+							</span>
+						{% endif %}
+						{% if has_ed %}
+							<span style="display: inline-block;">
+							<b>结束日期:</b><input type="text" style="font-weight: bold;color: black;" name="ed" class="Wdate" value="{{ed}}" />
+							</span>
+						{% endif %}
+					</span>
+
+				{% endif %}
+
+				{% if has_neibuhao %}
+					<label>内部号过滤:
+						<input  name="use_neibuhao" class="ace ace-switch ace-switch-2" type="checkbox" value="true">
+						<span class="lbl"></span>
+					</label>
+				{% endif %}
+			<div class="widget-toolbar">
+				<a href="#"  title="展开其他条件" data-action="collapse">
+					<i class="1 icon-chevron-up bigger-125"></i>
+				</a>
+			</div>
+			<div id="search-toolbar" class="widget-toolbar no-border">
+				<!-- 切换服务器自动查询 -->
+							{%if not is_center_query%}
+							<label title="切换服务器自动查询">自动查询:
+								<input id="auto-query-btn" name="auto_query" class="ace ace-switch ace-switch-7" type="checkbox" value="true">
+								<span class="lbl"></span>
+							</label>
+							{%endif%}
+							<div class="btn-group " style="  top: 2px;">
+								<a id="search_btn"  class="btn btn-sm btn-success ">
+									<i class="icon-search "></i>查询
+								</a>
+								{% if request.allow_menu.查询_导出%}
+								<a data-toggle="dropdown" class="btn btn-sm  btn-success dropdown-toggle">
+									<span class="icon-caret-down icon-only"></span>
+								</a>
+								<ul class="dropdown-menu">
+									<li>
+										<a href="javascript:;" id="export_all_btn" class="" >
+											<i class="cus-table-go"></i>
+											导出全部
+										</a>
+									</li>
+									<li>
+										<a href="javascript:;"  id="export_currently_btn">
+											<i class="cus-page-excel"></i>
+											导出当前
+										</a>
+									</li>
+								</ul>
+								{% endif %}
+							</div>
+				</div>
+
+	</div>
+	<div class="widget-body padding-16 " >
+		<div class="widget-body-inner" style="display: block;">
+		<table id="conditions-table" class="width-100 table" >
+
+			{% if  has_platform%}
+			<tr> 
+				<th>游戏平台选择:</th>
+				<td>
+					{% include "widgets/platform.html" with platform_list=platforms is_key=1 all_checked=0%}
+				</td>
+			</tr> 
+			{%else%}
+
+				{% if has_server %}
+				<tr> 
+					<th>服务器选择:</th>
+					<td>
+
+						{% if is_center_query %}
+							{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict %}
+					    {%else%}
+							{% include "widgets/group_server_select.html" with group_servers_dict=group_servers_dict server_id=server_id%}
+						{% endif %}
+					</td>
+				</tr> 
+				{% endif %}
+
+				{% if has_channel%}
+				<tr>
+					<th>渠道选择:</th>
+					<td>
+						{% include "widgets/agent_channel.html" with group_channels_dict=group_channels_dict select_channel_ids=role.resource_ids.channel %}
+					</td>
+				</tr>
+				{% endif %}
+			{%endif%}
+
+			{% if has_conditions %}
+			<tr>
+				<th>其他条件:</th>
+				<td>
+					{% for name,config,order_num in conditions_configs %}
+					{% if config.search and config.name%}
+					<span style="margin-left:10px;display: inline-block;">
+					<b>{{name}}:</b>
+						 {%if config.multiple and config.dict %}
+						 <!-- 多条件 select 定值只能选dict内的值-->
+						<select  name="{{config.name}}"multiple="multiple" {%if config.dict%}chosen_key="{{config.dict}}" {%if config.merge_value%}value_format="__value__(__key__)" {%else%}{%endif%}value_format="__value__" {%endif%} data-placeholder="选择{{name}}.." data-default-value="{{config.value}}" ></select>
+						
+						{#% elif config.multiple and config.dict %#}
+						<!-- !多条条件非定值 tag -->
+<!-- 						<span>
+							<input type="text" name="{{config.name}}"  value="{{config.value}}" tag_key="{{config.dict}}" value_format="__value__(__key__)"  placeholder="选择{{name}}.." >
+						</span> -->
+						{% elif  config.multiple%}
+						<!-- 多条件输入框 -->
+						<textarea name="{{config.name}}" style="vertical-align: middle;min-height: 38px;width:130px" placeholder="支持使用回车,空格 或者,多个输入">{{config.value}}</textarea>
+
+						{% elif config.single %} 
+							{% for k,v in config.value.items%}
+								<label><input name="{{config.name}}" type="radio" class="ace" value="{{k}}" {%if forloop.first%} checked="checked"{%endif%}><span class="lbl">{{v}}</span></label>
+							{%endfor%}
+						{% elif config.fixed%} 
+						<!-- 单条件 checkbox 开关-->
+						<label>
+							<input  name="{{config.name}}" class="ace ace-switch ace-switch-7" value="{{config.dict}}" {%if config.value %}checked="checked" disabled ="true"{%endif%} type="checkbox">
+							<span class="lbl"></span>
+						</label>
+						{% else %}
+						<!-- 单条件输入框 -->
+						<input type="text" name="{{config.name}}" class="{%if '时间' in name %}Wdate{%else%}input-small {%endif%}" {%if config.dict%}select_key="{{config.dict}}" {%endif%}value="{%if '时间' in name and config.dict%}{{sdate}}{%else%}{{config.value}}{%endif%}" >
+						{%endif%} 
+					{% endif %}
+					</span>
+					{% endfor %}
+					
+				</td>
+			</tr>
+			{% endif%}
+	
+		</table>
+
+		</div>	
+	</div>
+</div>	
+</div>	
+
+<div class="hr"></div>
+
+<div class="sortable">
+	<div id="plugins-cont" >
+	<table id="query_table" class="table  table-striped table-hover" >
+		<thead >
+			<tr>
+				{%for field in the_query.selects%}
+				<th>{{field}}</th>
+				{%endfor%}
+			</tr>
+		</thead>
+		<tbody></tbody>
+	  	<tfoot style="font-weight: bold;"></tfoot>
+	</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+// 定义全局变量
+var $SEARCH_FORM = $('#search_form'),
+    QUERY_URL = "{{request.get_full_path|safe}}",
+    QUERY_NAME = "{{the_query.name}}",
+    $CONT = $('#plugins-cont'),                           
+    $SEARCH= $('#search_btn'),                           //查询按钮
+    $EXPORT_ALL = $('#export_all_btn'), 			     //导出按钮
+    $EXPORT_CURRENTLY = $('#export_currently_btn'),      // 导出当前按钮
+    $QUERY_TABLE = $('#query_table'),
+    FIELDS = {{the_query.selects|json_dumps|safe}},
+    TH = {},
+    LIST_DATA = null
+
+// 隐藏搜索条件
+function hideSearchToolbar(){
+	
+	$('[data-action="collapse"]').trigger('click')
+	{%if not request.admin.is_root %}
+	$('#query_nav').hide()
+	$('[data-action="collapse"]').hide()
+	{%endif%}
+
+}
+
+// 表头的索引
+function getThindex(thText){
+	return $CONT.find('table:first thead th:contains("'+thText+'"):first').index()
+}
+
+for(var i in FIELDS) {
+	var field = FIELDS[i]
+	TH[field] = getThindex(field)
+}
+//获取输入条件的值
+function getFormData(){
+	var aObjData = $SEARCH_FORM.find('[name]').serializeArray()
+	return aObjData
+}
+
+function setTableCheckbox(checked){
+	$QUERY_TABLE.find('tbody :checkbox[value]').prop('checked',checked)
+}
+
+{%if server_id%}
+$(function(){
+	hideSearchToolbar()
+})
+{%endif%}
+</script>
+
+{% include 'query/plugins/datatable.html' %}
+
+{% if plugin_templates %}
+	{% for tpl in plugin_templates%}
+	{% include tpl %}
+	{%endfor%}
+{% endif %}
+
+{% if request.allow_menu.查询_导出%}
+	{% include 'query/plugins/export.html' %}
+{%endif%}
+
+<script type="text/javascript">
+$(function(){
+	{%if not is_center_query%}
+
+	function is_auto_query(){
+		return localStorage.getItem('auto-query')=='true'
+	}
+
+	if(is_auto_query()){
+		$('#auto-query-btn').prop("checked",is_auto_query())
+		$('[name="server_id"]').val(localStorage.getItem('auto-query-server_id'))
+        console.log('jjjjjjjjjjjjj',$('[name="server_id"]').val())
+		$SEARCH.trigger('click')
+	}
+
+	$('#auto-query-btn').click(function(){
+		localStorage.setItem('auto-query',$(this).is(":checked"))
+	})
+
+	$('[name="server_id"]').change(function(event) {
+		if(is_auto_query()) {
+			$SEARCH.trigger('click')
+			localStorage.setItem('auto-query-server_id',this.value)
+
+		}
+	});
+	
+	{%endif%}
+})
+
+</script>
+
+{% if the_query.remark %}
+<div class="hr"></div>
+<div class="alert alert-info">
+				<button type="button" class="close" data-dismiss="alert">
+					<i class="icon-remove"></i>
+				</button>
+				<strong></strong>
+					{{the_query.remark|linebreaksbr}}
+				<br>
+</div>
+{% endif %}
+
+
+
+{% endblock %}
+

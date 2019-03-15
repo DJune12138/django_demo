@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>字典类编辑</title>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    <a href="/log/dict/list">字典列表</a> &nbsp;->字典
+    {%if m.id%}
+        编辑
+    {%else%}
+        增加
+    {%endif%}
+
+	<div class="buttons">
+		<a href="/log/dict/list">返回</a>
+	</div>
+</div>
+
+<form action="/log/dict/save/?id={{m.id}}" method="post"  >
+    <table class="form">
+        <tr>
+                <th>标识key名:</th><td><input  maxlength=50 type="text" name="key" value="{{m.key}}"></td>
+        </tr>
+        <tr>
+                <th>字典名:</th><td><input  maxlength=100 type="text" name="name" value="{{m.name}}"></td>
+        </tr>
+        <tr>
+                <th>属组:</th><td><input  maxlength=50 type="text" name="group" value="{{m.group}}" select_key="dict_group">
+
+
+                </td>
+        </tr>
+        <tr>
+                <th>备注:</th>
+                    <td>
+                        <textarea  maxlength=400 name="remark" >{{m.remark}}</textarea>
+
+                    </td>
+        </tr>
+        <tr>
+                <th>字典的类型:</th><td>
+          
+                    <select name="type" svalue="{{m.type}}">
+                        {% for t in m.SELECT_CHOICES %}
+                        <option value="{{t.0}}" default_json='{{t.2}}' >{{t.1}}</option>
+                        {% endfor %}
+                    </select> 
+                    <a id="quick_add" href="javascript:void(0)">快速添加</a>
+                    
+
+            </td>
+        </tr>
+        <tr>
+                <th>键值:</th>
+                    <td  id="{{ m.id }}">
+                        <textarea name="dict" class="textarea-json">{{m.json_dict}}</textarea>
+                        <textarea name="earn" class="textarea-json" style="display: none">{{ea.json_dict}}</textarea>
+                    </td>
+        </tr>
+        <tr><td></td><td><hr><input type="submit" id="dict_save" value="保存"></td></tr>
+        <tr>
+            <th>帮助:</th>
+            <td>
+                <pre>
+图片键值：
+        例如：img_path_format：showGirlWholeBody/sg___key__.png
+        图片路径：/static/img/showGirlWholeBody/sg_1000.png
+                </pre>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<div id="quick_div" style="display:none" >
+     每行以逗号或空格分割项目编号 <label><input type="checkbox" id="key_in_left" >右边为key *通常为id</label>
+     <textarea id="quick_textarea" style="height:300px"></textarea>
+     {% if id == 88 %}
+     <textarea id="quick_textarea2" style="height:300px"></textarea>
+     {% endif %}
+     <br>
+     <input id="quick_btn_save" type="button" value="确定">
+     <label><input type="checkbox" id="quick_append" checked="checked" >追加</label>
+</div>
+<script>
+
+function text_split_to_json(text,k_index){
+//字符串转json
+    var lines = text.split(/\n/);
+    var _dict = {};
+    k_index = k_index?1:0;
+    var v_index = k_index==0?1:0;
+    // console.dir([k_index,v_index])
+    for (var i in lines){
+        var line = lines[i];
+        var fields = line.split(/[,\t ]+/);
+        if (fields.length>=2){
+            _dict[fields[k_index]] = fields[v_index]
+        }
+    }
+    //console.dir(_dict)
+    return _dict
+}
+
+
+function Dict_Editor(textarea_obj,earn_obj){           //////////////////////字典编辑器
+    var This = this
+    var textarea_obj = textarea_obj
+    var container = textarea_obj.parent()
+    var earn_obj = earn_obj                       //////////////////////
+    var container2 = earn_obj.parent()          //////////////////////
+    this.is_textarea_hide = false
+    this.textarea_obj = textarea_obj
+    $("#quick_add").after($('<a>',{'html':'[ 转换 ]','style':"margin-left:10px; color:red;",'href':"javascript:void(0)",click:function(){
+        This.toggle()
+
+    }
+    }))
+    this.show_input = function(){
+            This.to_inputs()
+            This.is_textarea_hide = true
+            textarea_obj.hide()
+    }
+
+    this.hide_input = function(){
+            var div_cont = textarea_obj.nextAll('div')
+            This.to_dict(div_cont)
+            This.is_textarea_hide = false
+            textarea_obj.show()
+            div_cont.remove()
+    }
+
+    this.toggle = function(){//转换
+        if (This.is_textarea_hide){
+            This.hide_input()
+
+        }else{
+            This.show_input()
+
+        }
+    }
+
+    this.to_dict=function(div_cont){
+        //json转为字典
+        var _dict = {}
+        var era={}
+        div_cont.find('div').each(function(i,ele){
+            var _k_v = $(this).find(':text')
+            if (_k_v[0].value && $('textarea[name="earn"]').val()){
+                _dict[_k_v[0].value] = _k_v[1].value
+                era[_k_v[0].value] = _k_v[2].value
+                earn_obj.val(JSON.stringify(era))
+            }else {
+               _dict[_k_v[0].value] = _k_v[1].value
+            }
+
+        })
+        textarea_obj.val(JSON.stringify(_dict))
+        console.log(JSON.stringify(_dict))         ////////////////////////
+
+    }
+
+   this.to_inputs = function(){ //json转为输入框
+        var _dict = $.parseJSON(textarea_obj.val())
+        _dict = $.isEmptyObject(_dict)?{"":""}:_dict
+        textarea_obj.nextAll('div').remove()
+
+        var _inputs_div =  $('<div>')
+
+        for (var i in _dict){
+
+            _inputs_div.append(This._make_div_input(i,_dict[i],$('[name="earn"]')))    //////////////////
+        }
+
+        _inputs_div.append($('<a>',{"html":"增加","href":"javascript:void(0)",click:function(){
+            $(this).before(This._make_div_input("","",""))
+        }}))
+        /*
+        _inputs_div.append($('<a>',{"html":"转换","href":"javascript:void(0)","style":"float:right",click:function(){
+           This.toggle()
+        }}))
+        */
+        container.append(_inputs_div)
+        
+    }
+    
+    this._make_div_input = function(key,value,earn){
+        if (earn){
+          var _earn = $.parseJSON(earn.val());
+          var _div = $('<div>')
+         _div.append('键:')
+         _div.append($('<input>',{type:"text",val:key,name:"key"}))
+         _div.append('游戏名:')
+         _div.append($('<input>',{type:"text",val:value,name:"value"}))
+         _div.append('后台名:')
+         _div.append($('<input>',{type:"text",val:_earn[key],name:"l-earn"}))
+         _div.append($('<a>',{html:"x",href:"javascript:void(0)",click:function(){
+         _div.remove()
+         }}))
+         return _div
+        }else {
+         var _div = $('<div>')
+         _div.append('键:')
+         _div.append($('<input>',{type:"text",val:key,name:"key"}))
+         _div.append('游戏名:')
+         _div.append($('<input>',{type:"text",val:value,name:"value"}))
+         _div.append('后台名:')
+         _div.append($('<input>',{type:"text",val:earn,name:"l-earn"}))
+         _div.append($('<a>',{html:"x",href:"javascript:void(0)",click:function(){
+         _div.remove()
+         }}))
+         return _div
+        }
+    }
+}
+
+
+
+$('#quick_add').click(function(){
+    $('#quick_textarea').val('')
+    $('#quick_div').dialog({"   title":"快速添加","top":"25%"})
+
+})
+
+//快速输入
+$('#quick_btn_save').click(function(){
+   var dict_container = $('[name="dict"]')
+   var dict_earn = $('textarea[name="earn"]')                             ////////
+   var dict_input = text_split_to_json($('#quick_textarea').val(),$('#key_in_left').is(':checked'));
+   if(earn_input)
+   var earn_input = text_split_to_json($('#quick_textarea2').val(),$('#key_in_left').is(':checked'));            ////////
+   var _dict = {}
+   var _earn = {}                                                    ////////
+   if($('#quick_append').attr("checked")){//如果是追加
+        var source_dict = JSON.parse(dict_container.val())
+        _dict = $.extend(source_dict,dict_input)
+         var source_dict2 = JSON.parse(dict_earn.val())              ////////
+        _earn = $.extend(source_dict2,earn_input)                    ////////
+   }else{
+        _dict = dict_input
+        _earn = earn_input                                   ////////
+   }
+   dict_container.val(JSON.stringify(_dict));
+   dict_earn.val(JSON.stringify(_earn))
+
+})
+
+//-----------------------------------
+var dict_editor = new Dict_Editor($('[name="dict"]'),$('textarea[name="earn"]'))
+
+//保存
+$('#dict_save').click(function(){
+    if(dict_editor.is_textarea_hide){
+         dict_editor.toggle()
+    }
+})
+var textarea_obj = dict_editor.textarea_obj
+
+$('[name="type"]').change(function(){
+
+    switch( parseInt(this.value))
+    {
+
+        case 1:
+            if (!confirm('确定切换到数据表？')){
+                return false
+            };
+        break;
+        case 2:
+            if (!confirm('确定切换到文件？')){
+                return false
+            };
+            
+        break;
+        case 3:
+            if (!confirm('确定切换到目录？')){
+                return false
+            };
+            
+        break;
+
+        default:
+
+        break
+    }
+
+
+    if(this.value != '0'){
+        console.dir( this[this.value])
+            var table_dict = $(this[this.value]).attr('default_json') 
+            textarea_obj.val(table_dict)
+            dict_editor.show_input()
+    }
+
+})
+
+
+
+</script>
+{% endblock %}

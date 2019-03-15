@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" /> 
+<meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, user-scalable=no" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="format-detection" content="telephone=no">
+<title>{{title}}</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<style>
+	body {
+		background-color: #270c08;
+		border: medium none;
+		color: #FDC581;
+		font-size: 200%;
+		line-height: 150%;
+		margin: 0;
+		padding:10px 20px;
+		overflow: auto;
+	}
+
+</style>
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '903494606362250',
+      xfbml      : true,
+      version    : 'v2.1'
+    });
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, 'script', 'facebook-jssdk'));
+</script>
+
+</head>
+<body>
+connect facebook.
+</body>
+<script type="text/javascript">
+var url = 'https://www.facebook.com/dialog/feed?'
+		+  'app_id=903494606362250'
+		+  '&display=popup&caption={{title|safe}}'
+		+  '&link={{share_link}}'
+		+  '&redirect_uri={{share_link}}'
+window.onload = function(){
+
+FB.login(function(){
+
+
+
+		FB.getLoginStatus(function(response) {
+		  if (response.status === 'connected') {
+
+		    var uid = response.authResponse.userID;
+		    var accessToken = response.authResponse.accessToken;
+
+		     FB.api('/me/feed', 'post', {
+			 		message: '{{msg|safe}}',
+			 		link: '{{share_link|safe}}',
+			 		picture:'{{pic_url}}',
+			 		name:'{{title|safe}}',
+			 		caption:'{{title|safe}}',
+			 		description:'{{msg|safe}}'
+			 	},function(response){
+			 		if (!response || response.error) {
+					    alert('Error occured');
+					  } else {
+					    alert('Post ID: ' + response.id);
+					 }
+					//window.location.href = url
+			    });
+
+
+		  } else if (response.status === 'not_authorized') {
+		    // the user is logged in to Facebook, 
+		    // but has not authenticated your app
+		  } else {
+		    // the user isn't logged in to Facebook.
+		  }
+		 })
+	}, {scope: 'publish_actions'});
+}
+</script>
+</html>

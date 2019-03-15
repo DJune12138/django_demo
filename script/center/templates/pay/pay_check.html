@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>充值审核</title>
+<script  type="text/javascript" src="/static/js/ajaxForm.js"> </script>
+<script type="text/javascript">
+function finish(result){
+	$("#tip_box").html(result);
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<form class="ajax" action="/pay/confirm?pay_id={{pay_id}}" todo="finish" method="get">
+	<input type="hidden" name="ajax" value="true" />
+
+<p class="green">小提示:首充超多100多加200</p>
+	<table class="list" style="width:100%;margin:0">
+		<tr>
+			<td><input type="submit" value="审核为金币已发放" /> | <a href="/pay/confirm/{{pay_id}}?cmd=resend" class="ask red">补发金币</a></td>
+			<td>  </td>
+		</tr>
+		<tr>
+			<td>
+
+				<iframe id="player_iframe" frameborder='0' width='100%' height='100%' src='/query/view/金币流水?log_user={{pay_action.pay_user}}&server_id={{pay_action.server_id}}&log_type=3108&template=table'  onload='$(this).height($(this).contents().find("body").height()+100)' ></iframe>
+			</td>
+		</tr>
+
+	</table>
+</form>
+
+{% endblock %}

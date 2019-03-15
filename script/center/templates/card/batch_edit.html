@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load mytags%}
+{% block title %}添加卡号种类{% endblock %}
+{% block header %}
+{% include 'game/resource_editor.html' with property_dict=property_dict resource_dict=resource_dict %}
+<style type="text/css">
+	.select_area ul li {
+		list-style-type: none;
+		padding: 1px 0;
+		display: inline;
+		width: 200px;
+		float: left;
+	}
+
+	.clear {
+		clear: both;
+		margin-top: 3px;
+	}
+	.batch {
+		width:100%;
+		padding:6px;
+	}
+	.batch .sub-menu-1 label {
+		display: inline-block;
+		width: 100px;
+		padding-right: 6px;
+		text-align: right;
+		color: #36588a;
+	}
+</style>
+{% endblock %}
+{% block content %}
+<script>
+$(document).ready(function(){
+	var rc = new ResourceInput()
+	function ConvertPrize(cont){
+		var This = this
+		var cont = cont
+		var textarea = $('[name="prize"]')
+
+
+		this.add_prize = function(prize_obj){
+				var prize_ele = rc.get_item_html(prize_obj)
+				prize_ele = $(prize_ele)
+				prize_ele.css('display','block')
+				cont.append(prize_ele)
+		}
+
+		this.toHtml = function(){
+			
+			var json_str = textarea.val()
+			var prize_obj = $.parseJSON(json_str)
+
+			for (var i in prize_obj) {
+				This.add_prize(prize_obj[i])
+			}
+			textarea.hide()
+			return true
+		}
+
+		this.toJson = function(){
+			var prize_array = []
+			if (!textarea.is(":hidden")) {
+				return true
+			}
+			if (!check_input_empty(cont)){
+				return false
+			}
+			cont.find('.equipitem').each(function(i,ele){
+				prize_array.push(
+						rc.to_json(ele)
+						)
+			})
+			cont.html('')
+			textarea.show()
+
+			textarea.val(JSON.stringify(prize_array))
+			return true
+		}
+
+	}
+
+	function convert_condition(){
+			var other_condition_ele = $('[name="other_condition"]')
+			var condition_json = other_condition_ele.val()
+			var condition_obj = $.parseJSON(condition_json)
+			console.dir(condition_obj)
+			for (var k in condition_obj){
+				var _condition = condition_obj[k]
+				var condition_value = $('.condition_cont').find('[condition_key="'+k+'"]').val()
+
+				if (_condition.type == 'int') {
+					condition_value = condition_value && !isNaN(condition_value) ? parseInt(condition_value) : 0
+				}
+				if (_condition.type == 'time') {
+					condition_value = condition_value ? datetime_str_to_timestamp(condition_value) : 0
+				}
+				condition_obj[k]['value'] = condition_value
+			}
+			
+			other_condition_ele.val(JSON.stringify(condition_obj))
+			return true
+
+	}
+	$('#test_condition').click(function(){
+		convert_condition()
+		console.dir($('[name="other_condition"]').val())
+	})
+	var cp = new ConvertPrize($(".input_area"))
+
+	$(".prize_config").click(function(){
+		if($(".prize_config").text() == "[辅助配置]"){
+			if (cp.toHtml()){
+				$(".prize_config").text("[快捷配置]");
+				$('#add-prize-btn').show()
+			}
+		}else{
+			if (cp.toJson()){
+				$(".prize_config").text("[辅助配置]")
+				$('#add-prize-btn').hide()
+			};
+			
+		}
+	});
+
+	$('#add-prize-btn').click(function(){	
+		cp.add_prize()
+
+	})
+
+	var stime_ele = $('[name="start_time"]')
+	var etime_ele = $('[name="end_time"]')
+	$('[name="end_time"]').keyup(function(event) {
+		if (datetime_str_to_timestamp(etime_ele.val()) < datetime_str_to_timestamp(stime_ele.val()) ) {
+			alert('结束时间不得早于起始时间!')
+			etime_ele.val(stime_ele.val())
+		}
+	});
+
+	$("#save_batch").click(function(){
+		var convert_ok = convert_condition() && cp.toJson()
+		var server_ids = get_server_ids()
+		if (server_ids.length<=0){
+			//alert('请选择礼品卡所适用服务器!')
+			alert('不选择服务器默认应用到所有服!')
+			//return false
+		}
+		event.preventDefault();
+		if (confirm('确定生成吗?') && convert_ok){
+			var url = "/card/batch/save?id={{model.id}}&is_dialog={{is_dialog}}";
+			var data = $("#batch_edit").serialize()
+
+			$.ajax({
+				url: url,
+				data:data,
+				type:"POST",
+				success: function(content){
+					art.dialog({"title":"提示","content":content})
+				}
+			})
+		}
+		// return confirm('确定生成吗?') && convert_ok
+	});
+
+})	
+</script>
+<div id="bar">
+	<a href="/card/batch/?status=1">礼包卡管理 </a> -> 添加卡号种类 <div class="buttons"> <a href="{{last_url}}">返回</a> </div>
+</div>
+<div class="batch">
+<form id="batch_edit" action="/card/batch/save?id={{model.id}}&is_dialog={{is_dialog}}" method="post">
+	<input type="hidden" name="last_url" value="{{last_url}}"/>
+	<div class="select_area">
+		<div class="sub-menu">
+			<div><b>渠道选择：</b></div>
+
+			{% include "widgets/agent_channel.html" with group_channels_dict=group_channels_dict select_channel_ids=select_channel_ids %}
+		</div>
+
+		<div class="clear">
+		<div class="sub-menu">
+			<div><b>服务器选择:</b></div>
+			{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids %}
+		</div>
+	</div>
+	<hr>
+	<table class="form">
+		<tr>
+			<th>礼包卡名：</th><td>
+			<input type="text" name="name" value="{{model.name}}" />（建议15字符以内）
+			</td>
+		</tr>		
+		<tr>
+			<th>标识：</th><td>
+			<input type="text" name="key" maxlength=3 value="{{model.key}}" {% if model.id %}readonly="readonly"{% endif %}/>3个字符如：aaa除了ilo<font color="red">(保存后不能修改)</font>
+			</td>
+		</tr>
+		<tr>
+			<th>每角色可用次数：</th>
+			<td>
+			<input type="number" min=0  name="limit_count" value="{{model.limit_count}}" class="input-mini input-number"/>
+			</td>
+		</tr>
+
+		<tr>
+			<th>每个卡号可用次数</th>
+			<td>
+			<input type="number" min=0  name="card_limit_count" value="{{model.card_limit_count}}" class="input-mini input-number"/>
+			</td>
+		</tr>
+
+{#		<tr>#}
+{#			<th>领取条件:</th>#}
+{#			<td><!--a id="test_condition" href="javascript:;">[测试]</a-->#}
+{#				<table class="condition_cont" style="width:100%">#}
+{#				{%for key,config in model.get_other_condition.items%}#}
+{#				<tr>#}
+{#				<th>{{config.name}}:</th>#}
+{#					<td>#}
+{##}
+{#						{%if config.type == 'int' %}#}
+{#						<input type="number" class="input-number input-mini" min=0 condition_key="{{key}}" value="{{config.value}}">#}
+{##}
+{#						{%endif%}#}
+{##}
+{#						{%if config.type == 'time' %}#}
+{#					<input type="text" class="Wdate" condition_key="{{key}}" value="{{config.value|timestamp2datetime}}">#}
+{#						{%endif%}#}
+{#						#}
+{#					</td>#}
+{#				</tr>#}
+{#				{%endfor%}#}
+{#				</table>#}
+{#				#}
+{#				<input type="hidden" name="other_condition" value="{{model.other_condition}}"/>#}
+{#			</td>#}
+{#		</tr>#}
+
+			
+		<tr>
+			<th>生效时间：</th>
+			<td>
+			<input type="text" name="start_time"  value="{% if model.id %}{{model.start_time|date:"Y-m-d H:i:s"}}{% else%}{{model.start_time}}{% endif %}" class="Wdate"/>
+			</td>
+		</tr>
+		<tr>
+			<th>失效时间：</th>
+			<td>
+			<input type="text" name="end_time" value="{% if model.id %}{{model.end_time|date:"Y-m-d H:i:s"}}{% else%}{{model.end_time}}{% endif %}" class="Wdate"/>
+			</td>
+		</tr>		
+		<tr>
+			<th>奖励：</th>
+			<td>
+				<a href="javascript:void(0);" class="prize_config ">[辅助配置]</a>
+				<a href="javascript:;" id="add-prize-btn" class="btn btn-xs btn-primary" style="display:none">增加奖励</a>
+			</td>
+		</tr>	
+		<tr>
+			<th></th>
+			<td>
+				<textarea rows='2' name='prize' data-type=''>{{prize}}</textarea>
+				<div class="input_area">
+				</div>
+				<div></div>
+				<div></div>
+			</td>
+		</tr>	
+		<tr>
+			<th>领卡服务器选项：</th><td>
+				<label><input type="radio" name="show" value="1" {% if model.show == 1 %}checked="checked"{% endif %}>显示</label>
+				<label><input type="radio" name="show" value="0" {% if model.show == 0 %}checked="checked"{% endif %}>隐藏</label>
+				<span style="color:red">（礼包卡领取地址页面服务器选择,是否能使用接口获取卡号）</span>
+			</td>
+		</tr>
+		<tr>
+			<th>备注内容：</th><td><textarea name="remark" style="width:600px;height:30px;">{{model.remark}}</textarea></td>
+		</tr>
+		<tr>
+			<th></th>
+			<td>
+			<input type="submit" value="保存" id="save_batch"/>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+
+{% endblock %}

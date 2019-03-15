@@ -1,0 +1,24 @@
+<script>
+// 填充排名
+
+dataTableOption.page_size=100
+dataTableOption.page_size_list=[10,50,100,200]
+
+TH['排名']
+dataTableOption.convertOutputDataFuncs = [function(data){
+  var page_size = data.page_size
+  var page_num = data.page_num
+  var list_data = data.list_data 
+  var n = page_num > 1 ? (page_num-1) * page_size : 0
+  for(var i in list_data){
+	var row = list_data[i]
+	n += 1
+	row[TH['排名']] = n
+
+	}
+
+return data
+}]
+
+
+</script>

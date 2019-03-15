@@ -1,0 +1,486 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title> {{TITLE}}{%if request.admin.id < 0 %}渠道 - {%endif%} </title>
+	{% include "header.html"%}
+
+<script>
+$(document).ready(function(){
+		var menu_list = [{%for item in list_menu%}{"id":"{{item.id}}","parent_id":"{{item.parent_id}}","name":"{{item.name}}","url":"{{item.url}}","icon":"{{item.icon}}","css":"{{item.css}}"},{%endfor%}{}];
+		function Menu(menu_list){
+			var This = this
+			var main_menu_ul = $('#menu_ul')
+			this.make_menu_list = function(parent_id) {
+				if ( typeof (menu_list) == 'undefined')
+					return;
+				var str = "";
+				for (var i = 0; i < menu_list.length; i++) {
+					var item = menu_list[i];
+					if (!item.name || item.parent_id != parent_id)
+						continue;
+
+					str += '<li>'
+					if(!item.icon &&item.parent_id=="0"){
+						item.icon = 'icon-bookmark'
+					}
+					var icon = item.icon ? '<span class="menu-icon"><i class="'+item.icon+'"></i></span>' : ''
+					var item_name = icon +'<span class="menu-text">' + item.name +'</span>'
+					var sub_menu_str = This.make_menu_list(item.id)
+					var item_a 
+					if (sub_menu_str!=''){
+					    item_a = '<a item_id="'+ item.id +'" pid="' + item.parent_id+'" style="'+ item.css +'" href="' + item.url + '"  title="' + item.name + '"  class="dropdown-toggle" >'  +  item_name  + '<b class="arrow icon-angle-down"></b></a><ul class="submenu" style="display: none;">' + sub_menu_str +'</ul>';
+					}else{
+						item_a = '<a item_id="'+ item.id +'" pid="' + item.parent_id+'" style="'+ item.css +'" href="' + item.url + '"  title="' + item.name + '" >' + '<i class="icon-double-angle-right"></i>' +  item_name  + '</a>';
+					}
+					str += item_a
+					str += '</li>'
+				}
+				return str;
+			}
+			this.load_menu_list = function(){
+				main_menu_ul.html(This.make_menu_list('0'))
+			}
+
+		}
+
+		try{
+			m = new Menu(menu_list)
+			m.load_menu_list()
+			//$('#menu-cont').height(window.screen.availHeight)
+		}catch(e){
+			art.dialog.alert('菜单获取失败!');
+		}
+
+		// tab菜单
+		function TabConcent(ul_id,connect_id){
+			var This = this
+			var tab_ul = $('#'+ul_id)
+			var tab_connect = $('#'+connect_id)
+			var active_iframe = null
+
+			this.add_tab = function(a_obj){
+				var _a_obj = $(a_obj)
+				var _url = _a_obj.attr('href') ? _a_obj.attr('href') : _a_obj.attr('url')
+				_url = _url ? _url : '#'
+				if (_url!='#' && _url && _url.indexOf('javascript')<0){
+					var _url_id = _url.replace(/[\/\?&="']/g, "_");
+					
+					var _iframe_obj = $('#'+_url_id)
+					if (_iframe_obj.length==0){
+						var _text = _a_obj.text()
+						var _iframe = $("<iframe frameborder='0' width='100%' height='100%' src='" + _url + "' id='" + _url_id + "'onload='$(this).height($(this).contents().find(\"body\").height()+100);'  name='" + _url_id + "' ></iframe>")
+						var _tab_li = $('<li>',{"class":'btn btn-xs btn-success',title:'双击关闭!','iframe_id':_url_id,
+							click:function(){return !This.add_tab(a_obj)},
+							dblclick:function(){This.close_tab(_iframe)},
+							})
+						var _tab_a = $('<a>',{style:"color:white",href:_url,'html':_text})
+
+						_tab_li.append($('<a>',{href:"#",html:'<i class="icon-refresh"></i>',click:function(){
+							window.frames[_url_id].location.reload()
+						}}))
+						
+						_tab_li.append(_tab_a)
+
+						_tab_li.append($('<a>',{href:"#",html:'<i class="red icon-remove"></i>',click:function(){
+							This.close_tab(_iframe)
+						}}))
+						tab_ul.append(_tab_li)
+						tab_connect.append(_iframe)
+						_iframe_obj = _iframe
+						
+					} 
+					
+					This.active_tab(_iframe_obj)
+					if (_a_obj.attr('id')=='home-page') {
+						_iframe_obj.tab_li.remove()
+					}
+					return true
+				}
+				return false
+			}
+			this.close_tab = function(_iframe_obj){
+				_iframe_obj.remove()
+				_iframe_obj.tab_li.remove()
+				var last_iframe = tab_connect.find('iframe:last')
+				if (last_iframe.length!=0){
+					This.active_tab(last_iframe)
+				}
+				
+			}
+			this.resize_iframe = function() {
+				var iframe_ele =$('#'+active_iframe.attr('id'))
+				var _height = iframe_ele.contents().find('body').height()
+				//console.dir(iframe_ele)
+				console.dir(_height)
+				
+				if ( Math.abs(_height-iframe_ele.height() ) >0 || (Math.abs(_height-iframe_ele.height())> _height * 0.2) ){
+						tab_connect.height(_height+50)
+						iframe_ele.height(_height+50)
+						
+				}
+
+				console.dir(iframe_ele.height())
+			}
+
+			this.active_tab = function(_iframe_obj){
+					if ( active_iframe && active_iframe!==_iframe_obj) {
+						active_iframe.tab_li.removeClass('btn-success')
+						active_iframe.hide()
+					}
+					_iframe_obj.show()
+					var iframe_id = _iframe_obj.attr('id')
+					_iframe_obj.tab_li = $('[iframe_id="' + iframe_id + '"]')
+					_iframe_obj.tab_li.addClass('btn-success')
+					active_iframe = _iframe_obj
+					This.resize_iframe()
+
+			}
+
+
+		}
+		// 载入自定菜单
+        $.ajax({
+            url : "/system/menu/user_menu_structure",
+            async : false,
+            success : function(response){
+                var data = $.parseJSON(response)
+                if(data.code == 1){
+                    var p = $("<p>", {style:"padding:10px; color:#808080; text-align:center; font-size:14px", html:"你还没有自定义的菜单"});
+                    $("#user_menu_ul").html(p);
+                    return false;
+                }
+                var user_menu = data.data;
+                var m = new Menu(user_menu);
+                $("#user_menu_ul").html(m.make_menu_list(0))
+            }
+        });
+
+
+        function HistoryMenu(){
+        	var This = this
+        	this.htstory_key = 'htstory_menu_list'
+        	this.history_cont = $('#history_menu_ul')
+        	this.history_list = localJson.get(this.htstory_key,[])
+        	this.max_history_num = 10
+
+        	this.load_history_list = function(){
+        		This.history_list = localJson.get(This.htstory_key,[])
+        		console.dir(This.history_list)
+        		return This.history_list
+        	}
+
+        	this.add_history_menu = function(ele){
+        		var html = $(ele).outerHTML()
+        		This.load_history_list()
+        		if ($.inArray(html, This.history_list)<0){
+        			This.history_list.push(html)
+        		}
+        		This.save_history_menu()
+        		This.make_history_menu()
+        	}
+
+        	this.save_history_menu = function(){
+        		if (This.history_list.length>=This.max_history_num){
+        			This.history_list.splice(0,1)
+        		}
+        		localJson.save(this.htstory_key,This.history_list)
+        	}
+
+        	this.make_history_menu = function(){
+        		this.history_cont.html('')
+        		for (var i in This.history_list){
+        			var menu_html = This.history_list[i]
+        			this.history_cont.append('<li>'+ menu_html +'</li>')
+        		}
+        	}
+
+        }
+
+        history_menu = new HistoryMenu()
+		tab_concent = new TabConcent('tab_ul','iframe_content');
+		$(document).on('click','.nav-list a,#home-page',function(e){
+			var is_tab = tab_concent.add_tab(this)
+			if (!$(this).is('#home-page') && is_tab) {
+			 history_menu.add_history_menu(this)
+			}
+			return !is_tab
+
+		})
+		history_menu.load_history_list()
+		history_menu.make_history_menu()
+
+		$('#home-page').trigger('click')
+
+})
+
+function menu_switch(ele,show_menu, hide_menu){
+	$('.open .btn').removeClass('dropdown-toggle')
+	$(ele).addClass('dropdown-toggle')
+	$('#menu-cont .nav-list').hide()
+    $("#"+show_menu+"menu_ul").show()
+}
+
+function async_message(){
+    var msg_box = $("#async_msg");
+    var url = "/system/message/message_list";
+
+    var option = {
+        url: url,
+        type: "GET",
+        data: {type: 0},
+        success: function(reps){
+            if(reps.length > 0){
+                msg_box.html(reps)
+            }
+        },
+        timeout: 30000,
+        error: function(){}
+    };
+
+    $.ajax(option);
+}
+
+var now_timestamp = {{now_timestamp}}
+function update_now_timestamp(){
+	now_timestamp += 1
+
+	$('#houtai_title').attr('title','后台现在时间 :' + timestamp_to_datetime_str(now_timestamp))
+}
+setInterval(update_now_timestamp,1000)
+</script>
+</head>
+
+<body>
+	<div class="navbar navbar-default" id="navbar">
+
+		<div class="navbar-container" id="navbar-container">
+			<div class="navbar-header pull-left">
+				<a href="#" class="navbar-brand bigger" title="" id="houtai_title">
+						<i class="icon-leaf"></i>
+						{{TITLE}}   {%if request.admin.id < 0 %}渠道 - {%endif%} 后台
+						<small></small>
+				</a><!-- /.brand -->
+			</div><!-- /.navbar-header -->
+
+			<div class="navbar-header pull-right" role="navigation">
+				<ul class="nav ace-nav">
+<!-- 					<li class="green">
+							<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+								<i class="icon-envelope icon-animated-vertical"></i>
+								<span class="badge badge-success msg_num">5</span>
+							</a>
+
+							<ul class="pull-right dropdown-navbar dropdown-menu dropdown-caret dropdown-close">
+								<li class="dropdown-header">
+									<i class="icon-envelope-alt"></i>
+									<span class="msg_num">5</span>条消息
+								</li>
+
+
+								<li>
+									<a href="#">
+										查看所有消息
+										<i class="icon-arrow-right"></i>
+									</a>
+								</li>
+							</ul>
+						</li> -->
+
+                    <!--消息通知-->
+                    <!--li class="purple" id="async_msg">
+
+                    </li-->
+
+					<li class="light-blue">
+						<a data-toggle="dropdown" href="#" class="dropdown-toggle">
+							<img class="nav-user-photo" src="/static/images/avatars/avatar2.png"/>
+							<span class="user-info">
+								<small>欢迎,</small>
+								{{request.admin.alias}}
+							</span>
+
+							<i class="icon-caret-down"></i>
+						</a>
+
+						<ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+							<li>
+								<a href="/system/admin/admin_edit_self" class="openDialog">
+									<i class="icon-user"></i>
+									密码修改
+								</a>
+							</li>
+							{% if request.allow_menu.用户自定义菜单%}
+                            <li class="divider"></li>
+                            
+                            <li>
+								<a href="/system/menu/user_menu_list" class="openDialog">
+									<i class="icon-list"></i>
+									用户自定义菜单
+								</a>
+							</li>
+							{%endif%}
+
+							<li class="divider"></li>
+							<li  class="dropdown-menu-not-hide">
+									<a href="#" id="ace-settings-btn" >
+										<i class="icon-cog"></i>设置
+									</a>
+									<div class="ace-settings-container" id="ace-settings-container">
+										<div class="ace-settings-box" id="ace-settings-box">
+											<div>&nbsp;&nbsp;&nbsp;&nbsp;
+												<button id="StranLink" class="btn btn-xs btn-white arrowed-in" for="set-language" onclick="StranBody()">繁體版
+												</button>
+											</div>
+
+											<div>
+												<input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-navbar" />
+												<label class="lbl" for="ace-settings-navbar"> 固定导航条</label>
+
+											</div>
+
+											<div>
+												<input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-sidebar" />
+												<label class="lbl" for="ace-settings-sidebar"> 固定菜单</label>
+
+											</div>
+
+											<div>
+												<input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-add-container" />
+												<label class="lbl" for="ace-settings-add-container">
+													切换窄屏
+													<b></b>
+												</label>
+											</div>
+
+										</div>
+								    </div>
+							</li>
+
+							<li class="divider"></li>
+							<li>
+								<a href="/logout">
+									<i class="icon-off"></i>
+									退出
+								</a>
+							</li>
+						</ul>
+					</li>
+				</ul><!-- /.ace-nav -->
+			</div><!-- /.navbar-header -->
+		</div><!-- /.container -->
+	</div> 
+	<div class="main-container" id="main-container">
+		<div class="main-container-inner">
+			<a class="menu-toggler" id="menu-toggler" href="#">
+				<span class="menu-text"></span>
+			</a>
+			<div class="sidebar" id="sidebar">
+				<div class="sidebar-shortcuts" id="sidebar-shortcuts">
+					<div class="sidebar-shortcuts-large open" id="sidebar-shortcuts-large">
+						<button id="system_menu_btn" class="btn btn-success" onclick="menu_switch(this,'','user_')" title="系统菜单">
+							<i class="icon-list"></i>
+						</button>
+
+						<button id="user_menu_btn" class="btn btn-info" onclick="menu_switch(this,'user_', '')" title="用户菜单">
+							<i class="icon-user"></i>
+						</button>
+
+						<button id="history_menu_btn" class="btn btn-warning" onclick="menu_switch(this,'history_', '')" title="访问历史">
+							<i class="cus-hourglass"></i>
+						</button>
+
+						<button id="laboratory_menu_btn" class="btn btn-purple">
+							<i class="icon-lightbulb"></i>
+						</button>
+					</div>
+
+					<div class="sidebar-shortcuts-mini" id="sidebar-shortcuts-mini">
+						<span class="btn btn-success"></span>
+						<span class="btn btn-info"></span>
+						<span class="btn btn-warning"></span>
+						<span class="btn btn-danger"></span>
+					</div>
+				</div><!-- #sidebar-shortcuts -->
+
+
+				<div id="menu-cont" >
+					<div id="tree1" class="tree" ></div>
+
+
+					<ul id="menu_ul" class="nav nav-list">
+
+					</ul><!-- /.nav-list -->
+
+                    <!-- 用户自定义菜单开始 -->
+                    <ul id="user_menu_ul" title="自定菜单" class="nav nav-list" style="display: none">
+
+					</ul>
+					 <!-- 历史菜单 -->
+                    <ul id="history_menu_ul" title="历史记录" class="nav nav-list" style="display: none">
+                    	
+					</ul>
+
+				</div>
+
+
+				<div class="sidebar-collapse" id="sidebar-collapse">
+					<i class="icon-double-angle-left" data-icon1="icon-double-angle-left" data-icon2="icon-double-angle-right"></i>
+				</div>
+
+
+			</div>
+
+
+			<div class="main-content">
+				<div class="breadcrumbs" id="breadcrumbs">
+					<ul class="breadcrumb" id="tab_ul">
+						<li><a href="/home" id="home-page" ><i class="icon-home home-icon"></i></a><li/>
+					</ul><!-- .breadcrumb -->
+				</div>
+
+				<div id="iframe_content">
+					
+				</div><!-- /.page-content -->
+			</div><!-- /.main-content -->
+
+		</div><!-- /.main-container-inner -->
+
+		<div id="shangxia">
+			<a href="#" id="shang" class="btn btn-sm btn-inverse" title="移至顶部">
+				<i class="icon-double-angle-up "></i>
+			</a>
+			<a  id="xia" href="javascript:void(0);" class=" btn btn-sm btn-inverse" title="↓ 移至底部" onclick="$('html,body').animate({scrollTop: $(document).height()},400)">
+				<i class="icon-double-angle-down "></i>
+			</a>
+		</div>
+
+	</div><!-- /.main-container -->
+
+	<script type="text/javascript">
+		if("ontouchend" in document) document.write("<script src='/static/assets/js/jquery.mobile.custom.min.js'>"+"<"+"script>");
+	</script>
+
+	<!-- ace settings handler -->
+	<script type="text/javascript">
+			try{ace.settings.check('navbar' , 'fixed')}catch(e){}
+			try{ace.settings.check('sidebar' , 'collapsed')}catch(e){}
+			try{ace.settings.check('breadcrumbs' , 'fixed')}catch(e){}
+			try{ace.settings.check('main-container' , 'fixed')}catch(e){}
+			try{ace.settings.check('sidebar' , 'fixed')}catch(e){}
+	</script>
+	{% include "shangxia.html"%}
+
+
+	
+	
+</body>
+
+<script>
+{% if  request.allow_menu.消息列表 %}
+   // async_message();
+   // setInterval(async_message, 60000);
+{% endif %}
+</script>
+</html>
+

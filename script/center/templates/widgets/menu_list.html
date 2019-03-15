@@ -1,0 +1,108 @@
+<!-- 菜单部件 -->
+    <table id="menu_table" class=" treetable" data-group-by-index='[4,5]'>
+        <thead>
+        <tr>
+            <th >
+                <div>
+                <input type="checkbox"   checkbox-area='menu_area'  >
+                <a href="javascript:;" onclick="$(this).closest('.treetable').treetable('expandAll'); return false;">展开</a> 
+                <a href="javascript:;" onclick="$(this).closest('.treetable').treetable('collapseAll'); return false;">收缩</a> 
+
+                <input id="search_menu" type="text" placeholder="Search ..." class="nav-search-input" id="nav-search-input" autocomplete="off">
+                </div>  
+            </th>
+            <th>URL</th>
+        </tr>
+        </thead>
+        <tbody id="menu_area">
+        {%for item in list_record %}
+            <tr data-tt-id="{{item.tt_id}}" data-tt-parent-id="{{item.tt_parent_id}}" trid='{{item.id}}' >
+                <td title="{%if item.is_show%}菜单{%else%}权限{%endif%} URL:{{item.url}}">
+                    <input type="checkbox"  class="select_checkbox" value="{{item.id}}" name="menu_id" {% if item.id in select_ids %}checked="checked"{%endif%}>
+                    {%if item.icon%}<i class="{{item.icon}}" /></i>{%endif%}
+                    <b style="{{item.css}}" >
+                    {{item.name}}
+                    </b>
+                </td>
+                <td>{{item.url}}</td>
+            </tr>
+        {%endfor%}
+        </tbody>
+    </table>
+
+
+
+<div  id="contextMenu" class="contextMenu">  
+    <ul>  
+        <li id="c_select_child" class="btn no-border btn-white "><i class="icon-check"></i>全选子项</li>   
+        <li id="c_cancel_select_child" class="btn no-border btn-white "><i class="icon-check"></i>取消子项</li>   
+    </ul>  
+</div>
+
+
+<script type="text/javascript">
+$(function(){
+     $('#menu_area tr').contextMenu('contextMenu',   
+     {  
+          bindings:   
+          {   
+            'c_select_child': function(t) {  
+               var selectTr = $(t)
+               var parentId = selectTr.attr('data-tt-id')
+               $('[data-tt-parent-id^="'+parentId+'"]').find(":checkbox").prop({"checked":true})
+            },
+            'c_cancel_select_child':function(t){
+            var selectTr = $(t)
+               var parentId = selectTr.attr('data-tt-id')
+               $('[data-tt-parent-id^="'+parentId+'"]').find(":checkbox").prop({"checked":false})
+            }
+  
+          }  
+  
+    });  
+})
+</script>
+
+<script type="text/javascript">
+$(function(){
+    var menuTreeTable = $('#menu_table')
+    var menuTrs = $('#menu_area tr')
+//            menuTreeTable.treetable('expandNode',parent_tt_id)
+    function showParenTr(childTr){
+        var parent_tt_id = childTr.attr('data-tt-parent-id')
+        if (parent_tt_id){
+            var parentTr = $('[data-tt-id="'+parent_tt_id+'"]')
+            menuTreeTable.treetable('expandNode',childTr.attr('data-tt-id'))
+            showParenTr(parentTr)
+        }
+        childTr.show()
+
+    }
+
+    $('#search_menu').keyup(function(event) {
+        var _value = $(this).val()
+        menuTrs.each(function(i,ele){
+            var trEle = $(ele)
+            var text = trEle.text()
+            if (text && text.indexOf(_value)>=0) {
+               //showParenTr(_tr)
+               //menuTreeTable.treetable('expandNode',_tr.attr('data-tt-id'))
+               trEle.show()
+            } else {
+               trEle.hide()
+            }
+        })
+        if (!_value) {
+             menuTreeTable.treetable('expandAll');
+        }
+    });
+    $('.select_checkbox_old').click(function(event) {
+        var This = $(this)
+        var _checked = This.is(':checked')
+        var tr = This.closest('tr')
+        var parentId = tr.attr('data-tt-id')
+        $('[data-tt-parent-id^="'+parentId+'"]').find(":checkbox").prop({"checked":_checked})
+        
+    });
+})
+</script>

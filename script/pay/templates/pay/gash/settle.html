@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//Dtd XHTML 1.0 Transitional//EN" "http://www.w3.org/tr/xhtml1/Dtd/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>GashPlus请款</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=yes;" />
+<link rel="stylesheet" type="text/css" href="/static/skin/mobile.css" />
+ 
+</head>
+
+<body>
+	<form method="post" action="{{url}}" > 
+		<input type="hidden" name="type" value="{{type}}" />
+		输入ID：<input type="text" name="id" value="{{item_id}}" />
+		<p>-------或输入以下--------</p>
+		游爱订单号：<input type="text" name="query_id" /><br/>
+		服务码：
+		<select name="pay_type" >
+			<option value="COPGAM02">卡密儲值</option>
+			<option value="BNK80801">玉山WebATM</option>
+			<option value="BNK82201">中國信託</option>
+			<option value="TELCHT01">中華電信市話</option>
+			<option value="TELCHT02">中華電信寬頻</option>
+			<option value="TELCHT03">中華電信手机</option>
+			<option value="TELFET01">遠傳電信</option>
+			<option value="TELTCC01">台灣大哥大</option>
+			<option value="TELSON04">亞太電信</option>
+			<option value="TELVIBO">威寶電信</option>
+			<option value="COPGAM03">帳號轉點</option>
+		</select>
+		<br/>
+		支付类型：
+		<select name="cid" >
+			<option value="C002060000342" >台湾</option>
+			<option value="C002070000343" >海外</option>
+		</select>
+		<br/>
+		金额：<input type="text" name="amount" />
+		<input type="submit" value="提交" />
+	</form>
+</body>
+</html>

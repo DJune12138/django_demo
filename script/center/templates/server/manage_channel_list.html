@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>渠道列表</title>
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+var channelSwitch = {init:function(){
+	var linkStr = '<a href="javascript:void(0)">全部</a>';
+	$("#channel_table tr").each(function(){
+		if($(this).find('td').length>0){
+			var channelName = $($(this).find('td')[2]).text();
+			channelName = channelName.split('(')[0];
+			if(channelName.indexOf("_")!=-1){
+				channelName = channelName.split('_')[0];
+			}else if(channelName.indexOf(" ")!=-1){
+				channelName = channelName.split(' ')[0];
+			}else if(channelName.replace(/^[^\d]+\d+$/,'')==''){
+				channelName = channelName.replace(/\d+/,'');
+			}
+			if(linkStr.indexOf(channelName)==-1)
+				linkStr += '<a href="javascript:void(0)">'+channelName+'</a>';
+		}
+	});
+	$('.sub-menu').html(linkStr);
+	
+	$('.sub-menu a').click(function(){
+		var channelName = $(this).text();
+		if(channelName=='全部'){
+			channelName = null;
+		}
+		channelSwitch.select(channelName);
+	})
+},select:function(keyName){
+	$("tr").each(function(){
+		if($(this).find('td').length>0){
+			var channelName = $($(this).find('td')[2]).text();
+			channelName = channelName.split('(')[0];
+			if(keyName==null){
+				$(this).show();
+			}else{
+				if(channelName.indexOf(keyName)==-1){
+					$(this).hide();
+				}else{
+					$(this).show();
+				}
+			}
+		}
+	});
+}};
+
+
+$(document).ready(function(){
+
+    $("#btnExport").click(function (e) {
+        tableToExcel('channel_table', 'W3C Example Table')
+    });
+
+	$('#add_agent_name').click(function(){
+		$('#dialog_div').dialog({top:100})
+	})
+	$('#save_agent_name').click(function(){
+ 		var _ids = $('#batch_change_form').serialize()
+ 		if (_ids){
+	 		$.ajax({
+	 			type:"post",
+	 			url:'',
+	 			data:_ids + '&' + $('[name="agent_name"]').serialize() + '&action=change_agent_name',
+	 			success:function(data){
+	 				var j_data = JSON.parse(data)
+	 				if (j_data["code"]==0){
+	 					 location.replace(location.href);
+	 				}else{
+	 					alert('修改失败')
+	 				}
+	 			}
+	 		})
+ 		}else{
+ 			alert('没有勾选渠道')
+ 		}
+ 	
+ 	})
+
+});
+</script>
+
+<div class="bar">
+渠道列表
+<div class="buttons">
+ 	<a href="/manage/channel/edit/0" class="openDialog">添加</a>
+ 			<a href="javascript:;" id="add_agent_name" >添加到平台</a>
+			<a href="javascript:void(0)" id="btnExport" >导出</a>
+ </div>
+</div>
+
+
+<div id="dialog_div" style='display:none'>
+
+	平台名:<input type="text" value="" name="agent_name">*不能中文啊~亲!
+			<br>
+			<input type="button"  value="确定" id="save_agent_name">
+</div>
+
+
+<form method="post" action="" id="batch_change_form">
+<table id="channel_table" class="table datatable"  data-group-by-index="[3]" >
+	<thead>
+	<tr>
+		<th >
+			<input type="checkbox" id="select_channel" checkbox-area="select_channel_area">
+		</th>
+		<th>编号</>
+		<th>名称</th>
+		<th>平台名</th>
+		<th >账号</th>
+		<th >密码</th>
+		<th >登录次数</th>
+		<th>上次登录</th>
+		<th >开通时间</th>
+		<th>操作</th>
+	</tr>
+	</thead>
+	
+	<tbody id="select_channel_area">
+	{%for item in list_record%}
+	<tr c_id="{{item.id}}">
+	<td>
+		<lable><input type="checkbox" value="{{item.id}}" name="id"></label>
+	</td>
+	<td>
+		{{item.id}}
+	</td>
+	<td><a href="/manage/channel/view?channel_id={{item.id}}">{{item.name}}</a>({{item.channel_key}})</td>
+	<td>{{item.agent_name}}</td>
+	<td>{{item.username}}</td>
+	<td>{{item.password}}</td>
+	<td title="{{item.last_ip}}">{{item.logins}}</td>
+	<td>{{item.last_time|date:"Y-m-d H:i:s"}}</td>
+	<td>{{item.create_time|date:"Y-m-d H:i:s"}}</td>
+	<td>
+		{%if request.admin.is_root%}
+	<a href="/manage/channel/remove/{{item.id}}" class="ajax" tip="确定删除？">删除</a>
+	{'%endif%'}
+	<a href="/manage/channel/edit?channel_id={{item.id}}" class="openDialog">编辑</a>
+
+	</td>
+	</tr>
+	{%endfor%}
+</tbody>
+
+</table>
+</form>
+
+{%if new_list%}
+<h4>待开通的渠道</h4>
+<table class="list">
+	<thead>
+		<tr>
+		<th>名称</th>
+		<th width="100">操作</th>
+		</tr>
+	</thead>
+	<tbody>
+{%for item in new_list%}
+<tr>
+<td>{{item.f4}}</td>
+<td>
+<a href="/manage/channel/edit/0?key={{item.f4}}">开通</a>
+</td>
+</tr>
+{%endfor%}
+</tbody>
+</table>
+{%endif%}
+
+
+<script>
+
+function make_ajax_input(_val,c_id){
+	var _input = $('<input>',{type:"text",value:_val,name:"agent_name",blur:function(){
+		var This = $(this)
+		var _text = This.val()
+		console.dir(_text.match(/[^a-zA-Z0-9]+/))
+		if (!_text.match(/[^a-zA-Z0-9]+/)){
+			$.ajax({
+		 			type:"post",
+		 			url:'',
+		 			data: '&id='+ c_id + "&"+ This.serialize() + '&action=change_agent_name',
+		 			success:function(data){
+		 				var j_data = JSON.parse(data)
+		 				if (j_data["code"]==0){
+		 					 This.next().html('成功.')
+		 				}else{
+		 					This.next().html('失败.')
+		 				}
+		 			}
+		 		})
+
+		}else{
+
+			alert('不能中文啊~亲')
+		}
+
+	}})
+	return _input
+}
+
+
+$('#edit_agent').click(function(){
+	var i_index=$('#channel_table thead tr th:contains("平台名")').index() 
+	var checked = $(this).is(':checked')
+
+	$('#channel_table tbody').find('tr').each(function(i,ele){
+			var c_id = $(ele).attr("c_id")
+			$(ele).find('td').each(function(ii,_ele){
+				if (ii==i_index){
+					if (checked){
+							$(_ele).html(make_ajax_input($(_ele).text(),c_id))
+							$(_ele).append('<span></span>')
+					}else{
+						$(_ele).html($(_ele).find('input:text').val())
+
+					}
+
+					
+				}
+			})
+
+		})
+
+})
+</script>
+{% endblock %}

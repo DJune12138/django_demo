@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>客服昵称编辑</title>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+
+
+</div>
+<!-- <div style="position: absolute; top: -15px;font-size: 4px;color: red;right: -1px;">1</div> -->
+<div class="sub-menu-1">
+    <form action="/question/list/?route=kefumanage&action=save" method="post">
+    <table class="list">
+        <tr><td>昵称:</td><td><input type="text" name="nickname" value="{{model.nickname}}" ></td></tr>
+        <tr><td>回复头格式:</td><td><input type="text" name="reply_format" value="{{model.reply_format}}" style="width:200px" >
+        <br><label style="font-size:12px">样例:玩家您好!客服 {name} 为您服务,</label> </td></tr>
+        <tr><td></td><td><input type="submit"  value="保存" ></td></tr>
+    </table>
+    </form>
+</div>
+{% endblock %}
+

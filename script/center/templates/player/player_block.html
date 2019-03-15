@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>玩家锁定</title>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="/player/player_block?">
+
+<textarea name="remark" placeholder="输入理由(150字内)"></textarea>
+
+<input type="submit" value="确定" />
+</form>
+{% endblock %}

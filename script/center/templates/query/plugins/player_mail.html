@@ -1,0 +1,63 @@
+{% include 'game/resource_editor.html' %}
+<script type="text/javascript">
+// 服务器,账号,角色ID,角色名,邮件标题,邮件内容,邮件奖励内容,邮件发送时间,邮件状态,附件领取时间
+function dictCount(dict) {
+	if(typeof(dict) == "string" || typeof(dict) == 'undefined'){
+		return
+	}
+        var n = 0;
+        for (var key in Object.keys(dict)) {
+            ++n;
+        }
+        return n
+    }
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+	var new_list_data = []
+	rewardMap = {"exp":"经验",
+				"recharge":"灵玉",
+				"diamond":"绑定灵玉",
+				"gold":"银两",
+				"contribution":"帮贡",
+				"item":"道具"}
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+		var _content = row[TH['邮件内容']].replace(/\s+/g, "")
+		var content =  JSON.parse(_content)
+		var reward_index = TH['邮件奖励内容']
+		var content_index = TH['邮件内容']
+		//转成[{'aID':,'v':}]	{"item":[{"id":30046,"count":10}],"gold":100}
+		rewards = content.reward
+		var new_rewards = ''
+		for(var t in rewards){
+			if(t == 'item'){
+				if(dictCount(rewards[t]) == 0 || rewards[t][0]['count'] == 0){
+					continue;
+				}
+				new_rewards += rewardMap[t]
+				new_rewards += ':'
+				new_rewards += rewards[t][0]['id']
+				new_rewards += '-'
+				new_rewards += rewards[t][0]['count']
+				new_rewards += ' '
+			}else{
+				if (rewards[t] == 0){
+					continue;
+				}
+				new_rewards += rewardMap[t]
+				new_rewards += ':'
+				new_rewards += rewards[t]
+			}
+		}
+		new_row[reward_index] = new_rewards
+		new_row[content_index] = (dictCount(content.content) == 0 )?'':JSON.stringify(content.content)
+
+		new_list_data.push(new_row)
+	}
+	data.list_data = new_list_data
+	return data
+}
+)
+</script>

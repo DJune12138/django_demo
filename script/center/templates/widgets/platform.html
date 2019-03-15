@@ -1,0 +1,338 @@
+<!-- 游戏平台 -->
+<style>
+.checkbox_span{
+	margin-left:1em;
+
+}
+.platform_table{
+	border-top:none;
+	width:100%;
+	font-size: small;
+	
+}
+.platform_table th{
+	text-align: center;
+	padding:8px;
+	width: 10%;
+	border: 1px dotted gray;
+}
+.platform_table td{
+	text-align: left;
+	padding:8px;
+	width: 90%;
+	border: 1px dotted gray;
+}
+</style>
+
+<table class="platform_table">
+	<tr>
+		<th>平&nbsp;&nbsp;&nbsp;&nbsp;台:</th>
+
+		<td>
+        {% for p in platform_list%}
+        <span class="checkbox_span" title="{{p.key}}:{{p.remark}}">
+			<label class="pointer">
+				<input name="platform_id"  value="{%if is_id%}{{p.id}}{%else%}{{p.key}}{%endif%}" key="{{p.key}}" type="checkbox" class="ace" {%if p.id in select_platform_ids or all_checked %}checked="checked" {%endif%}>
+				<span class="lbl"> <b>{{p.name}}</b></span>
+			</label>
+		</span>
+
+		{%endfor%}
+		</td>
+	</tr>
+
+{%if not is_id%}
+	<tr><th>服务器:</th>
+		<td>
+		<div id="server_cont">
+
+		</div>
+		</td>
+	</tr>
+
+
+
+	<tr><th>渠&nbsp;&nbsp;&nbsp;&nbsp;道:</th>
+		<td>
+		<div id="channel_cont">
+
+		</div>
+		</td>
+	</tr>
+{%endif%}
+</table>
+
+{%if not is_id%}
+<script>
+
+var platform_static_url = '/static/platform/'
+var platform_eles = $('[name="platform_id"]')
+var platform_channel_dict = {}
+var platform_server_dict = {}
+
+platform_eles.each(function(i,ele){
+	var platform_key = $(ele).attr('key')
+	platform_channel_dict[platform_key] = {}
+	platform_server_dict[platform_key] = {}
+})
+
+
+function update_platform_dict(dict_type,platform_key,callback){
+	if (dict_type == 'channel') {
+		var url = platform_static_url + platform_key + '/channel.json'
+		var update_dict = platform_channel_dict
+	} else if(dict_type == 'server') {
+		var url = platform_static_url + platform_key + '/server.json'
+		var update_dict = platform_server_dict
+	}
+
+	$.getJSON(url,function(data){
+		if (data.data) {
+			var dict = data.data
+			update_dict[platform_key] = dict
+			if (callback) {
+				callback()
+			}
+		}
+
+	})
+}
+
+function get_all_dict(dict){
+	var r = {}
+
+	for (var k in dict){
+		var _dict = dict[k]
+		if (_dict.hasOwnProperty('客服服务器') ) {
+			delete _dict['客服服务器']
+		}
+		if (_dict.hasOwnProperty('') ) {
+			delete _dict['']
+		}
+		$.extend(r,_dict)
+	}
+
+	return r
+}
+
+function padding_server_cont(){
+
+	var group_servers_dict = get_all_dict(platform_server_dict)
+	var html = get_views('server_tpl',{'group_servers_dict':group_servers_dict})
+	$('#server_cont').html(html)
+}
+
+function padding_channel_cont(){
+    $('#channel_cont').html('')
+
+	var agent_channels = get_all_dict(platform_channel_dict)
+	var html = get_views('channel_tpl',{'agent_channels':agent_channels})
+	$('#channel_cont').html(html)
+}
+
+
+
+platform_eles.click(function(){
+	var $this = $(this)
+	var is_checked = $this.is(':checked')
+	var platform_key = $this.attr('key')
+
+
+
+	if (is_checked) {
+		update_platform_dict('channel',platform_key,padding_channel_cont)
+		update_platform_dict('server',platform_key ,padding_server_cont)
+
+	} else {
+		platform_channel_dict[platform_key] = {}
+		platform_server_dict[platform_key] = {}
+       
+		padding_server_cont()
+		padding_channel_cont()
+      
+	}
+
+
+})
+
+function get_platform_parmas(){
+    return $('[name="platform_id"]:checked').serialize()
+}
+</script>
+
+
+<script>
+function get_channel_ids(){
+	     var channel_id_list = []
+        $('#channel_area [name="channel_id"]').each(function(i,ele){
+            var Ele = $(ele) 
+            var value = null
+            if ( Ele.is(':checked')) {
+                value =  Ele.val()
+                if (value) {
+                    value = parseInt(value)
+                    Ele.parent('label').removeClass('label-warning').removeClass('label-success')
+                    if ($.inArray(value, channel_id_list)<0 && value!==null) {
+                       channel_id_list.push(value)
+                   }
+                }
+            }
+            
+        })
+        return channel_id_list
+}
+function get_channel_params(){
+	return $('#channel_area [name="channel_id"]:checked').serialize()
+}
+</script>
+
+<script id="channel_tpl"  type="text/template">
+ <%var data=it.data;%>
+<div >
+        <div class="table_toolbar">
+            <label><input type="checkbox"  checkbox-area='channel_area'>全选</label>
+            <input placeholder="搜索"  type="text" value="" onkeyup="searchTableCheckbox(this.value,'channel_area')">  
+            <a href="javascript:;"  onclick="enfoldment('channel_area')" style="float:right">[折叠]</a>
+        </div>
+        <div id="channel_area" class="enfoldment">
+            <table class="table table-bordered">
+                <% for (agent_name in data.agent_channels){ %>
+                <%var channels=data.agent_channels[agent_name];%>
+
+                <tr>
+                    <th width="150">                    
+                        <label><input type="checkbox" name="agent_id"  checkbox-area="agent_<%=agent_name%>_area" value="<%=agent_name%>" ><%=agent_name%></label>
+                    </th>
+                    <td>
+                        <div id="agent_<%=agent_name%>_area">
+                        <% for (k in channels) {%>
+                        	<%var c=channels[k];%>
+                            <label title="渠道id:<%=c.id%> key:<%=c.key%>">
+                            <input type="checkbox" name="channel_id" value="<%=c.id%>"  ><%=c.name%>
+                            </label>
+                        <% } %>
+                        </div>
+                    </td>
+                </tr>
+
+                <%}%>
+            </table>
+        </div>
+
+</div>
+
+</script>
+
+<script>
+    function select_all_by_create_time(){
+        var stimeEle = $('#server_stime')
+        var etimeEle = $('#server_etime')
+        var _checked = $('#select_all_server').is(':checked');
+        var is_select_child = $('#not_select_chile').is(":checked")
+        if (stimeEle.val() && etimeEle.val()){
+            var stimeCondition = datetime_str_to_timestamp(stimeEle.val())
+            var etimeCondition = datetime_str_to_timestamp(etimeEle.val())
+            $("input[name='server_id']").each(function(i,ele){
+                var This = $(ele)
+                var master_id = parseInt(This.attr('master_id'))
+                var server_id = parseInt(This.val())
+                var server_create_time = datetime_str_to_timestamp(This.attr('create_time'))
+                This.closest('label').css('background','white')
+                var __checked = _checked
+                if (server_create_time>=stimeCondition&&server_create_time<=etimeCondition){
+                    if(is_select_child&&master_id!=server_id){//不选子服
+                        __checked = false
+                    }
+                    This.prop('checked',__checked);
+                    if (__checked){
+                        This.closest('label').css('background','beige')
+                    }
+                }
+            })
+        }else{
+    
+        }
+    }
+
+    function change_server_list(gID,ele){
+        var trs = $('#group_server_table tr')
+        trs.show()
+        if (gID != -1) {
+            trs.not('#area_' + gID).hide()
+        } 
+        
+        $('.table-menu a').removeClass('green')
+        $(ele).addClass('green')
+    }
+    function get_server_ids(is_master_id){
+        var server_id_list = []
+        $('#server_area [name="server_id"]').each(function(i,ele){
+            var Ele = $(ele) 
+            var value = null
+            if ( Ele.is(':checked')) {
+                value = is_master_id ? Ele.attr('master_id'): Ele.val()
+                if (value) {
+                    value = parseInt(value)
+                    Ele.parent('label').removeClass('label-warning').removeClass('label-success')
+                    if ($.inArray(value, server_id_list)<0 && value!==null) {
+                       server_id_list.push(value)
+                   }
+                }
+            }
+            
+        })
+        return server_id_list
+	}
+	function get_server_params(){
+		return $('#server_area [name="server_id"]:checked').serialize()
+	}
+</script>
+<script id="server_tpl"  type="text/template">
+<div >
+<div > <%var data=it.data;%>
+        <div class="table-menu">
+                <a href="javascript:;"  onmousedown="change_server_list(-1,this)">全部</a>
+            <% for (g in data.group_servers_dict){%>
+                <a href="javascript:;" onmousedown="change_server_list('<%=g%>',this)"><%=g%></a>
+            <%}%>
+        </div>
+
+        <div class="table_toolbar">
+            <label><input type="checkbox"  checkbox-area='server_area'>全选</label>
+            <input placeholder="搜索"  type="text" value="" onkeyup="searchTableCheckbox(this.value,'server_area')">  
+            开服时段:
+            <input class="Wdate1 input-sm"    type="text" id="server_stime">
+            -<input class="Wdate1 input-sm"   type="text" id="server_etime">
+
+            <label><input id="select_all_server" type="checkbox" onclick="select_all_by_create_time()">筛选</label>
+            <label><input id="not_select_chile" type="checkbox"  />不选子服</label> 
+             <a href="javascript:;"  onclick="enfoldment('server_area')" style="float:right">[折叠]</a>
+        </div>
+        <div id="server_area" class="enfoldment">
+            <table id="group_server_table" class="table table-bordered" >
+            <% for (var g in data.group_servers_dict){%>
+            	<%var server_list=data.group_servers_dict[g];%>
+                <tr id="area_<%=g%>">
+                    <th width="150">                    
+                        <label><input type="checkbox" name="server_group_id"  checkbox-area="server_<%=g%>_area" value="<%=g%>" ><%=g%></label>
+                    </th>
+                    <td width="700">
+                        <div id="server_<%=g%>_area" >
+                        <% for (var i in server_list){%>
+
+                        	<%var server_obj=server_list[i];%>
+
+                            <label title="服务器id:<%=server_obj.id%>  开服时间:<%=server_obj.create_time%>">
+                            <input type="checkbox" name="server_id" value="<%=server_obj.id%>"  create_time="<%=server_obj.create_time%>" ><%=server_obj.name%>
+                            </label>
+                        <%}%>
+                        </div>
+                    </td>
+                </tr>
+              <%}%>
+            </table>
+        </div>
+
+</div>
+{%endif%}
+</script>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+{% with '/static/' as URI %}
+	<head>
+		<meta charset="utf-8" />
+		<title>{{anget_name}}登录页面</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<!-- basic styles -->
+
+		<link href="{{URI}}assets/css/bootstrap.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="{{URI}}assets/css/font-awesome.min.css" />
+
+
+		<!--[if lte IE 7]>
+		  <link rel="stylesheet" href="{{URI}}assets/css/font-awesome-ie7.min.css" />
+		<![endif]-->
+
+		<!-- ace styles -->
+
+		<link rel="stylesheet" href="{{URI}}assets/css/ace.min.css" />
+		<link rel="stylesheet" href="{{URI}}assets/css/ace-rtl.min.css" />
+
+
+		<!--[if lte IE 8]>
+		  <link rel="stylesheet" href="{{URI}}assets/css/ace-ie.min.css" />
+		<![endif]-->
+
+		
+		<!--[if lt IE 9]>
+		<script src="{{URI}}assets/js/html5shiv.js"></script>
+		<script src="{{URI}}assets/js/respond.min.js"></script>
+		<![endif]-->
+
+		<style>
+			#login-box{top:3em;}
+		</style>
+	</head>
+
+	<body class="login-layout" style="min-height:600px">
+		<div class="main-container">
+			<div class="main-content">
+				<div class="row">
+					<div class="col-sm-10 col-sm-offset-1">
+						<div class="login-container">
+
+							<div class="position-relative">
+								<div id="login-box" class="login-box visible widget-box no-border">
+									<div class="widget-body">
+										<div class="widget-main">
+											<h2 class="header blue lighter bigger">
+												<i class="icon-leaf green"></i>
+												<span class="blue">{{TITLE}}  后台</span>
+												<small></small>
+											</h2>
+											<div class="space-6"></div>
+
+											<form action="" method="post">
+												<fieldset >
+													<label class="block clearfix">
+														<span class="block input-icon input-icon-left">
+															<input type="text" class="form-control" name="username" placeholder="Username" value="{{request.COOKIES.username}}" />
+															<i class="icon-user"></i>
+														</span>
+													</label>
+
+													<label class="block clearfix ">
+														<span class="block input-icon input-icon-left">
+															<input type="password" class="form-control" name="passowrd" placeholder="Password" />
+															<i class="icon-lock"></i>
+														</span>
+													</label>
+
+													
+													<label class="block" >
+														<span class="input-medium input-icon input-icon-left ">
+														  <input type="text" class="form-control " name="verify" placeholder="验证码"  />
+														<i class="icon-barcode"></i>
+														</span>
+														<img  class="pull-right" onclick="this.setAttribute('src','/get_verify_code_image/?nocache='+Math.random());" src="/get_verify_code_image/" alt="CheckCode" title="点我刷新" />
+														
+
+													</label>
+												
+
+													<div class="space"></div>
+
+													{% if  'IE' in request.META.HTTP_USER_AGENT %}
+													<div class="alert alert-danger">
+														<button type="button" class="close" data-dismiss="alert">
+															<i class="icon-remove"></i>
+														</button>
+														<strong>Sorry!</strong>
+														不支持IE内核的浏览器!请使用Chrome,火狐,或将360浏览器切换到极速模式.
+														<br>
+													</div>
+													{%else%}
+													<div class="clearfix">
+														<button type="submit" class="btn btn-primary btn-block">
+															<i class="icon-key"></i>{{anget_name}}登录
+														</button>
+													</div>
+													{%endif%}
+													<div class="space-4"></div>
+													{% if err_msg %}
+														<div class="alert alert-danger">
+															{{err_msg|safe}}
+														</div>
+													{% endif %}
+												</fieldset>
+											</form>
+
+								</div><!-- /login-box -->
+
+							
+							</div><!-- /position-relative -->
+						</div>
+					</div><!-- /.col -->
+				</div><!-- /.row -->
+			</div>
+		</div><!-- /.main-container -->
+
+
+</body>
+<script>
+
+</script>
+</html>
+{% endwith %}

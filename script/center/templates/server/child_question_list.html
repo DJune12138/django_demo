@@ -1,0 +1,49 @@
+
+{% if list_record%}
+<div style="overflow: scroll;height:300px;width:400px">
+	<table id="child_question_table" class="table">
+        <thead>
+        <tr>
+			<th width="120"></th>
+			<th></th>
+		</tr>
+        </thead>
+        <tbody id="question_area">
+        {%for item in list_record%}
+		<tr>
+			<td style="text-align: right;vertical-align: top;">
+				<b style="color:black">{{item.post_user}} </b>：
+				<br/>{{item.post_time_str}} 
+			</td>
+			<td style="word-break: break-all;">
+					<div class="qusetion_desc"  id="question_{{item.id}}" >{{item.question}}</div>
+					<span style="color: gray">({{item.info}})</span>
+			</td>
+		
+		</tr>
+		<tr>
+			<td style="text-align: right;vertical-align: top;">
+				{% if item.reply_user %}
+				<b style="color:black">{{item.reply_user}}</b>：
+				<br/>{{item.reply_time_str}} 
+				{%else%}
+				<b>未回复</b>
+				{%endif%}
+			</td>
+			<td style="word-break: break-all;">
+				{% if item.reply_user %}
+					{{item.answer|safe}}
+					<br>
+					<small>[{{item.category}}]</small>
+				{%else%}
+					<a style="font-size: 15px;color:red"  href="javascript:;" qid="{{item.id}}" class="replyQuestion" onclick="replyQuestion({{item.id}},this)">[回复]</a>
+				{%endif%}
+			</td>
+
+		</tr>
+		{%endfor%}
+        </tbody>
+	</table>
+</div>
+
+{%endif%}

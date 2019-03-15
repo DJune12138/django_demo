@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>角色信息</title>
+{% include 'game/resource_editor.html' %}
+
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<script type="text/javascript">
+{% if request.allow_menu.修改角色信息%}
+var player_modify_url = '/game/player/player_modify?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_info.1}}'
+$(function(){
+	//角色修改
+	function PlaterModify(){
+		var This = this
+		
+		this.remark_ele = $('[name="remark"]')
+		this.msg = {}
+
+		// $('td.change,td.append').each(function(i,ele){
+		// 	var This = $(ele)
+		// 	var is_append = This.hasClass('append') ? true : false
+		// 	var value = is_append ? '' : This.text(),
+		// 	    key = This.attr('key'),
+		// 	    class_str = This.attr('class')
+		// 	class_str += is_append ? ' input-mini' : ''
+  //           if (key == '15'){
+  //               var placeholder = is_append ? '增加' : ""
+  //           } else{
+  //               var placeholder = is_append ? '增减' : ""
+  //           }
+
+
+		// 	var input = $('<input>',{"type":"number","key":key,"class":class_str ,"placeholder":placeholder,"val":value,"maxlength":11,"old_value":value,"change":function(){
+		// 		var This = $(this)
+  //               if (This.attr('key')=='15'){
+  //                   This.attr('min',0)
+  //               }
+		// 		if (This.attr('old_value')!=This.val()) {
+		// 			This.attr('name',This.attr('key'))
+		// 			This.css("background",'yellow')
+		// 		} else {
+		// 			This.removeAttr('name')
+		// 			This.css("background",'white')
+		// 		}
+		// 	}})
+		// 	if (is_append) {
+		// 		This.append(input)
+		// 	} else {
+		// 		This.html(input)
+		// 	}
+			
+		// 	This.removeAttr('class')
+		// 	This.css('text-align','right')
+		// })
+
+
+
+		// 基本信息
+		this.get_pb = function(){
+			_r = {}
+			$('.pb input[name]').each(function(i,ele){
+				var $ele = $(ele)
+				var value = $ele.val()
+				if (typeof value!="undefined" && value!="" && value!=$ele.attr('old_value')) {
+                    if ($ele.attr('name') == '0'){
+                        _r[$ele.attr('name')] = value
+                    }
+                    else{
+                        _r[$ele.attr('name')] = parseInt(value)
+                    }
+				}
+			})
+			return !$.isEmptyObject(_r) ? _r : null
+		}
+
+		//资源信息
+		this.get_zy = function(){
+			var _r = {}
+			$('.zy input[name]').each(function(i,ele){
+				var $ele = $(ele)
+				var value = $ele.val()
+				var id = $ele.attr('name')
+                if (id == '15' && value < 0){
+                    alert('充值积分不能减少!')
+                    return
+                }
+				if (value && ! isNaN(value) && !isNaN(id)) {
+					_r[parseInt(id)] = parseInt(value)
+				}
+			})
+			return !$.isEmptyObject(_r) ? _r : null
+		}
+
+		var msg_map = {"pb":This.get_pb,
+					   "zy":This.get_zy,
+		}
+
+		this.get_msg = function(){
+			This.msg = {}
+			for (var param_name in msg_map){
+				var param_func = msg_map[param_name]
+				var data = param_func ? param_func() : ''
+				if (data) {
+					This.msg[param_name] = data
+				}
+			}
+			return This.msg
+		}
+
+		this.send = function(){
+			var msg = This.get_msg()
+			var remark = This.remark_ele.val()
+			if (!remark || $.isEmptyObject(msg)) {
+				$('#dialog-div').dialog().hide()
+				alert('没有要修改的内容!')
+				return
+			}
+			var data = JSON.stringify(msg)
+
+			$.ajax({
+				url: player_modify_url,
+				type: 'POST',
+				dataType: 'json',
+				data: {"msg":data,"remark":remark},
+			})
+			.done(function(data) {
+				$('#dialog-div').dialog().hide()
+				if (data.code == 0) {
+					alert('修改成功!')
+					location.reload()
+				} else {
+					art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+				}
+			})
+			.fail(function(o,x,text) {
+				art.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>')})
+			})
+			
+			
+		}
+
+	}
+
+    $('[name="4"]').click(function(){
+        $(this).val('')
+        $(this).attr("placeholder",'添加经验')
+    })
+
+	var platerModify = new PlaterModify()
+	$('#player-save-btn').click(function(){
+		platerModify.remark_ele.val('')
+		$('#dialog-div').dialog({title:"输入备注","top":"10%"})
+		platerModify.remark_ele.focus()
+	})
+
+	$('#player-save-sure-btn').click(function(event) {
+		if (confirm("确认进行此操作吗 ?")) {
+			if (!platerModify.remark_ele.val()) {
+				alert('请输入备注信息!')
+				return
+			}
+			platerModify.send()
+			
+		}
+	});
+})
+{% endif%}
+
+
+</script>
+
+<div id="dialog-div" class="dialog-div">
+	<div class="row">
+		<textarea name="remark" placeholder="备注(150字内)" maxlength="200"></textarea>
+		<div class="col-md-offset-3 col-md-9">		
+		<button id="player-save-sure-btn" class="btn btn-success btn-xs radius-4 "><i class="icon-ok"></i>确认</button>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-sm-6"></div>
+	<div class="col-sm-6">
+	{% if request.allow_menu.修改角色信息%}
+	<!-- <button id="player-save-btn" class="btn btn-xs radius-4 pull-right"><i class="icon-save"></i>修改</button> -->
+	{% endif%}
+
+	</div>
+</div>
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box ">
+			<div class="widget-header widget-header-small">
+				<h5>基本信息</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered player-info-table pb">
+						<tr><td>ID:</td><td>{{player_info.0}}</td>
+							<!-- <td>名字:</td><td><input type="text" name='0' class="input-small text-right" old_value='{{player_info.1}}' value=""></td> -->
+							<td>名字:</td><td>{{player_info.1}}</td>
+							<td>职业:</td><td>{{player_info.2}}</td>
+							<td>等级:</td><td>{{player_info.3}}</td>
+							<td>当前经验:</td><td>{{player_info.4}}</td>
+							<!-- <td>等级:</td><td><input type="text" name='1' class="input-number input-mini text-right" old_value='{{player_info.3}}' value=""></td> -->
+						<!-- 	<td>当前经验:</td><td><input type="text" name='2' class="input-number input-small text-right" old_value='{{player_info.4}}' value=""></td> -->
+                        </tr>
+						<tr>
+						<!-- old_value='{{player_info.5}}' <input type="text" name='3' class="input-number input-mini text-right"  value=""-->
+							<td>头衔:</td><td>{% if player_info.5 %}{{player_info.5}}{% else %}{{''}}{% endif %}</td>
+							<td>部族官职:</td><td>{{player_info.6}}</td>
+							<td>部族:</td><td>{{player_info.7|game_country}}</td>
+                            <td>vip等级:</td><td>{{player_info.8}}</td>
+                            <td>vip当前经验:</td><td>{{player_info.9}}</td>
+                            <!-- <td>vip当前经验:</td><td><input type="text" name='4' class="input-number input-small text-right" old_value='{{player_info.9}}' value="{{player_info.9}}"></td> -->
+						</tr>
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box ">
+			<div class="widget-header widget-header-small">
+				<h5>资源信息</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered player-info-table zy">
+						<tr><td>灵玉:</td><td key='0' class=" input-number append">{{resource_list.0}}</td>
+							<td>绑定灵玉:</td><td key='1' class=" input-number append">{{resource_list.1}}</td>
+							<td>贝币:</td><td key='2' class=" input-number append">{{resource_list.2}}</td>
+							<td>部族贡献:</td><td key='3' class=" input-number append">{{resource_list.3}}</td>
+						</tr>
+						<!-- <tr>
+							<td>木材:</td><td key='4' class=" input-number append">{{resource_list.4}}</td>
+							<td>铁:</td><td key='5' class=" input-number append">{{resource_list.5}}</td>
+							<td>军功:</td><td key='6' class=" input-number append">{{resource_list.6}}</td>
+							<td>威望:</td><td key='7' class=" input-number append">{{resource_list.7}}</td>
+						</tr>
+						<tr>
+							<td>军令:</td><td key='8' class=" input-number append">{{resource_list.8}}</td>
+							<td>国家贡献值:</td><td key='9' class=" input-number append">{{resource_list.9}}</td>
+							<td>群英会金币:</td><td key='10' class=" input-number append">{{resource_list.10}}</td>
+							<td>拜帖:</td><td key='11' class=" input-number append">{{resource_list.11}}</td>
+						</tr>
+                        <tr>
+                            <td>国战功勋:</td><td key='12' class=" input-number append">{{resource_list.12}}</td>
+                            <td>骰子数量:</td><td key='13' class=" input-number append">{{resource_list.13}}</td>
+                            <td>远征币:</td><td key='14' class=" input-number append">{{resource_list.14}}</td>
+                            <td>充值积分:</td><td key='15' class=" input-number append">{{resource_list.15}}</td>
+                        </tr>
+                        <tr>
+                            <td>声望:</td><td key='16' class=" input-number append">{{resource_list.16}}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr> -->
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<!-- <div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box collapsed">
+			<div class="widget-header widget-header-small">
+				<h5>远征进度修改</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-down"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div id="expedition_progress_cont" class="widget-main no-padding">
+
+				</div>
+				</div>
+			</div>
+		</div>
+</div> -->
+
+<!-- 
+{% if request.admin.is_root%}
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box collapsed">
+			<div class="widget-header widget-header-small">
+				<h5>玩家征战进度修改</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-down"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div id="war_story_process_cont" class="widget-main no-padding">
+
+				</div>
+				</div>
+			</div>
+		</div>
+</div> -->
+
+{% include 'game/war_story_process_checkbox.html' %}
+<script>
+var player_war_story_process_editor = new PlayerWarStoryProcessEditor($('#war_story_process_cont'))
+
+var expedition_progress_editor = new ExpeditionProgressEditor($('#expedition_progress_cont'))
+
+function war_story_process_save(){
+	var post_url = '/game/player/modify_war_story_process?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_info.1}}'
+	var msg_json = player_war_story_process_editor.get_json_msg()
+	if (!msg_json){return}
+    if (JSON.parse(msg_json).length > 50){
+        return alert('一次最多修改50个!')
+    }
+	if (!confirm('确定修改玩家征战进度吗?')){return false}
+	$.ajax({
+		url: post_url,
+		type: 'POST',
+		dataType: 'json',
+		data: {msg: msg_json},
+	})
+	.done(function(data) {
+		if(data.code != 0){
+			$.dialog(data.msg)
+		} else{
+			$.dialog('成功!')
+		}
+	})
+
+}
+player_war_story_process_editor.init(war_story_process_save)
+
+function expedition_progress_save(){
+	var post_url = '/game/player/modify_expedition_progress?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_info.1}}'
+	var msg_json = expedition_progress_editor.get_json_msg()
+	if (!msg_json){return}
+    if (JSON.parse(msg_json).length > 1){
+        return alert('一次最多修改1个!')
+    }
+	if (!confirm('确定修改远征进度吗?')){return false}
+	$.ajax({
+		url: post_url,
+		type: 'POST',
+		dataType: 'json',
+		data: {msg: msg_json},
+	})
+	.done(function(data) {
+		if(data.code != 0){
+			$.dialog(data.msg)
+		} else{
+			$.dialog('成功!')
+		}
+	})
+}
+
+expedition_progress_editor.init(expedition_progress_save)
+
+</script>
+{%endif%}
+
+{% endblock %}

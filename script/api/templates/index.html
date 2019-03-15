@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{%block content%}
+<div class="header">
+	<div class="htitle">
+	{% if the_card_batch %}{{the_card_batch.name}}：{{the_card_batch.remark}}{% endif %}</div>
+</div>
+<div class="body">
+<!-- form -->
+<div  class="dymanicSpan">
+	{% if show_num != 0 %}
+		<form id="consolesSpan" action="/card/get/{{key}}/{{code}}" method="get" style="text-align: center;">
+			<div style="display: {% if the_card_batch.show == 0 %}none{% else %}inline{%endif%}">
+			请选择服务器：<select name="server_id">
+			{%for item in list_server%}
+			{%if item.is_show%}
+				<option value="{{item.id}}">{{item.name}}</option>
+			{%endif%}
+			{%endfor%}
+			</select>
+			</div>
+			<input id="getButton" type="submit" value="领取礼包卡" /> 
+			{% if the_card_batch.show == 1 %}
+			<p>提示：每个服务器只能领取一次礼包卡，请勿重复领取！</p>
+			{% endif %}
+		</form>
+		<div id="secDiv">
+				
+		</div>
+		<div id="cardNunber"   >
+				请记下此号码，刷新页面或关闭浏览器此礼包卡将不再显示。
+			
+				您的礼包卡为：<div id="result" style="color:#FF00FF; font-size:1.5em;">&nbsp;</div>
+				<input type='button' value="复制" onclick="copyCode()">
+		</div>
+		
+		<div id="errorSpan">
+			
+		</div>
+	{% else %}
+		<p>提示：每个服务器只能领取一次礼包卡，请勿重复领取！</p>
+	{% endif %}
+</div>
+<!-- form END -->
+<h4>如何使用礼包卡:</h4>
+1.进入游戏后,点击游戏右上角的充值图标。
+<img src="/static/images/pic_1.jpg" />
+
+2.在充值页面点开礼包页面输入礼包卡激活码，点击领取即可。
+<img src="/static/images/pic_2.jpg" />
+
+</div>
+<script type="text/javascript" >
+
+		var sec_num = 3;
+		
+		$(document).ready(function(){
+			$("#cardNunber").hide();
+			$("#secDiv").hide();
+			$("#consolesSpan").bind('submit',function(){return false;});
+			$("#getButton").bind('click', getCard);
+		});
+		
+		function getCard(){
+			sec_num = (3 + parseInt(3*Math.random()));
+			$("#cardNunber").hide();
+			$("#secDiv").show();
+			showCard();
+			setInterval(showCard,1000);
+		}
+		
+		 
+		function showCard(){ 
+			sec_num --;
+			if (sec_num == 0){
+				ajax_post_execute();
+				//$("#secDiv").hide();
+			}
+			$("#consolesSpan").hide();
+			$("#secDiv").html("正在为您生成礼包卡号，请稍等...");
+		}
+		
+		function ajax_post_execute() {
+   			
+   			var sid = $("[name='server_id']").val();
+   			if (sid == null){
+   				alert("礼包卡已经领取完毕");
+   				return;
+   			}
+			var param = {server_id:sid, is_ajax:true};
+			var url = '/card/get/{{key}}/{{code}}';
+			var options = {
+				type : "GET",
+				url : url,
+				contentType : "application/x-www-form-urlencoded; charset=utf-8",
+				data : param,
+				success : function(msg) {
+					$("#secDiv").hide();
+					json_result = eval('(' + msg + ')'); 
+					if(json_result.state == 1 ){
+						$("#cardNunber").show(); 
+						$("#result").html(json_result.result);
+					}
+					else{ 
+					 	$("#errorSpan").html(json_result.result);
+					}
+				},
+				cache : false,
+				error : function() {
+					$("#consolesSpan").show();
+					$("#secDiv").html('提交失败,请稍后再试...'); 
+				}
+			}
+			$.ajax(options);
+			return false;
+		}
+		
+		function copyCode(){
+			copyToClipboard($("#result").html());
+		}
+		
+		function copyToClipboard(maintext){
+		  if (window.clipboardData){
+		    window.clipboardData.setData("Text", maintext);
+		    }else if (window.netscape){
+		      try{
+		        netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+		    }catch(e){
+		        alert("该浏览器不支持一键复制！请手工复制文本框链接地址～");
+		    }
+		
+		    var clip = Components.classes['@mozilla.org/widget/clipboard;1'].createInstance(Components.interfaces.nsIClipboard);
+		    if (!clip) return;
+		    var trans = Components.classes['@mozilla.org/widget/transferable;1'].createInstance(Components.interfaces.nsITransferable);
+		    if (!trans) return;
+		    trans.addDataFlavor('text/unicode');
+		    var str = new Object();
+		    var len = new Object();
+		    var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+		    var copytext=maintext;
+		    str.data=copytext;
+		    trans.setTransferData("text/unicode",str,copytext.length*2);
+		    var clipid=Components.interfaces.nsIClipboard;
+		    if (!clip) return false;
+		    clip.setData(trans,null,clipid.kGlobalClipboard);
+		  }
+		  alert("以下内容已经复制到剪贴板:" + maintext);
+		}
+</script>
+{%endblock%}

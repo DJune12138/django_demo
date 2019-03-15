@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes" /> 
+<meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, user-scalable=no" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="format-detection" content="telephone=no">
+<title>{{title}}</title>
+<meta name="description" content="">
+<meta name="keywords" content="">
+<style>
+	body {
+		background-color: #270c08;
+		border: medium none;
+		color: #FDC581;
+		font-size: 200%;
+		line-height: 150%;
+		margin: 0;
+		padding:10px 20px;
+		overflow: auto;
+	}
+
+</style>
+
+
+</head>
+<body>
+connect facebook.
+</body>
+<script type="text/javascript">
+var url = 'https://www.facebook.com/dialog/feed?'
+		+  'app_id=790335917717012'
+		+  '&display=page&caption={{title|safe}}'
+		+  '&href={{share_link}}'
+		+  '&redirect_uri={{share_link}}'
+window.onload = function(){
+	window.location.href = url
+	//document.body.innerHTML = url
+}
+</script>
+</html>

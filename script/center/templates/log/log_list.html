@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>日志类型管理</title>
+{% endblock %}
+
+{% block content %}
+{% with model_name='Log' url_prefix='/log/log/log_' %}
+<script type="text/javascript">
+
+	function add{{model_name}}(ele) {
+		art.dialog.open("{{url_prefix}}edit")
+	}
+
+	function edit{{model_name}}(ele) {
+		if (selectId)
+		art.dialog.open("{{url_prefix}}edit?id=" + selectId)
+	}
+
+	function remove{{model_name}}(ele) {
+		if (confirmRandom('确定删除吗?')) {
+			window.location.href = "{{url_prefix}}remove?"+$('#{{model_name}}_area :checkbox').serialize()
+		}
+	}
+
+// $(function(){
+//      $('#{{model_name}}_area tr').contextMenu('contextMenu',   
+//      {  
+//           bindings:   
+//           {  
+//             'c_edit': function(t) {  
+//                edit{{model_name}}(t)
+//             },   
+//             'c_remove': function(t) {  
+//                remove{{model_name}}(t)
+//             },
+//           }  
+  
+//     });  
+// })
+</script>
+
+<div id="bar">
+	<div class="buttons">
+		<a href="{{url_prefix}}syncdb?sid=0" class="openDialog">同步中央服表</a>
+	</div>
+</div>
+
+<div  id="contextMenu" class="contextMenu">  
+	<ul>  
+		<li id="c_edit" class="btn no-border btn-white" ><i class=""></i>编辑</li>
+<!-- 		<li id="c_query" class="btn no-border btn-white" ><i class=""></i>管理查询</li>
+		<li id="c_statistic" class="btn no-border btn-white" ><i class=""></i>管理统计</li>     -->
+	</ul>  
+</div> 
+
+<ul id="nav-list" class="nav nav-tabs">
+	  <li class="active">
+	  	<a href="{{url_prefix}}list" >日志类列表</a>
+	  </li>
+</ul>
+
+<div >
+	<div id='datatable_toolbar' >
+		<div class="btn-toolbar pull-right">
+			<div class="btn-group ">
+				<a class="btn btn-sm btn-success" onclick="add{{model_name}}(this)">
+				<i class="icon-plus-sign"></i>添加
+				</a>
+			</div>
+			<div class="btn-group">
+				<a class="btn btn-sm btn-primary" onclick="edit{{model_name}}(this)">
+					<i class="icon-edit"></i>编辑
+				</a>
+				<a data-toggle="dropdown" class="btn btn-sm  btn-primary dropdown-toggle">
+					<span class="icon-caret-down icon-only"></span>
+				</a>
+				<ul class="dropdown-menu">
+					<li>
+						<a  class=""  onclick="remove{{model_name}}(this)">
+							<i class="icon-trash "></i>
+							删除
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+<table  class="table  table-bordered datatable" data-toolbar='datatable_toolbar' data-group-by-index='[4]'>
+	<thead>
+	<tr>
+		<th>
+			<input type="checkbox" checkbox-area='{{model_name}}_area'  >
+		</th>
+		<th width="40">编号</th>
+		<th width="200">名称</th>
+		<th>标识</th>
+		<th>数据存放位置</th>
+		<th>操作</th>
+	</tr>
+	</thead>
+	<tbody id="{{model_name}}_area">
+	{%for item in list_record%}
+	<tr>
+		<td>
+			<input type="checkbox"  value="{{item.id}}" name="id">
+		</td>
+		<td>
+			{{item.id}}
+		</td>
+		<td>
+			<a href="{{url_prefix}}edit?id={{item.id}}" class="openDialog">{{item.name}}</a>
+		</td>
+		<td>{{item.key}}</td>
+		<td>{{item.get_status_display}}</td>
+		<td>
+			
+			<a href="/query/list?log_key={{item.key}}">[管理查询]</a>
+			<a href="/statistic/list?log_key={{item.key}}">[管理统计]</a>
+		</td>
+	</tr>
+	{%endfor%}
+	</tbody>
+</table>
+</div >
+{% endwith %}
+{% endblock %}

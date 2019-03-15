@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% load mytags %} 
+
+{% block header%}
+<title>邮件信息</title>
+{% endblock %}
+
+{% block content %}
+<table class="table">
+  <thead>
+    <tr>
+      <th><input type="checkbox" checkbox-area="mail_area"></th>
+      <th>ID</th>
+      <th>子服ID</th>
+      <th>时间</th>
+      <th>邮件类型</th>
+      <th>发送者</th>
+      <th>邮件内容</th>
+      <!-- <th>邮件-参数列表</th> -->
+      <th>奖励</th>
+      <th>战报地址</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+
+  <tbody id="mail_area">
+    {% for mail in mail_list %}
+    <tr class="server" value="{{ server_id }}">
+      <td>
+        <input type="checkbox" value="{{ mail.id }}" name="mail_id" sid="{{server_id}}" svr="{{ mail.svr }}">
+      </td>
+      <td>{{ mail.id }}</td>
+      <td>{{ mail.svr }}</td>
+      <td>{{ mail.et|timestamp2datetime }}</td>
+
+      {% if mail.ty == 0 %}
+      <td>系统邮件</td>
+      {% elif mail.ty == 1 %}
+      <td>玩家邮件</td>
+      {% elif mail.ty == 2 %}
+      <td>包裹</td>
+      {% elif mail.ty == 3 %}
+      <td>战报</td>
+      {% endif %}
+
+      <td>{{ mail.sd }}</td>
+      <td>{{ mail.m.pl }}</td>
+      <td>{{ mail.rw }}</td>
+      <td>{{ mail.rp }}</td>
+      <td>
+        <a href="/game/player/del_mail?player_id={{ player_id }}&server_id={{ server_id }}&mail_id={{mail.id}}&svr={{mail.svr}}" class="del">[删除]</a>
+      </td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+
+<div class="sub-menu-1">
+  <input id="batch_del" type="button" value="批量删除">
+</div>
+
+<script>
+  function get_checked_list() {
+    var item_list = [];
+    $('#mail_area input[type=checkbox]:checked').each(function() {
+      item_list.push($(this).val())
+    })
+    return item_list
+  }
+
+  function ajax_delete(item_list) {
+    if (item_list.length > 0) {
+      // var item_id = item_list.pop();
+      var item_id = item_list.shift();
+      var _ele = $('[value="' + item_id + '"]').parent('td');
+      var _svr = parseInt($(_ele).find('[name="mail_id"]').attr('svr'))
+      if(isNaN(_svr)) _svr = 0
+      var _url = "del_mail?ajax=true&mail_id=" + item_id + "&player_id={{ player_id }}&server_id={{server_id}}&svr=" + _svr
+      _ele.append('删除中...');
+
+      $.get(_url).success(function(data) {
+        var _jdata = $.parseJSON(data);
+        if (_jdata.code == 0) {
+          _ele.html('&nbsp;删除成功！')
+          ajax_delete(item_list)
+        } else {
+          _ele.html('&nbsp;删除出错！')
+        }
+      })
+    } else {
+      window.location.href = '/game/player/mail_info?player_id={{ player_id }}&&server_id={{server_id}}&player_name={{player_name}}'
+    }
+  }
+
+  $('#batch_del').click(function() {
+    var item_list = get_checked_list();
+    if (item_list.length > 0 && confirm('确定删除这些id?\n\n' + item_list)) {
+      ajax_delete(item_list)
+    }
+  })
+
+</script>
+{% include "pager.html" %}
+{% endblock %}

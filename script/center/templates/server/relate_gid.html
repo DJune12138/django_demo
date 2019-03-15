@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>关联GID</title>
+<style>
+th{
+    width:150px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box collapsed">
+			<div class="widget-header widget-header-small">
+				<h5>选择关联GID</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+				<table class="table table-bordered relate_gid_table">
+                    <thead class="gid_cont">
+					<tr class="relate">
+						<th>关联组</th>
+						<td>
+                            GID编号:<input type="text" class="input-small" value="" name="gid"><br>
+                            PID列表:<input type="text" value="" name="pids" placeholder="联远商ID" select-key="pid" data-multiple="true" style="width: 800px;">
+						</td>
+					</tr>
+                    </thead>
+					<tr><th><a href="javascript:void(0)" class="" onclick="add_gid()">添加GID</a></th>
+						<td style="text-align: center">
+							<button id="save_btn" class="btn btn-success btn-sm" >保存</button>
+                            PS:更新并添加新的关联
+						</td>
+                    </tr>
+				</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<script id="gid-tpl" type="text/template">
+    <tr class="relate">
+        <th>关联组</th>
+        <td>
+            GID编号:<input type="text" class="input-small" value="" name="gid"><br>
+            PID列表:<input type="text" value="" name="pids" placeholder="联远商ID" select-key="pid" data-multiple="true"
+                         style="width: 800px;">
+        </td>
+    </tr>
+</script>
+
+<script>
+var pid_dict = {{ pid_j|safe }}
+
+function add_gid(){
+    var obj = {}
+    var html = get_views('gid-tpl',obj)
+    $('.gid_cont').append(html)
+}
+
+
+post_url = ''
+function ajaxDo(data,post_timeout){
+	$.ajax({
+		url: post_url,
+		dataType:'json',
+		type: 'POST',
+		data: data,
+        timeout: post_timeout,
+	})
+	.done(function(data) {
+         var msg = data.msg ? data.msg : '成功!'
+         $.dialog(msg)
+         setTimeout('location.reload()',1000)
+	})
+    .fail(function() {
+		alert('发生错误')
+	})
+}
+
+function get_msg(){
+    var cont = $('.relate_gid_table')
+
+	if (!check_input_empty(cont)) {
+		return
+	}
+
+    var _dict = {};
+
+    $('.relate').each(function(i,ele){
+        var gid = $(ele).find('[name="gid"]').val()
+        var pids = $(ele).find('[name="pids"]').val()
+        if (gid == '' | pids == ''){
+            return null
+        }
+
+        var pid_l = pids.split(',')
+        for (var i in pid_l){
+            var key = gid + '_' + pid_l[i]
+            _dict[key] = gid + '|' + pid_dict[pid_l[i]]
+        }
+
+    })
+
+	return {"msg":JSON.stringify(_dict),'type':'up'}
+}
+
+$('#save_btn').click(function(){
+    var msg = get_msg();
+
+    if (msg.msg == '{}'){
+        alert('参数无效')
+        return
+    }
+
+    console.dir(msg)
+
+	ajaxDo(msg,5000)
+
+    //setTimeout("window.location.reload()",10000);
+})
+
+</script>
+
+
+<div class="hr"></div>
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box">
+			<div class="widget-header widget-header-small">
+				<h5>查询已保存关联的GID</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered datatable ">
+						    <thead>
+							<tr>
+								<th>GID编号</th>
+								<th>备注</th>
+							</tr>
+							</thead>
+							<tbody>
+                                {% for k,v in d.items %}
+                                    <tr>
+                                        <td>
+                                            <input num="{{ k }}" class="pull-left del" style="color: rgb(255, 78, 29);margin-left: 10px;width: 15px;height: 15px;text-align: center;padding: 0;line-height: 15px;" onclick="del_gid(this)" type="button" value="x">
+                                            {{ k }}</td>
+                                        <td>{{ v }}</td>
+                                    </tr>
+                                {% endfor %}
+							</tbody>
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<script>
+
+function del_gid(ele){
+    var val = $(ele).attr('num')
+    var msg = {'msg':val,'type':'del'}
+
+    if (msg.msg == 'undefined'){
+        alert('参数无效')
+        return
+    }
+    console.dir(msg)
+    ajaxDo(msg,5000)
+
+}
+
+</script>
+
+<div id="iframe_cont" >
+<!-- <iframe id="player_iframe" frameborder='0' width='100%' height='100%' src=''  onload='$(this).height($(this).contents().find("body").height()+100)' ></iframe> -->
+</div>
+
+{% endblock %}

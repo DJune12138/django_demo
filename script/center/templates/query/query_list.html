@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>查询列表</title>
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	{%ifnotequal log_type 0%}
+	{%if request.allow_menu.日志类管理%}
+	<a href="/log/log/log_list">日志类型列表-></a>
+	{%endif%}
+
+	{%endifnotequal%}
+	查询列表
+	<div class="buttons">
+		{% if request.allow_menu.清除缓存%}
+		<a href="/query/clear/cache" class="openDialog">清除缓存</a>
+		{%endif%}
+		{% if request.allow_menu.查询_编辑%}
+		<a href="/query/edit?log_key={{log_key}}" class="openDialog">添加</a>
+		{%endif%}
+	</div>
+</div>
+{%if request.allow_menu.查询管理%}
+<div class="sub-menu">
+	<table>
+		<tr><td width=50><a href="/query/list" >全部</a></td><td></td></tr>
+		<tr><td>中央服:</td>
+			<td>
+				{%for item in logDefine_list%}
+					{% if item.status %}
+						<a href="/query/list?log_key={{item.key}}"{%ifequal item.key log_key%} class="active"{%endifequal%}>{{item.name}}</a>
+					{%endif%}
+				{%endfor%}
+			</td>
+		</tr>
+		<tr><td style="vertical-align: top;">分服:</td>
+			<td>
+				{%for item in logDefine_list%}
+					{% if not item.status %}
+						<a href="/query/list?log_key={{item.key}}"{%ifequal item.key log_key%} class="active"{%endifequal%}>{{item.name}}</a>
+					{%endif%}
+				{%endfor%}
+			</td>
+		</tr>
+	</table>
+</div>
+
+
+<div class="sub-menu-1">
+	<form id="search_form" action="/query/list?type=">
+		<select name="log_key" onchange="change_type()">
+			<option value="0">全部</option>
+			{%for item in logDefine_list%}
+			<option value="{{item.key}}"{%ifequal item.key log_key%} selected="selected"{%endifequal%}>{{item.name}}({{item.key}})
+				{%endfor%}
+			</select>
+			<!-- <input type="button" value="切换" onclick="change_type();" /> -->
+		</form>
+		<script type="text/javascript">
+		function change_type(){
+			var log_key = $("[log_key='log_key']").val();
+			$("#search_form").attr("action", "/query/list?log_key=" + log_key);
+			$("#search_form").submit();
+		}
+		</script>
+</div>
+{%endif%}
+
+	<table class="table table-bordered datatable" data-group-by-index="[3,5,6]" >
+		<thead>
+		<tr>
+			<th ><input type="checkbox" checkbox-area="checkbox_area"></th>
+			<th width="65">ID</th>
+			<th>名称</th>
+			<th >类型</th>
+			<th>查询字段</th>
+			<th >模版</th>
+			<th >分组</th>
+			<th >操作</th>
+		</tr>
+		</thead>
+
+		<tbody id="checkbox_area">
+			{%for item in list_model%}
+			{% if item.name in request.allow_menu.keys or request.admin.is_root%}
+			<tr>
+				<td><input type="checkbox" value="{{item.id}}" name="id"></td>
+				<td>{{item.id}}</td>
+				<td><a href="/query/view?qid={{item.id}}">{{item.name}}</a>
+					{%if item.sql%}
+					<span class="badge badge-danger">
+						sql
+					</span>
+					{%endif%}
+				</td>
+				<td>{{item.log_key}}</td>
+				<td title="{{item.remark}}">{{item.select}}</td>
+				<td>{{item.template_name}}</td>
+				<td>{{ item.group }}</td>
+
+				<td>
+
+					{% if request.allow_menu.查询_编辑%}
+					<div class="inline pull-right position-relative dropdown-hover">
+						
+						<a href="/query/edit?query_id={{item.id}}" class="openDialog">[编辑]</a>
+						<ul class="dropdown-menu dropdown-only-icon dropdown-yellow dropdown-caret dropdown-close pull-right">
+							<li>
+								<a href="/query/edit?query_id={{item.id}}&is_copy=true" class="openDialog">[复制]</a>
+								
+							</li>
+							{% if request.allow_menu.查询_删除%}
+							<li>
+								<a href="/query/remove?query_id={{item.id}}" class='del'>[删除]</a>
+							</li>
+							{% endif %}
+						</ul>
+					</div>
+					{%endif%}
+					
+				</td>
+			</tr>
+			{%endif%}
+			{%endfor%}
+		</tbody>
+	</table>
+	{% endblock %}

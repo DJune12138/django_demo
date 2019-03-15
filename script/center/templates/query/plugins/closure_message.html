@@ -1,0 +1,125 @@
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="/static/assets/css/bootstrap-select.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="/static/assets/js/bootstrap-select.min.js"></script>
+
+<style type="text/css">
+.comment{
+        color:#A9A9A9;
+        text-align: center !important;
+        font-size: 10px !important;
+    }
+.addlabel{
+	text-align: center !important;
+	font-size: 14px !important;
+}
+</style>
+<script type="text/javascript">
+function ajax_do(url,postData){
+$.ajax({
+			url: url,
+			type: 'post',
+			dataType:'json',
+			data:postData,
+			success:function(data) {
+				if (data["code"] == 0){
+				    swal({
+				        title:data["msg"],
+				        type:"success",
+				        timer: 1000,
+ 					   	showConfirmButton: false
+			    	})
+				    $('#add-modal').modal('hide')
+				    setTimeout(function(){
+		            $SEARCH.trigger('click')
+		        	},1000)
+			    }else{
+			    	swal({
+				        title:data["msg"],
+				        type:"warning"
+			    	})
+			    }
+			    },
+			error:function(er){
+				swal({
+					title:"保存失败",
+					type:"error"
+				})
+			}
+    })
+}
+var register = function(data) {
+		$.ajax({
+			url: '/player/player/inside_player_register',
+			type: 'POST',
+			dataType: 'json',
+			data: data
+		})
+		.done(function(data) {
+			$.dialog( {"title":"消息","content":linebreaksbr(data.msg)} )
+		})
+		.fail(function(o,t,e) {
+			$.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>')})
+		})
+}
+
+var del_white_user = function(ele){
+		swal({
+	  title: "确认删除?",
+	  type: "warning",
+	  showCancelButton: true,
+	  confirmButtonColor: "#DD6B55",
+	  confirmButtonText: "确认",
+	  cancelButtonText: "取消",
+	  closeOnConfirm: false
+	},
+	function(){
+	  var id = ele.id;
+		var url = '/user/lock?user_id={{item.id}}&is_lock=0';
+		var postData = {};
+		postData["userId"] = id
+		ajax_do(url,postData)
+	});
+}
+
+
+
+$(function(){
+	hideSearchToolbar()
+	flushDataTable()
+})
+</script>
+
+
+<script>
+//输入处理
+dataTableOption.convertInputDataFuncs.push(function(data){
+	LIST_DATA = null
+	return data
+})
+//输出处理
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+
+	var new_list_data = []
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+
+		var id = row[TH['id']]
+		var caozuo_index = TH['操作']
+
+		new_row[caozuo_index]	+= '<a href="/user/lock?user_id='+id+'&is_lock=0" class="ask">解封</a>'
+
+		new_list_data.push(new_row)
+	}
+    data.list_data = new_list_data
+	return data
+}
+)
+</script>
+
+
+

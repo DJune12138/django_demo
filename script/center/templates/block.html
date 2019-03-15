@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>禁止访问</title>
+{% endblock %}
+
+{% block content %}
+<style>body{background:black;}</style>
+<div class="alert alert-danger">
+			<button type="button" class="close" data-dismiss="alert">
+				<i class="icon-remove"></i>关闭
+			</button>
+			<strong>警告：</strong>
+			试图访问未授权的页面!
+			<br>
+</div>
+{% endblock %}

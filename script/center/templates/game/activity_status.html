@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+
+<title>{{model.name}} 活动状态</title>
+{% endblock %}
+
+{% block content %}
+
+{% with model.server.all as servers%}
+<div id="datatable_toolbar">
+	<div class="pull-right"> 
+	<button id="activity-query-btn" class="btn btn-xs  btn-success"><i class="icon-search"></i>
+		查询状态
+	</button>
+	<button id="activity-on-btn" class="btn btn-xs  btn-primary"><i class="icon-ok"></i>
+		配置活动
+	</button>
+	<button id="activity-off-btn" class="btn btn-xs  btn-danger"><i class="icon-remove"></i>
+		关闭活动
+	</button>
+	</div>
+</div>
+<table id="activity-table" class="table table-bordered datatable">
+	<thead>
+		<tr>
+		<th>
+			<input type="checkbox" checkbox-area="checkbox-area">
+		</th>
+		<th>服务器名</th>
+		<th>开服时间</th>
+		<th>状态</th>
+		<th>操作</th>
+		<th width=300>活动状态</th>
+		
+		</tr>
+	</thead>
+	<tbody id="checkbox-area">
+		{% for s in servers%}
+		<tr trid="{{forloop.counter0}}" server_id="{{s.id}}">
+		<td><input type="checkbox" name="server_id" value="{{s.master_id}}"></td>
+		<td title="GM地址:{{s.gm_address}}"><a href="/server/server/server_edit?sid={{s.id}}" class="openDialog">{{s.name}}({{s.id}})</a></td>
+		<td>{{s.create_time|date:"Y-m-d H:i:s"}}</td>
+		<td>{{s.get_status_display}}</td>
+		<td><a title="查看次服 {{model.name}} 活动 的参数配置" href="/game/activity/activity_setting?server_id={{s.id}}&activity_id={{model.id}}" class="openDialog">[参数设置]</a></td>
+		<td id="activity_status_{{s.master_id}}"></td>
+		
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+
+<!-- 加载活动类配置模版 -->
+{% include "game/activity_base.html" with model=model%}
+
+<script type="text/javascript">
+var QUERY_URL = '/game/activity/activity_query'
+var ON_URL = '/game/activity/activity_on'
+var OFF_URL = '/game/activity/activity_off'
+var activity_msg = '{{model.msg|safe}}'
+var STATUS_TABLE_INDEX = 5
+
+var trid_server_id_map = {
+	{%for s in servers%}{{s.id}}:{{forloop.counter0}}{%if not forloop.last%},{%endif%}{%endfor%}
+}
+$(function(){
+
+
+	window.odataTable = $('#activity-table').dataTable()
+
+    // var StatusLabel = {
+    //     -1:'<span class="label label-sm label-danger arrowed arrowed-right">获取失败.</span>',
+    //     1:'<span class="label label-sm label-primary arrowed arrowed-right">进行中.</span>',
+    //     2:'<span class="label label-sm label-success arrowed arrowed-right">已开启.</span>',
+    //     3:'<span class="label label-sm label-Warning arrowed arrowed-right">已关闭.</span>'
+    // }
+
+
+	function find_trid_for_sid(sid){
+		return trid_server_id_map[parseInt(sid)]
+	}
+
+	function updateServerActivityStaus(server_id,status_html){
+		var trId = find_trid_for_sid(server_id)
+        console.dir(status_html)
+		odataTable.fnUpdate(status_html,trId,STATUS_TABLE_INDEX,false,false)
+	}
+
+
+	function ActitityStatus(){
+		var This = this
+		var checkbox_area = $('#checkbox-area')
+		this.server_ids = []
+
+		this.get_server_ids = function(){
+			This.server_ids = []
+			checkbox_area.find(':checked').each(function(i,ele){
+				var server_id = parseInt(ele.value)
+				updateServerActivityStaus(server_id,'')
+				if (server_id && $.inArray(server_id, This.server_ids)<0) {
+					This.server_ids.push(server_id)
+				}
+			})
+
+			return This.server_ids
+		}
+
+		function errorHandle(server_id,msg,errcout){
+				updateServerActivityStaus(server_id,'第' + errcout + '次:' + msg)
+		}
+
+		this.query = function(){
+			this.action(QUERY_URL,function(server_id,data){
+				var status = ''
+				if (data.code == 0) {
+					var obj = data.content[0]
+					status = activitySetting.get_status(obj)
+				} else {
+					status = data.msg
+				}
+				updateServerActivityStaus(server_id,status)
+			},errorHandle)
+		}
+
+		this.on = function(){
+			this.action(ON_URL,function(server_id,data){
+				updateServerActivityStaus(server_id,data.msg)
+			},errorHandle)
+		}
+
+		this.off = function(){
+			this.action(OFF_URL,function(server_id,data){
+				updateServerActivityStaus(server_id,data.msg)
+			},errorHandle)
+		}
+
+		this.action = function(url,successCallback,errCallback){
+
+			this.get_server_ids()
+			if (This.server_ids.length>0) {
+				for (var i in This.server_ids) {
+					var server_id = this.server_ids[i]
+					updateServerActivityStaus(server_id,'<img src="/static/skin/images/loading.gif">')
+					this.ajax_do(url,server_id,successCallback,errCallback)
+				}
+			} else{
+				alert('没有选择服务器!')
+			}
+
+		}
+
+		this.ajax_do = function(url,server_id,successCallback,errCallback,errcout){
+			var errcout = errcout ? errcout : 0
+			$.ajax({
+				url: url,
+				type: 'POST',
+				dataType: 'json',
+				timeout:10000,
+				data: {"activity_id": {{model.id}},"server_id":server_id},
+			})
+			.done(function(data) {
+				successCallback(server_id,data)
+				checkbox_area.find('[value="'+server_id+'"]').prop('checked',false)
+			})
+			.fail(function(o,x,text) {
+				errcout += 1 
+				if (errcout<3) {
+					This.ajax_do(url,server_id,successCallback,errCallback,errcout)
+				}
+				var msg = o.responseText ? o.responseText : text
+				errCallback(server_id,msg.replace(/\n/g,'<br>'),errcout)
+			})
+			
+			
+
+		}
+	}
+
+	var actitityStatus = new ActitityStatus()
+	$('#activity-query-btn').click(function(){
+		actitityStatus.query()
+	})
+	$('#activity-on-btn').click(function(){
+		if (confirm('确定开启 {{model.name}} 活动')) {
+			actitityStatus.on()
+		}
+	})
+	$('#activity-off-btn').click(function(){
+		if (confirm('确定关闭 {{model.name}} 活动')) {
+			actitityStatus.off()
+		}
+	})
+})
+
+    $(function(){
+
+        if(window.location.hash.indexOf('auto_query')>0){
+            $('[name="server_id"]').trigger('click')
+             $('#activity-query-btn').trigger('click')
+        }
+    })
+
+</script>
+{%endwith%}
+{%endblock%}

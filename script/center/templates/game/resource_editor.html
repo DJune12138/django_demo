@@ -1,0 +1,491 @@
+{% load mytags %}
+
+<div id="property_dict" hidden>{{ property_dict }}</div>
+<div id="resource_dict" hidden>{{ resource_dict }}</div>
+
+<script>
+
+var property_dict = $.parseJSON($('#property_dict').html())
+var resource_dict = $.parseJSON($('#resource_dict').html())
+
+// 游戏资源控件
+var default_input_attr = {"name":"v","type":"number","min":1,"class":"input-small input-number not-empty","maxlength":8}
+// 信用点——钻石
+// 银币——金币
+// 军令——燃料
+// 官职——爵位
+// 威望——荣誉值
+// 武将——英雄
+// 征收——征税
+// 军功——科技点
+// 兵力——生命值
+// 金票——赠劵
+// var ResourceMap = {
+//     1:{name:"银币", unit:[["数量",default_input_attr]]},
+//     2:{name:"金票", unit:[["数量",default_input_attr]]},
+//     3:{name:"金币", unit:[["数量",default_input_attr]]},
+//     //4:{name:"科技点", unit:[["数量",default_input_attr]]},
+//     5:{name:"粮食", unit:[["数量",default_input_attr]]},
+//     6:{name:"木材", unit:[["数量",default_input_attr]]},
+//     7:{name:"铁", unit:[["数量",default_input_attr]]},
+//     8:{name:"军功", unit:[["数量",default_input_attr]]},
+//     9:{name:"威望", unit:[["数量",default_input_attr]]},
+//     10:{name:"军令", unit:[["数量",default_input_attr]]},
+//     11:{name:"主角经验", unit:[["经验值",default_input_attr]]},
+//     12:{name:"装备道具", unit:[["物品ID",{"name":"id","class":"input-small","select-key":"equipment","maxlength":8}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+//     13:{name:"武将", unit:[["武将ID",{"name":"v","class":"input-small","select-key":"pilots","data-multiple":"true"}]]},
+//     14:{name:"秀女", unit:[["秀女ID",{"name":"id","class":"input-small","select-key":"concubine","maxlength":8}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+//     15:{name:"充值数量", unit:[["数量",default_input_attr]]},
+//     16:{name:"贡献值", unit:[["数量",default_input_attr]]},
+//     17:{name:"群英币", unit:[["数量",default_input_attr]]},
+//     18:{name:"拜帖", unit:[["数量",default_input_attr]]},
+//     19:{name:"vip经验值", unit:[["数量",default_input_attr]]},
+//     //20:{name:"充值积分", unit:[["数量",default_input_attr]]},
+//     21:{name:"寻访积分", unit:[["数量",default_input_attr]]},
+//     23:{name:"功勋币", unit:[["数量",default_input_attr]]},
+//     24:{name:"骰子", unit:[["数量",default_input_attr]]},
+//     25:{name:"折扣材料", unit:[["数量",default_input_attr]]},
+//     26:{name:"远征币", unit:[["数量",default_input_attr]]},
+// };
+
+
+
+{#var ResourceMap = {#}
+{#    1:{name:"灵玉", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    2:{name:"绑定灵玉", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    3:{name:"贝币", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    4:{name:"道具", unit:[["物品ID",{"name":"id","class":"input","select-key":"equipment","maxlength":15,"size":30}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    5:{name:"贡献", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    6:{name:"累计充值", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    7:{name:"累计消费", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    8:{name:"每次充值", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    9:{name:"每次消费", unit:[["物品ID",{"name":"v","class":"number","select-key":"equipment","maxlength":15,"size":30}]]},#}
+{##}
+{# };#}
+
+var ResourceMap = {
+    1:{name:"道具", unit:[["物品ID",{"name":"id","class":"input","select-key":"property_id","maxlength":15,"size":30}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    2:{name:"资源", unit:[["物品ID",{"name":"id","class":"input","select-key":"resource_id","maxlength":15,"size":30}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+};
+
+{#var ResourceMap2 = {#}
+{#    6:{name:"累计充值", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    7:{name:"累计消费", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    8:{name:"每次充值", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    9:{name:"每次消费", unit:[["物品ID",{"name":"v","class":"number","select-key":"equipment","maxlength":15,"size":30}]]},#}
+{##}
+
+{#var ResourceMap3 = {#}
+{#    1:{name:"累计充值", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    2:{name:"累计消费", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{#    3:{name:"每次充值", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},#}
+{##}
+
+
+var ResourceMap4 = {
+    1:{name:"灵玉", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["积分",{"name":"inte","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["等级",{"name":"leve","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    2:{name:"绑定灵玉", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["积分",{"name":"inte","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["等级",{"name":"leve","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    3:{name:"贝币", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["积分",{"name":"inte","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["等级",{"name":"leve","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    4:{name:"道具", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["物品ID",{"name":"id","class":"input","select-key":"equipment","maxlength":15,"size":30}],["积分",{"name":"inte","type":"number","min":1,"class":"input-small input-number","maxlength":8}],["等级",{"name":"leve","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+};
+var ResourceMap5 = {
+
+{#1:{name:"挑战指定boss", unit:[["固定值",{"name":"ccc","type":"number","min":1,"maxlength":8,"allow_zero":1}],["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"参与击杀指定boss"}]]},#}
+2:{name:"累积充值X灵玉", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"累积充值1000灵玉"}]]},
+    3:{name:"单次充值X灵玉", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"单次充值300灵玉"}]]},
+    5:{name:"打造X次核装", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"打造3次核装"}]]},
+    16:{name:"使用元气珠进行野外修炼X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"使用元气珠进行野外修炼2次"}]]},
+   39:{name:"累积传功或被传功X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"累积传功或被传功5次"}]]},
+   47:{name:"凶地试炼通关噩梦以上难度", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"凶地试炼通关噩梦以上难度"}]]},
+    10:{name:"参加一条龙X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"参加一条龙10次"}]]},
+   11:{name:"参加赤铸山协助X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"参加赤铸山协助2次"}]]},
+   12:{name:"完成商会协助X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"完成商会协助3次"}]]},
+    15:{name:"打出X次野外篝火", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"打出15次野外篝火"}]]},
+    58:{name:"一条龙获得SSS以上评价X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"一条龙获得SSS以上评价"}]]},
+    18:{name:"完成好友赠送X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"完成好友赠送5次"}]]},
+    38:{name:"发放部族红包X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"发放部族红包1次"}]]},
+    43:{name:"发出商会协助X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"发出商会协助3次"}]]},
+    52:{name:"组队参与X次高级藏宝图", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"组队参与2次高级藏宝图"}]]},
+   56:{name:"给5名好友赠送X次礼物", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"给5名好友赠送1次礼物"}]]},
+    24:{name:"进行宠物合宠X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"进行宠物合宠1次"}]]},
+    41:{name:"完成X次法宝突破", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"完成1次法宝突破"}]]},
+    42:{name:"完成X次法宝升星", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"完成1次法宝升星"}]]},
+   50:{name:"开启神秘宝箱X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"开启神秘宝箱5次"}]]},
+   53:{name:"对宠物进行高级技能书打书X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"对宠物进行高级技能书打书2次"}]]},
+  54:{name:"进行宠物喂养X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"进行宠物喂养3次"}]]},
+    14:{name:"进行部族捐献X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"进行部族捐献10次"}]]},
+   25:{name:"进行宠物洗宠X次", unit:[["数量",{"name":"num","type":"number","min":1,"maxlength":8}],["完成赞",{"name":"praise","type":"number","min":1,"maxlength":8}],["描述",{"name":"des","type":"text","min":1,"maxlength":15,"value":"进行宠物洗宠10次"}]]},
+
+};
+var ResourceMap6 = {
+    4:{name:"道具", unit:[["物品ID",{"name":"id","class":"input","select-key":"equipment","maxlength":15,"size":30}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8,"value":1}]]},
+}
+
+var bind_dic={1:"绑定",0:"非绑定"};
+
+var equipment = $.parseJSON(sessionStorage["equipment"])
+var concubine = $.parseJSON(sessionStorage["concubine"])
+var charge_map = $.parseJSON(sessionStorage["recharge_type"])
+
+
+
+
+function ResourceInput(resourceMap,resouceYypeName){
+    var This = this
+
+    this.resourceMap = resourceMap?resourceMap:ResourceMap;
+
+
+    this.resouceClassName = resouceYypeName  ? resouceYypeName + '-resoucre-select' : 'resoucre-select'
+    var resource_keys = []
+    for (var k in this.resourceMap ){
+        resource_keys.push(parseInt(k))
+    }
+
+    /*
+    @contEle :装载项目的容器
+    @resouce_obj_handler 额外处理的函数
+    */
+    this.to_json=function(contEle,resouce_obj_handler){//将元素内容转为对象
+        var resouce_obj = {}
+        var contEle = contEle
+        var is_jquery_ele = contEle instanceof jQuery ? true : false
+        if (!is_jquery_ele) {
+            contEle = $(contEle)
+        }
+        resouce_obj['aID'] = parseInt(contEle.find('select').val())
+        if(this.resourceMap ==ResourceMap5){
+            contEle.find(':input[name]').each(function(i,ele){
+               var name = ele.name
+               var reg_num = /\(*\)/
+               if(ele.name=='id' || ele.name=='v'){
+                  var reg_num = /\(([0-9]*)\)/;
+                  resouce_obj[name] = !isNaN(this.value) ? parseInt(this.value) : parseInt(this.value.match(reg_num)[1])
+               }
+               else if(ele.name=='val'){
+                   var reg_num = /\(([0-9z]*)\)/;
+                  var reg_num = /\((\d+)\)/;
+                  console.log("pppppppppp",this.value)
+                  resouce_obj[name] = !isNaN(this.value) ? parseInt(this.value) : parseInt(this.value.match(reg_num)[1])
+               }
+               else if(ele.name=='des'){
+                   resouce_obj[name] = this.value.replace(/\(.*?\)/g,'')
+                   console.log(resouce_obj[name])
+               }
+               else {
+                  resouce_obj[name] = this.value ? this.value : this.value.match(reg_num)
+               }
+            })
+        }else{
+            contEle.find(':input[name]').each(function(i,ele){
+                   var name = ele.name;
+                   var reg_num = /\(([0-9]*)\)/;
+                   resouce_obj[name] = !isNaN(this.value) ? parseInt(this.value) : parseInt(this.value.match(reg_num)[1])
+                })
+        }
+{#        contEle.find(':input[name]').each(function(i,ele){#}
+{#            var name = ele.name#}
+{#            // var reg_num= /[^0-9]/ig;#}
+{#            var reg_num = /\(([0-9z]*)\)/;#}
+{#            if (this.resourceMap =ResourceMap5){         //////////#}
+{#                var reg_num = /\(*\)/#}
+{#                console.log('jjjjjjjjjjj',this.value.match(reg_num),this.value)#}
+{#                resouce_obj[name] = this.value ? this.value : this.value.match(reg_num)#}
+{#                console.log(resouce_obj)#}
+{#            }else {#}
+{#              resouce_obj[name] = !isNaN(this.value) ? parseInt(this.value) : parseInt(this.value.match(reg_num)[1])#}
+{#            }#}
+{#        });#}
+
+
+        var resource_attr = This.resourceMap[resouce_obj['aID']]
+        var output_handler = resource_attr.hasOwnProperty('output_handler') ? resource_attr.output_handler : null
+        output_handler = resouce_obj_handler ? resouce_obj_handler : output_handler
+
+        resouce_obj = output_handler ? output_handler(resouce_obj) : resouce_obj
+        console.log('666666666666668888888',resouce_obj)
+        return resouce_obj
+    }
+
+    this.make_input = function(selectEle){
+            var _r_p = $.parseJSON(selectEle.attr('data-resource-map'))
+            var _span = $('<span></span>')
+            var _key = parseInt(selectEle.val())
+            var item_attr = _r_p[_key]
+
+
+            for (var i in item_attr['unit']){
+                var _attr = item_attr['unit'][i]
+
+                var input_attr = { type:'text',value:'' }
+                if (typeof(_attr[1])=='object'){
+                    input_attr = $.extend(input_attr,_attr[1])
+                }
+                var _input = $('<input>',input_attr)
+                _span.append(_attr[0] + ':')
+                _span.append(_input)
+            }
+            selectEle.next('.input_span').html(_span)
+    }
+
+    /*
+    @value_obj    :项目数组
+    @include_list :只需要的项目
+    @not_del      :是否有删除按钮
+    */
+    this.get_item_html=function(value_obj,include_list,not_del,okok){
+        var default_obj = {}
+        if (!value_obj || $.isEmptyObject(value_obj)) {
+            for (k in This.resourceMap) {
+                var default_resouce = This.resourceMap[k]
+                var _value_obj =  {"aID":k}
+                for (i in default_resouce['unit']) {
+                    _value_obj[default_resouce['unit'][i]['name']] = ''
+                }
+                break
+            }
+
+        } else {
+            var _value_obj = value_obj
+        }
+        include_list = include_list && include_list.length>0 ? include_list : resource_keys
+        var _cont = $('<span class="equipitem"></span>')
+
+        var _select = $('<select>',{"class":"resoucre-select","data-resource-map":JSON.stringify(This.resourceMap)})
+        _cont.append(_select)
+        _cont.append('<span class="input_span"></span>')
+
+
+
+        if (not_del == null || not_del == 'undefined' || not_del == true){
+            _cont.append('<input class="equipinput-del" type="button" value="x" onclick="$(this).parent().remove()" />')
+        }
+        //var resouce_attr = This.resourceMap[_value_obj["aid"]]['unit']
+        // 增加下拉列表
+        for (var k in This.resourceMap){
+
+            if (include_list.indexOf(parseInt(k))<0){
+                continue
+            }
+
+            if(okok==22 && k>5){
+            var _sname = This.resourceMap[k]['name']
+            var selected = k == _value_obj['aID'] ? 'selected="selected"' : ''
+            var option = '<option value="'+ k +'" '+ selected+ '>'+ _sname +'</option>'
+            _select.append(option)
+        }
+            if(okok!=22 && k<5){
+            var _sname = This.resourceMap[k]['name']
+            var selected = k == _value_obj['aID'] ? 'selected="selected"' : ''
+            var option = '<option value="'+ k +'" '+ selected+ '>'+ _sname +'</option>'
+            _select.append(option)
+
+        }
+            if(okok!=22 && k>=5){
+            var _sname = This.resourceMap[k]['name']
+            var selected = k == _value_obj['aID'] ? 'selected="selected"' : ''
+            var option = '<option value="'+ k +'" '+ selected+ '>'+ _sname +'</option>'
+            if (!This.resourceMap[k]['name']){
+                _select.hide()
+            }
+            _select.append(option)
+            }
+{#            var _sname = This.resourceMap[k]['name']#}
+{#            var selected = k == _value_obj['aID'] ? 'selected="selected"' : ''#}
+{#            var option = '<option value="'+ k +'" '+ selected+ '>'+ _sname +'</option>'#}
+{#            _select.append(option) #}
+        }
+
+        var resource_attr = This.resourceMap[_value_obj['aID']]
+{#        var input_handler = resource_attr.hasOwnProperty('input_handler') ? resource_attr.input_handler : null#}             ///////////////因为全民抽奖而删掉这两行
+{#        _value_obj = input_handler ? input_handler(_value_obj) : _value_obj#}
+        This.make_input(_select)
+
+        if(_value_obj['aID']==1){
+            console.log(property_dict)
+            for (var k in _value_obj){
+                var value = _value_obj[k]
+                if(k == 'id'){
+                    value = property_dict[value.toString()] + "(" + value + ")"
+                }
+                _cont.find('[name="'+k+'"]').attr('value',value)
+            }
+        }
+        else if(_value_obj['aID']==2){
+            for (var k in _value_obj){
+                var value = _value_obj[k]
+                if(k == 'id'){
+                    value = resource_dict[value.toString()] + "(" + value + ")"
+                }
+                _cont.find('[name="'+k+'"]').attr('value',value)
+            }
+        }
+
+
+        return _cont.outerHTML()
+    }
+
+    this.get_remark_str_for_list = function(resource_obj_list){
+        var _str = ''
+        for(var i in resource_obj_list){
+            _str += This.get_remark_str(resource_obj_list[i]) + ','
+        }
+        return _str.replace(/,$/,'')
+    }
+
+    /*
+    将资源对象转为文字表述
+        {"aid":1,"v":1},{"aid":3,"v":1}
+    */
+    this.get_remark_str = function(resource_obj) {
+
+        var r_m = This.resourceMap
+        console.log('11111111111111111',r_m)
+        var r_def = r_m[resource_obj.aID]
+        var _str = ''
+        _str += r_def.name + ':'
+
+        var the_units = r_def.unit
+        console.log('11111111111111111',r_m)
+        for (var i in the_units) {
+
+
+            var unit_name = the_units[i][0]
+            var unit = the_units[i][1]
+            _str += resource_obj[unit.name]
+            _str += '-'
+
+                if(resource_obj.hasOwnProperty("b")&&(_str.split("-")).length<3){
+                _str+=bind_dic[resource_obj["b"]]
+                _str += '-'
+            }
+        }
+        return _str.replace(/-$/,'')
+    }
+
+    /*
+        风云2将资源对象转为文字表述
+    */
+
+    this.get_str_list = function(resource_obj_list){
+        var _str = ''
+        for(var i in resource_obj_list){
+            _str += This.get_str(resource_obj_list[i]) + ','
+        }
+        return _str.replace(/,$/,'')
+    }
+
+    /*
+    将资源对象转为文字表述
+        [[12,70003,1],[12,3002,1]]
+    */
+
+
+    this.get_str = function(resource_obj) {
+        var r_m = This.resourceMap
+        console.log('99999999999999999999999',r_m)
+        var r_def = r_m[resource_obj[0]]
+        var _str = ''
+        _str += r_def.name + ':'
+
+        for (var i in resource_obj) {
+            if (i == 0){
+                continue
+            }
+            if (i == 1){
+                var na = undefined;
+                if ( resource_obj[0] == 12){
+                    na = equipment[resource_obj[i]] + '(' + resource_obj[i] +')'
+                }
+                if ( resource_obj[0] == 14){
+                    na = concubine[resource_obj[i]] + '(' + resource_obj[i] +')'
+                }
+
+                if (na == undefined){
+                    na = resource_obj[i]
+                }
+                _str += na
+                _str += '-'
+                continue
+            }
+            _str += resource_obj[i]
+            _str += '-'
+        }
+        return _str.replace(/-$/,'')
+    }
+
+
+    $('.'+this.resouceClassName).unbind('change')
+
+    $(document).on('change','.' + this.resouceClassName,function(){
+        This.make_input($(this))
+    })
+
+}
+
+{#var rc = new ResourceInput()#}
+
+
+$(document).ready(function(){
+        $(".prize_cont").each(function(i,ele){
+        var r_obj_json = $(this).attr("title")
+        var r_obj = $.parseJSON(r_obj_json)
+        var prize_content_str = rc.get_remark_str_for_list(r_obj)
+        $(this).html(prize_content_str)
+    })
+
+})
+
+// json转换成奖励字符串
+function reversal_prize(r_obj_json){
+    try{
+        var r_obj = $.parseJSON(r_obj_json)
+        return rc.get_remark_str_for_list(r_obj)
+    }catch(e){
+        console.dir(e)
+        return r_obj_json
+    }
+}
+// fytx2 奖励数组模版json转换成奖励字符串
+function resourec_prize(r_obj_json){
+
+    try{
+        var r_obj = $.parseJSON(r_obj_json)
+        return rc.get_str_list(r_obj)
+    }catch(e){
+        console.dir(e)
+        return r_obj_json
+    }
+}
+
+function ajax_do(key){
+    if (sessionStorage[key] == undefined){
+        $.ajax({
+               type : "GET",
+               url : "/log/dict/interface?key=" + key,
+               datatype : "json",
+               cache : false,
+                async:false,
+        })
+        .done(function (data) {
+                    sessionStorage[key]=data
+        })
+    }
+}
+
+$(document).ready(function(){
+    var key_l = ['equipment','concubine','recharge_type','charge_id_money',"world_level","first_challenge","treasure","pray","materials","pass_materials"]
+    for (var i in key_l){
+        ajax_do(key_l[i])
+    }
+})
+
+$(document).ready(function(){
+        $(".prize_cont").each(function(i,ele){
+        var r_obj_json = $(this).attr("title")
+        var prize_content_str = reversal_prize(r_obj_json)
+        $(this).html(prize_content_str)
+    })
+})
+
+</script>

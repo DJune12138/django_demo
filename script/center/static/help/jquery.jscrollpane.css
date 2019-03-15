@@ -1,0 +1,153 @@
+/*
+ * CSS Styles that are needed by jScrollPane for it to operate correctly.
+ *
+ * Include this stylesheet in your site or copy and paste the styles below into your stylesheet - jScrollPane
+ * may not operate correctly without them.
+ */
+
+.jspContainer
+{
+	overflow: hidden;
+	position: relative;
+  /* width: 100%!important; */
+  position: relative;
+  height: 100% !important;
+}
+
+.jspPane
+{
+	position: absolute;
+  width: 99% !important;
+  /* height: 100% !important; */
+  border: 0px;
+}
+
+.jspVerticalBar
+{
+	position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  /* padding: 0 0 0 0.1em; */
+  /* height: 0; */
+  /* background: #05132E; */
+  /* border-left: 1px solid #103674; */
+}
+
+.jspHorizontalBar
+{
+	display: none;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+/*	width: 100%;*/
+/*	height: 16px;*/
+	background: red;
+}
+
+.jspVerticalBar *,
+.jspHorizontalBar *
+{
+  margin: 0;
+  padding: 0;
+}
+
+.jspCap
+{
+	display: none;
+}
+
+.jspHorizontalBar .jspCap
+{
+	float: left;
+}
+
+.jspTrack
+{
+  /* background: #05132E; */
+  position: relative;
+  /* background: url('img/vertical_bar.png') repeat center center scroll; */
+  /* width: 10px; */
+  background-color: black;
+}
+
+.jspDrag
+{
+	position: relative;
+	top: 0;
+	/* left: -0.9em; */
+	cursor: pointer;
+  /* left: -0.2em; */
+  /* width: 20px; */
+
+
+  /* background: #1C69C1; */
+  background: url('img/scroll.png') no-repeat center center scroll;
+  /* background-color: white; */
+  /* background-size: 100% 100%; */
+  /* background-repeat: no-repeat; */
+  /* background-position: -1em; */
+}
+.jspDrag:after{
+  /* height: 1em; */
+  width: 0.9em;
+  border-radius: 3em;
+  display: block;
+  content: "";
+  margin-top: 0.5em;
+  /* background: rgba(255,255,255,0.8); */
+  height: 1.5em;
+  background: url('img/scroll.png');
+  /* box-shadow: 0 0 1em 5px #216eb5; */
+  opacity: 0.9;
+}
+.jspHorizontalBar .jspTrack,
+.jspHorizontalBar .jspDrag
+{
+	float: left;
+	height: 100%;
+}
+
+.jspArrow
+{
+	/* background: #50506d; */
+	text-indent: -20000px;
+	display: block;
+	cursor: pointer;
+}
+
+.jspArrow.jspDisabled
+{
+	cursor: default;
+	/* background: #80808d; */
+}
+
+.jspVerticalBar .jspArrow
+{
+	height: 16px;
+}
+
+.jspHorizontalBar .jspArrow
+{
+	width: 16px;
+	float: left;
+	height: 100%;
+}
+
+.jspVerticalBar .jspArrow:focus
+{
+	/*outline: none;*/
+}
+
+.jspCorner
+{
+	/* background: #eeeef4; */
+	float: left;
+	height: 100%;
+}
+
+/* Yuk! CSS Hack for IE6 3 pixel bug :( */
+* html .jspCorner
+{
+	margin: 0 -3px 0 0;
+}

@@ -1,0 +1,133 @@
+{% include "widgets/echarts.html"%}
+
+
+<div id="charts-div" >
+
+</div>
+
+<script type="text/javascript">
+  $('#query_nav').hide()
+  $('#date_select_cont').html('')
+
+
+  var sdate_str = new Date().dateAdd('m',-12).Format("yyyy-MM")
+  var edate_str = new Date().dateAdd('m',-1).Format("yyyy-MM")
+
+  var close_12_month_btn = $('<a>',{"style":"color:white","html":"近12个月","href":"javascript:void(0)",click:function(){
+  	$('[name="sdate"]').val(sdate_str)
+  	$('[name="edate"]').val(edate_str)
+
+  }})
+
+
+  var this_year_btn = $('<a>',{"style":"color:white","html":"今年","href":"javascript:void(0)",click:function(){
+  	var sdate_str = new Date().Format("yyyy-01")
+  	var edate_str = new Date().Format("yyyy-MM")
+  	$('[name="sdate"]').val(sdate_str)
+  	$('[name="edate"]').val(edate_str)
+
+  }})
+  var pre_year_btn = $('<a>',{"style":"color:white","html":"上年","href":"javascript:void(0)",click:function(){
+  	var pre_sdate_str =  new Date().dateAdd('y',-1).Format("yyyy-01")
+  	var pre_edate_str =	new Date().dateAdd('y',-1).Format("yyyy-12")
+  	$('[name="sdate"]').val(pre_sdate_str)
+  	$('[name="edate"]').val(pre_edate_str)
+
+  }})
+
+  $('#date_select_cont').append(close_12_month_btn)
+  $('#date_select_cont').append('&nbsp;&nbsp;')
+  $('#date_select_cont').append(this_year_btn)
+  $('#date_select_cont').append('&nbsp;&nbsp;')
+  $('#date_select_cont').append(pre_year_btn)
+
+
+  $('[name="sdate"]').val(sdate_str).width(80)
+  $('[name="edate"]').val(edate_str).width(80)
+
+</script>
+
+<script>
+
+  
+  $('[name="sdate"]').removeClass('Wdate')
+  $('[name="edate"]').removeClass('Wdate')
+
+
+
+  $('[name="sdate"]').focus(function(){
+		WdatePicker({
+		  dateFmt :  'yyyy-MM'
+	})
+  })
+  $('[name="edate"]').focus(function(){
+		WdatePicker({
+		  dateFmt :  'yyyy-MM'
+	})
+  })
+
+
+	function item_handle(item){
+		if (item) {
+		var item = parseFloat(item.toString().split(/%/)[0])
+		item = !isNaN(item) ? item : 0
+		}else{
+			item=0
+		}
+		return item
+	}
+if (window.dataTableOption) {
+	var $charts_cont = $('#charts-div')
+	$charts_cont.insertBefore($QUERY_TABLE)
+
+
+	var LIST_DATA = null
+
+	dataTableOption.option["sScrollX"] = "1400px"
+	dataTableOption.option["sScrollXInner"] = "1400px"
+	dataTableOption.option["bScrollCollapse"] = true
+        
+
+	dataTableOption.convertInputDataFuncs.push(function(data){
+		var new_data = []
+		for (var i in data){
+			var item = data[i]
+			if(item.name =='sdate'){
+					item.value = item.value + '-01 00:00:00'
+			}
+			if(item.name =='edate'){
+					item.value = item.value + ' 01 00:00:00'
+					item.value = new Date(item.value).dateAdd('m',1).dateAdd('d',-1).Format("yyyy-MM-dd 23:59:59")
+			}
+			new_data.push(item)
+		}
+		console.dir(new_data)
+		return new_data
+	})//输入处理
+	dataTableOption.convertOutputDataFuncs.push(function(data) {
+
+		LIST_DATA = data.list_data
+		
+		var e = new Echarts('charts-div')
+		e.loading()
+		
+		//e.opt.legend.orient = 'vertical'
+		e.opt.legend.x = 'center'
+		e.opt.legend.y = 'bottom'
+		e.opt.grid.y2 = 100
+		e.opt.title.text = data.query_name
+		//e.opt.toolbox.show = false
+		e.opt.dataZoom.show = false
+		e.opt.title.subtext = $('[name="sdate"]').val() + ' - ' + $('[name="edate"]').val()
+		if(data.list_data.length>0){
+		e.push_data(data.list_data,data.fields,false,item_handle)
+		}
+		e.done()
+		
+	  	return data
+	}) 
+}
+</script>
+
+
+

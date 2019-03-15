@@ -1,0 +1,237 @@
+{% extends "base.html" %} 
+
+{% block header%}
+<script type="text/javascript">
+function delFile(id, ele) {
+  if (confirm("确定删除？删除不可恢复！")) {
+    $.ajax({
+      type: "GET",
+      url: "/help/del?id=" + id,
+      datatype: "html",
+      data: {
+        id: id
+      },
+      cache: false,
+      success: function(data) {
+        $(ele).parent().parent().hide();
+      },
+      error: function(data) {
+        $(ele).html('删除失败');
+      }
+    });
+    return false;
+  } else {
+    return false;
+  }
+}
+
+function creatAllFile() {
+  if (confirm("确定生成？")) {
+    var _dialog = $.dialog('正在生成，请稍等...');
+    $.ajax({
+      type: "GET",
+      url: "/help/filecreate?id=0",
+      datatype: "html",
+      cache: false,
+      success: function(data) {
+        _dialog.close();
+        $.dialog('生成文件成功!');
+      },
+      error: function(data) {
+        _dialog.close();
+        $.dialog('生成文件文件失败!');
+      }
+    });
+    return false;
+  } else {
+    return false;
+  }
+}
+
+function creatFile(id) {
+  if (confirm("确定生成？")) {
+    var _dialog = $.dialog('正在生成，请稍等...');
+    $.ajax({
+      type: "GET",
+      url: "/help/filecreate?id=" + id,
+      datatype: "html",
+      cache: false,
+      success: function(data) {
+        _dialog.close();
+        $.dialog('生成文件成功!');
+      },
+      error: function(data) {
+        _dialog.close();
+        $.dialog('生成文件文件失败!');
+      }
+    });
+    return false;
+  } else {
+    return false;
+  }
+}
+
+function collectionFlie() {
+  if (confirm("确认导入文件？")) {
+    var _dialog = $.dialog('正在导入，请稍等...');
+    $.ajax({
+      type: "GET",
+      url: "/help/import",
+      datatype: "html",
+      cache: false,
+      success: function(data) {
+
+        _dialog.content('导入文件成功!');
+      },
+      error: function(data) {
+
+        _dialog.content('导入文件失败!');
+      }
+    });
+  }
+}
+
+function stopDefault(e) {
+  var oEvent = e || event;
+  if (oEvent && oEvent.preventDefault) {
+    oEvent.preventDefault();
+  } else {
+    window.event.returnValue = false;
+  }
+  return false;
+}
+
+function createDialog(t) {
+  art.dialog.open($(t).attr("href"));
+  stopDefault();
+}
+</script>
+{% endblock %} 
+
+
+{% block content %}
+<div id="bar">
+  游戏帮助管理
+  <div class="buttons">
+    <a href="/help/edit" onclick="createDialog(this)">添加帮助文件</a>
+    <a href="/help/category/list" onclick="createDialog(this)">分类添加和管理</a>
+    <!--     <a href="/help/view" target="_blank">帮助预览</a>  -->
+  </div>
+</div>
+<div class="sub-menu-1">
+  <form action="/help/list" name="form" method="post">
+    <select name="parent_id">
+      <option value="0">请选择</option>
+      {% for item in cgname %}
+      <option value="{{item.id}}" {%if parent_id = item.id %} selected="selected" {%endif%} >{{item.name}}</option>
+      {% endfor %}
+    </select> 关键字：
+    <input type="text" name="title" value="{{ search_con }}" />
+    <input type="submit" name="submit" value="搜索" />
+  </form>
+</div>
+
+<table class="list table datatable" cellspacing="0">
+  <thead>
+    <tr>
+      <td>排序</td>
+      <td>标题</td>
+      <td>所属类别</td>
+      <td>文件名</td>
+      <td>操作</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for itme in res %}
+    <tr>
+      <td>{{ itme.order }}</td>
+      <td><a href="/help/view?filename={{itme.filename}}.html" target="_blank">{{ itme.title }}</a></td>
+      <td>{{ itme.get_parent_id_name}}</td>
+      <td>{{ itme.filename }}</td>
+      <td><a href="/help/edit?id={{ itme.id }}" class="openDialog">修改</a>| <a href="/help/del?id={{ itme.id }}" onclick=" return delFile({{ itme.id }}, this);">删除</a>|<a href="#" onclick=" return creatFile({{ itme.id}})">静态生成</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="sub-menu-1">
+  <div class="buttons">
+    <a href="/static/help/index.html" target="_blank">静态浏览</a>
+    <a href="javascript:;" class="creat" onclick=" return creatAllFile();">生成静态数据</a>
+
+  {% if request.allow_menu.帮助_上传 %}
+    <a href="javascript:;" onclick=" return collectionFlie();">导入文件</a>
+    <a href="/help/export" target="_blank">导出CSV文件</a>
+  {% endif %}
+  </div>
+</div>
+
+<script type="text/javascript">
+function fileSelected() {
+  var file = document.getElementById('fileToUpload').files[0];
+  if (file) {
+    var fileSize = 0;
+    if (file.size > 1024 * 1024)
+      fileSize = (Math.round(file.size * 100 / (1024 * 1024)) / 100).toString() + 'MB';
+    else
+      fileSize = (Math.round(file.size * 100 / 1024) / 100).toString() + 'KB';
+
+    document.getElementById('fileName').innerHTML = '文件名: ' + file.name;
+    document.getElementById('fileSize').innerHTML = '大小: ' + fileSize;
+  }
+}
+
+function uploadFile() {
+  var fd = new FormData();
+  fd.append("fileToUpload", document.getElementById('fileToUpload').files[0]);
+  var xhr = new XMLHttpRequest();
+  xhr.upload.addEventListener("progress", uploadProgress, false);
+  xhr.addEventListener("load", uploadComplete, false);
+  xhr.addEventListener("error", uploadFailed, false);
+  xhr.addEventListener("abort", uploadCanceled, false);
+  xhr.open("POST", "/help/upload");
+  xhr.send(fd);
+}
+
+function uploadProgress(evt) {
+  if (evt.lengthComputable) {
+    var percentComplete = Math.round(evt.loaded * 100 / evt.total);
+    document.getElementById('progressNumber').innerHTML = '进度:' + percentComplete.toString() + '%';
+  } else {
+    document.getElementById('progressNumber').innerHTML = 'unable to compute';
+  }
+}
+
+function uploadComplete(evt) {
+  /* This event is raised when the server send back a response */
+  alert(evt.target.responseText);
+}
+
+function uploadFailed(evt) {
+  alert("上传失败!");
+}
+
+function uploadCanceled(evt) {
+  alert("取消上传!");
+}
+</script>
+
+
+{% if request.allow_menu.帮助_上传 %}
+<div class="sub-menu-1">
+  <form id="form1" enctype="multipart/form-data" method="post" action="/help/upload">
+    <div class="row">
+      <!-- <label for="fileToUpload">zip格式的帮助压缩文件(没有根目录):</label> -->
+      <label for="fileToUpload">  注：CSV/Excel格式的帮助文件</label>
+      <input type="file" style="display:inline-block" name="file" id="fileToUpload" onchange="fileSelected();" accept=".csv, .xlsx" class="" />
+      <input type="button" class="btn btn-xs" onclick="uploadFile()" value="上传" />
+    </div>
+    <div id="fileName"></div>
+    <div id="fileSize"></div>
+    <div id="fileType"></div>
+    <div id="progressNumber">
+    </div>
+  </form>
+</div>
+{% endif %}
+
+{% endblock %}

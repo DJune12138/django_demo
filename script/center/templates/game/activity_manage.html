@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% load mytags %}
+
+{% block header%}
+<title>活动管理</title>
+{% endblock %}
+
+{% block content %}
+<style>
+  .form-group {
+    margin-bottom: 1px;
+  }
+</style>
+<div class="bar">
+	活动管理
+</div>
+<form class="form-horizontal" id="activity_form" role="form" action="/game/activity/activity_manage" method="post">
+  <div class="form-group">
+    <label class="control-label col-sm-3">服务器:</label>
+    <div class="col-sm-8">
+    {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids %}
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label col-sm-3">查询类型：</label>
+    {% for k,v in query_type_dict.items %}
+        <label class="radio-inline">
+          <input type="radio" name="query_type" value="{{ k }}" {% if k == query_type %} checked {% endif %}>{{ v }}
+        </label>
+    {% endfor %}
+  </div>
+  <div class="form-group activity_type" style="display:none">
+    <label class="control-label col-sm-3">活动类型：</label>
+    <select name="activity_type">
+      {% for t in model.TYPE_MAP.keys %}
+        <option value="{{t}}" {% if activity_type == t %} selected="selected" {%endif%}>
+          {{t}}
+        </option>
+      {%endfor%}
+    </select>
+  </div>
+  <div class="form-group"> 
+    <div class="col-sm-offset-3 col-sm-8">
+      <button type="submit" class="btn btn-default btn-sm btn-primary" id="query_btn">查询</button>
+    </div>
+  </div>
+</form>
+<table id="query_table" class="table  table-striped table-hover" >
+  <thead >
+    <tr>
+      {%for field in table_head %}
+      <th>{{field}}</th>
+      {%endfor%}
+    </tr>
+  </thead>
+  <tbody>
+  {%for k, v in activity_data.items %}
+  {% if query_type = 'id'  %}
+    <tr>
+      <td>{{ k.aid }}</td>
+      <td>{{ k.sdate|timestamp2datetime }}</td>
+      <td>{{ k.edate|timestamp2datetime }}</td>
+      <td>
+        {%for s in v %}
+        <a href="#" class="closeActivity" data-sid="{{ s.id }}" data-aid="{{ k.aid }}">
+          {{ s.name }}({{ s.id }})
+        </a>
+        {% endfor %}
+      </td>
+    </tr>
+  {% elif query_type = 'status' %}
+    {% for status, servers in v.items %}
+    <tr>
+      <td>{{ k.aid }}</td>
+      <td>{{ k.sdate|timestamp2datetime }}</td>
+      <td>{{ k.edate|timestamp2datetime }}</td>
+      {% if status = '正在进行' %}
+      <td><span class="label label-primary">{{ status }}</span></td>
+      {% else %}
+      <td><span class="label label-success">{{ status }}</span></td>
+      {% endif %}
+      <td>
+        {% for s in servers %}
+          <a href="#" class="closeActivity" data-sid="{{ s.id }}" data-aid="{{ k.aid }}">
+          {{ s.name }}({{ s.id }})
+          </a>
+        {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  {% elif query_type = 'type'%}
+    <tr>
+      <td>{{ k }}</td>
+      <td>
+        {% for i in v %}
+          <a href="#" class="closeActivity" data-sid="{{ server.id }}" data-aid="{{ i.aid }}">{{ i.aid }}</a>
+        {% endfor %}
+      </td>
+    </tr>
+  {% endif %}
+  {%endfor%}
+
+  {% if query_type = 'temp'%}
+      {% for k,v in res_obj.items %}
+        <tr>
+            <td>{{ k }}</td>
+            <td>{{ v.0 | timestamp2datetime }}</td>
+            <td>{{ v.1 | timestamp2datetime }}</td>
+            <td>{{ v.2 | timestamp2datetime }}</td>
+            <td>{{ v.3 | timestamp2datetime }}</td>
+        </tr>
+      {% endfor %}
+  {% endif %}
+
+  </tbody>
+  <tfoot style="font-weight: bold;"></tfoot>
+</table>
+
+<script type="text/javascript">
+
+  $('#query_btn').click(function(event) {
+    var server_ids = get_server_ids(true) 
+    if (server_ids.length <= 0) {
+      alert('没有勾选服务器!')
+      return false
+    }
+    var query_type = $("#activity_form input[type='radio']:checked").val()
+    if (query_type == undefined){
+      alert('请选择查询类型')
+      return false
+    }
+    if (query_type == "type" && server_ids.length > 1){
+      alert('仅支持单个服务器!')
+      return false
+    }
+    if(check_input_empty() ){
+      $('#activity_form').submit();
+    }
+  });
+
+  function toggle_activity_type(kind) {
+    if(kind === 'type' | kind === 'temp')
+      $('.activity_type').hide()
+    else
+      $('.activity_type').show()
+  }
+
+  $(document).ready(function(){
+    toggle_activity_type($('[name="query_type"]:checked').val())
+    $('[name="query_type"]').change(function(){
+      var kind = $(this).val()
+      toggle_activity_type(kind)
+    })
+
+    $(".closeActivity").click(function(){
+      // console.log($(this).data('id'))
+      if (confirm('确认关闭当前活动？')) {
+        var _dialog = $.dialog('正在关闭，请稍等...');
+        $.ajax({
+          type: 'POST',
+          url: '/game/activity/activity_off',
+          datatype: 'json',
+          cache: false,
+          timeout: 10000,
+          data: {"activity_id": $(this).data('aid'), "server_id": $(this).data('sid')},
+          success: function(data) {
+            var data_json = jQuery.parseJSON(data)
+            if(data_json.code == -1) {
+              _dialog.content('关闭活动失败')
+            }else
+              _dialog.content(data_json.msg)
+          },
+          error: function(data) {
+            _dialog.content('关闭活动失败!');
+          }
+        });
+      }
+
+      });
+  });
+
+</script>
+
+{% endblock %}

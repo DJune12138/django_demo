@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>增加编辑接口配置</title>
+
+
+{% endblock %}
+
+{% block content %}
+
+<div id="bar">
+<a href="/data/interface/edit">增加编辑接口配置</a>
+
+<div class="buttons">
+ <a href="/data/interface/list">返回</a>
+ </div>
+</div>
+
+	<form action="/data/interface/save/{{iid}}" method="post" >
+        <table class="form">
+            {%if model.id%}
+            <tr><th>接口id:</th><td><input name="save_id" type="text" value="{{model.id}}">不要乱改我</td></tr>
+            {%endif%}
+            <tr><th>接口类型:</th><td><input name="type" type="text" value="{{model.type}}">*</td></tr>
+            <tr><th>接口名:</th><td><input name="name" type="text" value="{{model.name}}">*</td></tr>
+            <tr><th>服务器id:</th><td>
+                <div id="select_server_area" >
+                {%for k,v in server_list.items %}
+                   <label>{{k}}</label>
+                {%endfor%}
+                </div>
+            </td></tr>
+            <tr><th>渠道:<label><input  type="checkbox" id="select_channel" onchange="selectAll(this.id)" />全选</label></th><td>
+                <div id="select_channel_area" >
+                {%for c in channel_list %}
+                    <label><input name="channel_list" value="{{c.id}}" type="checkbox" {% if c.id in check_cl %}checked="checked"{%endif%}/>{{c.name}}</label>
+                {%endfor%}
+                </div>
+            </td></tr>
+            <tr><th>时区:</th><td><input name="timezone" type="text" value="{{model.timezone}}" maxlength=2 size=2>默认+8
+            <input id="sep" name="sep" type="text" value="{{model.sep}}" maxlength=1 size=1>行分隔符
+            </td></tr>
+            <tr><th>保存路径格式:</th><td><input name="save_format" style="width:80%" type="text" value="{{model.save_format}}">*
+            </td></tr>
+            <tr><th>统计开始时间:</th><td><input type="text" type="text" name="sdate" value="{{model.sdate|date:'Y-m-d H:i:s'}}" class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"></td></tr>
+            <tr><th>统计过期时间:</th><td><input type="text" type="text" name="edate" value="{{model.edate|date:'Y-m-d H:i:s'}}" class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})"></td></tr>
+            <tr><th>统计间隔:</th><td><input id="interval" name="interval" type="text" value="{{model.interval}}">*(秒)重要,执行时会把当前时间减去统计间隔
+                <br>
+                <a href="javascript:inputText('interval',1800)">30分钟</a>
+                <a href="javascript:inputText('interval',3600)">1小时</a>
+                <a href="javascript:inputText('interval',21600)">6小时</a>
+                <a href="javascript:inputText('interval',43200)">12小时</a>
+                <a href="javascript:inputText('interval',86400)">24小时</a>
+                <a href="javascript:inputText('interval',604800)">一周</a>
+            </td></tr>
+            <tr><th>定时cron字符串:</th><td><input name="cron_str" type="text" value="{{model.cron_str}}" placeholder="* * * *" >格式 分 时 日 月 周 年 (必须6个字段)</td></tr>
+            <tr><th>查询的QID</th><td><input id="qid" name="qid" type="text" value="{{model.qid}}">*必填
+            {% if model.qid%}
+            <a onclick="this.href='/query/view/'+document.getElementById('qid').value"  target="_blank">查询</a>|
+            <a onclick="this.href='/query/edit/'+document.getElementById('qid').value"  target="_blank">编辑</a>
+            {%else%}
+            <a onclick="this.href='/query/list'"  target="_blank">查看列表</a>
+            {%endif%}
+            </td></tr>
+            <th>&nbsp;</th>
+            <tr><th>备注:</th><td><textarea name="remark">{{model.remark}}</textarea></td></tr>
+            <td><input type="submit" value="保存" /></td>
+            </tr>
+        </table>
+	</form>
+
+
+{% with '/static/js/codemirror' as URL %}
+<script src={{URL}}/lib/codemirror.js></script>
+<link rel="stylesheet" href="{{URL}}/lib/codemirror.css" />
+<script src="{{URL}}/mode/sql/sql.js"></script>
+
+{%endwith%}
+
+
+{% endblock %}
+

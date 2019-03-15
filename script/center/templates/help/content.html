@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, user-scalable=no" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="no">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="screen-orientation" content="portrait">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="full-screen" content="no">
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">  
+  <title>{{ title }}</title>
+  <link href="skin.css" rel="stylesheet" type="text/css" />
+  <style>
+    * {
+      /* list-style: none; */
+    }
+  </style>
+</head>
+
+<body>
+  <div id="cont">
+    <ul>
+      {% autoescape off %}{{content }}{% endautoescape %}
+    </ul>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name="viewport" content="target-densitydpi=device-dpi, width=700, user-scalable=0" />
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="screen-orientation" content="portrait">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="full-screen" content="no">
+
+{% with  '/static/notice/' as notice_static_path %}
+<title>{{server_model.name}}</title>
+<script type="text/javascript" src="/static/js/mobile.js"></script>
+
+<style type="text/css">
+html{
+    text-align:left;
+    border: 0;
+    padding:0;
+    height:100%;
+    width:100%;
+    color: white;
+    background: url("/static/notice/img/w1.png") no-repeat;
+    background-size: 100% 110%;
+}
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td { margin:0; padding:0;}
+a{text-decoration : none;cursor: pointer; height: 100%;}
+div{height: 100%}
+
+body{
+    font: normal 100% Helvetica, Arial, sans-serif;
+    margin: 0 auto;
+    height:100%;
+    width:100%;
+    overflow: hidden;
+}
+#main{
+}
+#left{
+    float: left;
+    width:25%;
+    height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;  
+    overflow-x: hidden;
+}
+#right{
+    height: 100%;
+/*    background-color: rgb(37, 43, 53); */
+/*    box-shadow: 0px 0px 40px 20px rgb(0, 0, 0) inset; */
+    border-radius: 0px 2% 2% 0;
+    margin: 1px;
+    padding:0.5vw;
+    -webkit-overflow-scrolling: touch;  
+    overflow-y: auto;  
+    overflow-x: hidden; 
+/*    -moz-box-shadow: 0 0 20px black inset;
+    box-shadow: 0 0 100px black  inset; */
+}
+.left_menu{
+    height: 100%;
+    list-style: none;
+    margin: 0px;
+    padding: 1%;
+    color: white;
+    background: url("/static/notice/img/xx.png") repeat-y;
+    background-position: 100% 100%;
+    background-size: 3px;
+}
+
+
+.left_menu li{
+    height: 4em;
+    width: 100%;
+    background: url("/static/notice/img/d1.jpg") repeat-x bottom;
+}
+.left_menu li a{
+    color: white;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 1%;
+    position: relative;
+    cursor: pointer;
+    display: inline-block;
+}
+.red_bg{
+    background: url("/static/notice/img/t2.png") no-repeat;
+    background-size: 100% 100%;
+}
+.purple_bg{
+    background: url("/static/notice/img/t1.png") no-repeat;
+    background-size: 100% 100%;
+}
+
+.left_menu .title{
+    top: 30%;
+    left: 20%;
+    display: inline-block;
+    position: absolute;
+    font-size: 100%;
+    width: 72%;
+/*    text-align: center;  */
+}
+.left_menu .tag{
+    font-size: 2vw;
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    position: absolute;
+    left: 1%;
+    top: 16%;
+    color:red;
+
+}
+</style>
+<script>
+function SetiFrameHeight(obj)
+{
+var win=obj;
+if (document.getElementById)
+{
+   if (win && !window.opera)
+   {
+    var _height = 0
+    if (win.contentDocument && win.contentDocument.body.offsetHeight)
+    {
+        var _height = win.contentDocument.body.offsetHeight;
+     }
+    else if(win.Document && win.Document.body.scrollHeight)  {
+        var _height = win.Document.body.scrollHeight;
+    }
+    win.height = _height;
+    document.getElementById('right').scrollTop = 0
+   }
+}
+}
+</script>
+</head>
+
+<body id="body">
+    <div id="main">
+        <div id="left">
+            <ul class="left_menu">
+                {% for n in notice_list%}
+                <li >
+                    <a class="{%if forloop.first%}purple_bg{%else%}red_bg{%endif%}" href='{{n.link_url}}' target="right">
+                        <span class="title">{{n.title}}</span>
+                    </a>
+                </li>
+                {%endfor%}
+            </ul>
+        </div>
+        <div id="right">
+            <iframe name="right" scrolling="no" frameborder="0" src="{{first_notie.link_url}}" width="100%" height="100%"  allowTransparency="true" onload="SetiFrameHeight(this)"></iframe>
+
+        </div>
+    </div>
+</body>
+<script>
+
+var amarks = document.getElementsByTagName('a')
+var iframe_ele = document.getElementsByName('right')
+for(var i in amarks){
+    var amark = amarks[i]
+    amark.onclick = function(){
+        for (var k in amarks){
+            var _amark = amarks[k]
+            _amark.className = 'red_bg'
+        }
+        this.className = 'purple_bg'
+        iframe_ele.src=this.href
+    }
+}
+
+</script>
+</html>
+{%endwith%}

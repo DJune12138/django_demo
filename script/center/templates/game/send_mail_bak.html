@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+
+<title>发送邮件</title>
+{% include 'game/resource_editor.html' %}
+<style type="text/css">
+.reward_item{
+	border:2px solid #1b6aaa!important;
+	margin: 2px
+}
+
+.send-config {
+  min-width:100px;
+  min-height: 80px;
+}
+
+#rw-order-cont {
+  margin: 0 auto;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="bar">
+	发送邮件
+</div>
+<div id="giftModal" class="modal fade" style="overflow: auto;z-index: 9999 !important;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3 class="modal-title">字段配置</h3>
+            </div>
+            <form class="form-horizontal">
+                <div id="fieldConfig" class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</button>
+                    <button id="save-fieldmodal" class="btn btn-primary" >保存修改</button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+
+<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+  <li class="active">
+    <a data-toggle="tab" href="#tab1">
+      <i class="icon-info bigger-110"></i>发送邮件
+    </a>
+  </li>
+  <li class="">
+    <a data-toggle="tab" href="#tab2">
+      <i class="icon-wrench bigger-110"></i>批量发送
+    </a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div id="tab1" class="tab-pane active">
+    <div class="sub-menu-1">
+      {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=server_id%}
+    </div>
+
+    <table class="form">
+      <tr>
+        <th>发送对象：</th>
+        <td>
+          <select name="send_type" >
+            <option value="0">角色ID(不需勾服务器)</option>
+            <!-- <option value='1'>世界等级</option> -->
+            <option value='2'>全服</option>
+            <option value='3'>联远商ID</option>
+          </select>
+          <textarea name="send_obj" sid='0' style="width:100px;min-height:10px;display:none" placeholder="换行或,号分割角色ID(所有角色ID必须同服)">{{player_ids}}</textarea>
+          <!-- 国家id('1':'蜀','0':'魏','2':'吴') -->
+       <!--    <input type="number" name="army_name" sid='1' class="input-sm world_level_begin" style="display:none" placeholder="开始等级" value="">
+          <input type="number" name="army_name" sid='1' class="input-sm world_level_end" style="display:none" placeholder="最大等级" value=""> -->
+          <input class="Wdate" type="text" name="edate" sid='3' class="input-sm" style="display:none" placeholder="结束时间" value="">
+          <input type="text" value="" name="pid" sid='3' placeholder="联远商ID" select-key="pid" data-multiple="true">
+          <input type="text" value="" name="svr" sid='-1' placeholder="子服ID（换行或,号分隔）" >
+          <b class="red" sid="-1">留空默认发所有服（母服和子服）</b>
+        </td>
+      </tr>
+      {% if request.allow_menu.发送资源权限 %}
+        <tr>
+          <th>奖励内容：</th>
+          <td> <a href="javascript:;" id="gift_setting_btn">[配置]</a></td>
+        </tr>
+        <tr>
+          <th></th>
+          <td>
+            <textarea name="send_reward" class="check_json"></textarea>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <th></th>
+          <td>
+            <input type="hidden" name="send_reward" readonly="readonly" value="[]" >
+          </td>
+        </tr>
+      {% endif %}
+      <tr>
+        <th>
+        邮件标题：
+        </th>
+        <td>
+          <input type="text" name="mail_title" class="input-sm maxlength="20" placeholder="邮件标题">
+        </td>
+      </tr>
+      <tr>
+      <tr>
+        <th>
+        邮件内容(100字)：
+        </th>
+        <td>
+          <textarea name="send_text" maxlength="100" placeholder="限定100字" class="">{{send_text}}</textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>操作：</th>
+        <td>
+          <input type="button" id="send_btn" class="btn btn-app btn-xs" value="发送">
+        </td>
+      </tr>
+    </table>
+
+    <div id="send_mail-process-div" class="dialog-div" >
+      <div class="row" style="min-width:90%">
+        <table id="send_mail-process-table" class="table table-bordered">
+          <thead>
+            <tr><th>服务器ID</th><th>状态</th></tr>
+          </thead>
+          <tbody  id="send_mail-process-table-cont">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+     <!-- <div class="modal fade" id="giftModal" tabindex="-1" role="dialog" aria-labelledby="giftModal" aria-hidden="true" style="z-index: 9999 !important">  
+       <div class="modal-dialog">
+         <div class="modal-content">
+           <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="messageModalLabel">奖励配置</h4>
+           </div>
+           <div class="modal-body"></div>
+           <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+           </div>
+         </div>
+       </div>
+     </div> -->
+
+
+  <div id="tab2" class="tab-pane">
+    <table class="form">
+      <tr>
+        <th>奖励顺序：</th>
+        <td><a href="javascript:;" id="add-order-btn">[添加]</a></td>
+      </tr>
+      <tr>
+        <th></th>
+        <td>
+          <ul class="list-inline" id='rw-order-cont'>
+            <li>
+              <select>
+                <option value="0">角色ID</option>
+              </select>
+            </li>
+          </ul>
+        </td>
+      </tr>
+      {% if request.allow_menu.发送资源权限 %}
+        <tr>
+          <th>奖励配置：</th>
+          <td>
+            <textarea name="batch_send_config" id="send-config" placeholder=""></textarea>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <th></th>
+          <td>
+            <input type="hidden" name="batch_send_config" readonly="readonly" value="[]" >
+          </td>
+        </tr>
+      {% endif %}
+        <th>
+        邮件内容(100字)：
+        </th>
+        <td>
+          <textarea name="batch_mail_cont" maxlength="100" placeholder="限定100字">{{send_text}}</textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>发送结果：</th>
+        <td>
+          <div>
+            <div id="succ_result"></div>
+            <div id="fail_result"></div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>操作：</th>
+        <td>
+          <input type="button" id="batch_send_btn" class="btn btn-app btn-xs" value="发送">
+        </td>
+      </tr>
+    </table>
+
+    <script id="reward_item_order_tpl" type="text/tpl">
+      <li>
+        <select>
+          <%var resmap=it.data;%>
+          <% for (var i in resmap) {%>
+            <%? i != 12 && i != 13 && i != 14 %>
+            <option value="<%= i %>"><%= resmap[i].name %></option>
+            <%?%>
+          <% } %>
+
+        </select>
+        <input type="button" value="x" onclick="$(this).parent().remove()" />
+      </li>
+    </script>
+  </div>
+</div>
+
+
+
+
+<script>
+var ResourceMap = {
+    1:{name:"灵玉", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    2:{name:"绑定灵玉", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    3:{name:"贝币", unit:[["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+    4:{name:"道具", unit:[["物品ID",{"name":"id","class":"input-small","select-key":"equipment","maxlength":8}],["数量",{"name":"v","type":"number","min":1,"class":"input-small input-number","maxlength":8}]]},
+};
+
+function addItem(){
+    var items = ["灵玉","绑定灵玉","贝币","道具"]
+    var html = ''
+    for(var i in items){
+       html += "<option value ='"+ i +"'>"+ items[i] +"</option>"
+    }
+    return html
+    console.log(html)
+  }
+
+$("#gift_setting_btn").click(function(){
+  var giftModal = $("#giftModal");
+  var giftModalBody = giftModal.find(".modal-body");
+  var RInput = new ResourceInput();
+  giftModalBody.empty();
+  var html = "";
+  html += '<div class="gift_item form-horizontal">'
+  html += '<label class="control-label col-lg-2">奖励1:</label>'
+  html += '<div class="form-control col-lg-4"><select class="selectpicker">'
+  html += addItem()
+  html += '</select></div>'
+  html += '<div class="col-lg-6">'
+  html += '<input name="count"></div>'
+  html += '<input class="equipinput-del" type="button" value="x" onclick="$(this).parent().remove()" /></div>'
+  giftModalBody.append(html)
+  giftModal.modal("show")
+})
+
+</script>
+
+{% endblock %}

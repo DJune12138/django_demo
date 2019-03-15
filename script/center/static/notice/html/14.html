@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/tr/xhtml1/Dtd/xhtml1-transitional.dtd">
+<html>
+	<head>
+		<meta name="apple-mobile-web-app-capable" content="yes" /> 
+		<meta name="viewport" content="target-densitydpi=device-dpi, width=device-width, user-scalable=no" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />  
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+		<meta name="format-detection" content="telephone=no">
+		<title>ewwe</title>
+		<style type="text/css">
+    		html{
+    			text-align:left;
+			    border: 0;
+			    margin: 0;
+    			padding:0;
+    			height:100%;
+				width:100%;
+				color: white;
+				background-color: rgb(2, 42, 100);
+			    font-family: "微软雅黑";  
+			    -moz-box-shadow: 0 0 20px black inset; 
+				box-shadow: 0 0 20px black  inset;
+    		}
+    		body{
+    			padding:5px;
+    		}
+			a{
+				color:#0AAAFF;
+				text-decoration: underline;
+			}
+			a:hover{
+				color:#0AAAFF;
+				text-decoration: underline;
+			}
+		</style>
+		<script type="text/javascript" >
+				var userAgent = navigator.userAgent;
+				var isIos = userAgent.match(/i[^;]+;( U;)? CPU.+Mac OS X/) != null;
+				if(isIos){
+					
+					var search_list = location.search.match(/(\d+)_(\d+)/);
+					if(search_list.length >= 3){
+						document.getElementsByTagName("head")[0].innerHTML += '<meta name="viewport" content="width=701"/>';
+					} 
+				}else{
+					var ratio = window.devicePixelRatio;
+					if (ratio > 1.5) {
+						document.getElementsByTagName("head")[0].innerHTML += '<meta name="viewport" content="target-densitydpi=240,initial-scale=1.0"/>';
+					}else if(ratio < 1){
+						document.getElementsByTagName("head")[0].innerHTML += '<meta name="viewport" content="target-densitydpi=160,initial-scale=1.0"/>';
+					}
+				}
+		</script>
+	</head>
+	<body><p>fwefwefwef asdasdasdsd12312323</p><p>123123123123</p></body>
+</html>

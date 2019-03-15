@@ -1,0 +1,5 @@
+analys/views/log/query.py
+templates/log/query_view.html
+templates/player/player_list.html
+analys/views/log/exprot_file.py
+analys/views/log/dict.py

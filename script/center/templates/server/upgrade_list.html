@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>版本管理</title>
+
+<script type="text/javascript" >
+	function changeCheckBox(ele) {
+		$("input[name='file_id']:checkbox").attr("checked", $(ele).attr("checked"));
+	}
+	 
+	$(document).ready(function() { 
+		
+		var btn_make = $("#btn_make");
+		btn_make.bind('click', function(){
+			var file_list = $('input[name="file_id"]:checked');
+			$('.msg_tip').remove();
+			for(var i = 0;i < file_list.length; i++){
+				var item_ele = file_list[i];
+				console.log(item_ele);
+				item_ele = $(item_ele);
+				var file_id = item_ele.val();
+				try{
+					do_make_file(item_ele, file_id);
+			   }catch(ex){
+			   		server_ele.css("background", "red");
+			   }
+			}
+		});
+		
+	});
+	
+	function do_make_file(item_ele, file_id){
+		$.ajax({ url: "/upgrade/make?ajax=1&model_id=" + file_id, context: document.body, success: function(result){
+			result = eval('(' + result + ')');
+			if(result){
+				if(result.code == 0){
+					item_ele.after('<span class="msg_tip" style="color:green;" >ok</span>');
+					item_ele.removeAttr('checked');
+				}else{
+					item_ele.after('<span class="msg_tip">失败</span>');
+				}
+			}else{
+				item_ele.after('<span class="msg_tip">失败</span>');
+			}
+	      }
+	    });
+	} 
+	
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+版本管理
+<div class="buttons">
+ <a href="/upgrade/clear" class="ask" >清除旧文件</a>
+ <a href="/upgrade/make" class="ask" >生成全部文件</a> 
+ <a href="/upgrade/edit" class="openDialog">添加</a>
+ </div>
+</div>
+
+<div class="sub-menu">
+	<a href="/upgrade/list"{%ifequal group_id 0%} class="active"{%endifequal%}>全部</a>
+	{%for item in list_group%}
+	<a href="/upgrade/list?group_id={{item.id}}"{%ifequal item.id group_id%} class="active"{%endifequal%}>{{item.name}}</a>
+	{%endfor%}
+</div>
+
+<div id="batch_upgrade_div" class="dialog-div">
+<form id="batch_upgrade_form" action="/server/upgrade/batch_upgrade_save" method="post">
+	<table class="form">
+		<tr>
+			<th>版本名及版本号：</th><td><input type="text" name="ver_name" size="7" value="{{model.ver_name}}" />.<input type="text" name="ver_num" size="4" value="{{model.ver_num}}" /> 版本号为SVN版本号</td>
+		</tr>
+		<tr>
+			<th>最低客户端版本:</th><td><input type="text" name="min_client_ver" size="20" class="input-xs input-number" value="{{model.min_client_ver}}" /></td>
+		</tr>
+		<tr>
+			<th>更新备注：</th><td><textarea name="remark">{{model.remark}}</textarea></td>
+		</tr>
+
+		<tr>
+			<th>可更新版本：</th><td><input type="text" name="client_ver" size="50" value="{{model.client_ver}}" /> 输入数字部份即可,多个用逗号隔开</td>
+		</tr>
+
+	
+		<tr>
+			<th></th>
+			<td id="select_group_area">
+				{%for item in group_list%}
+				<label><input type="checkbox" name="group_id" value="{{item.id}}"{%if item in select_group %} checked="checked"{%endif%} /> {{item.name}}</label>
+				{%endfor%}
+			</td>
+		</tr>
+			<tr>
+				<th>下载页面URL：</th><td><input type="text" name="page_url" size="50"  value="{{model.page_url}}" /></td>
+			</tr>
+
+			<tr>
+				<th>发布时间：</th><td><input type="text" name="create_time" class="Wdate" value="" /></td>
+			</tr>
+			<tr>
+				<th>
+
+				</th>
+				<td><input type="button" id="batch_upgrade_save_btn" value="保存" /></td>
+			</tr>
+		</table>
+		{% csrf_token %}
+	</form>
+</div>
+<script>
+$('#batch_upgrade_save_btn').click(function(event) {
+	if(!confirm('确定批量修改勾选的更新?(有填写才修改)')){
+		return false
+	}
+	var save_url = $('#batch_upgrade_form').attr('action')
+	var ids = $('[name="file_id"]:checked').serialize()
+	var params = $('#batch_upgrade_form').serialize() + '&' + ids
+	if (!ids) {
+		alert('没有勾选更新项目!')
+		return false
+	}
+	$.post(save_url, params, function(data, textStatus, xhr) {
+		$.dialog(linebreaksbr(data))
+	});
+
+
+});
+</script>
+<div id='datatable_toolbar'>
+
+			<div class="btn-toolbar pull-right">
+				<div class="btn-group ">
+					<a class="btn btn-sm btn-primary " onclick="$('#batch_upgrade_div').dialog({'title':'批量修改更新配置'})">
+						<i class="icon-edit"></i>批量修改配置
+					</a>
+
+				</div>
+
+			</div>
+
+			</div>
+	
+</div>
+
+<table class="table table-bordered datatable">
+	<thead>
+<tr>
+	<th width="40">
+		<input type="checkbox" checkbox-area="upgrade_area">
+	</th>
+	<th >编号</th>
+	<th >更新版本</th>
+	<th >包大小</th>
+	<th>下载页面URL</th>
+	<th >发布时间</th>
+	<th >操作</th>
+</tr>
+</thead>
+<tbody id="upgrade_area">
+{%for item in list_record%}
+
+<tr>
+	<td>
+		<input type="checkbox"  value="{{item.id}}" name="file_id">
+	</td>
+	<td>{{item.id}}</td>
+	<td>{{item.ver_name}}{{item.ver_num}}</td>
+	<td>{{item.filesize}}</td>
+	<td style="word-break: break-all;">{{item.page_url}}</td>
+	<td>{{item.create_time_str}}</td>
+	<td><a href="/upgrade/make?model_id={{item.id}}" class="ask" >[生成]</a>&nbsp;&nbsp;<a href="/upgrade/remove?model_id={{item.id}}" class="del"  tip="确定要删除？">[删除]</a> <a href="/upgrade/edit?model_id={{item.id}}" class="openDialog">[编辑]</a></td>
+</tr>
+
+{%endfor%}
+</tbody>
+</table>
+<div class="sub-menu-1">
+	<input type="button" value="生成文件(点击一次)" id="btn_make" />
+</div>
+{% endblock %}

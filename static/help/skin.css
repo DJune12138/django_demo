@@ -1,0 +1,28 @@
+
+body{
+    margin:0;
+    padding:5px 10px 5px 0;
+    border:none;
+    /* background-color:#061631; */
+    /* color:#02ACE4; */
+    color: #7C899F;
+    line-height:150%;
+    overflow:auto;
+    font-size: 4vw;
+    /* font-size: 2.2em; */
+    /* font-size: 22px; */
+    font-family: "微软雅黑";
+    zoom:1;
+}
+
+.notice{
+    margin:20px auto;
+    width:50%;
+    height: 120px;
+    text-align:center;
+    line-height:120px;
+   /* background:#09214A; */
+    /* border:5px solid #1C69C1; */
+}
+
+

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>账号密保设置</title>
+{% endblock %}
+
+{% block content %}
+<form action="/user/mibao/modify?user_id={{user_id}}" method="post">
+<table class="list" style="width:100%;margin:0">
+<tr>
+<th>[{{the_user.id}}] {{the_user.username}} 账号密保设置:</th>
+</tr>
+{% if safequestion %}
+
+	<tr>
+		<td><label>安全问题<input type="text" name="question" value="{{safequestion.question}}" /></label></td>
+	</tr>
+	<tr>
+		<td><label>安全答案<input type="text" name="answer" value="{{safequestion.answer}}" /></label></td>
+	</tr>
+
+{%else%}
+	<tr>
+		<td><label>没有设置密保</label></td>
+	</tr>
+
+{%endif%}
+<tr>
+	<td>
+		<input type="submit" value="保存" />
+		or <a href="/user/mibao/clear?user_id={{the_user.id}}" class="dialog" >清密保</a>
+		or <a href="javascript:parent.$('#dialog').dialog('close')">关闭</a> 
+		<span class="red">{{msg}}</span>
+	</td>
+</tr>
+</table>
+</form>
+{% endblock %}

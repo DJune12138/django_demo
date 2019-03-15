@@ -1,0 +1,38 @@
+<a data-toggle="dropdown" class="dropdown-toggle" href="#">
+    <i class="icon-bell-alt {%ifnotequal total 0%}icon-animated-bell{% endifnotequal %}" id="bell_icon"></i>
+    <span class="badge badge-important msg_num">{% ifnotequal total 0 %}{{total}}{% endifnotequal %}</span>
+</a>
+
+<ul class="pull-right dropdown-navbar navbar-pink dropdown-menu dropdown-caret dropdown-close">
+    <li class="dropdown-header">
+        <i class="icon-warning-sign"></i>
+        你有<span class="msg_num">{{total}}</span> 条消息尚未阅读
+    </li>
+
+    {% ifequal total 0 %}
+        <li class="center">暂无可读消息</li>
+    {% else %}
+
+        {% for item in cate_count %}
+            {% ifnotequal item.unread_count 0 %}
+            <li>
+                <a href="/system/message/message_list?type=1&msg_type={{item.type}}" class="openDialog">
+                    <div class="clearfix">
+                        <span class="pull-left">
+                            <i class="btn btn-xs no-hover btn-pink icon-comment"></i>
+                            {{item.name}}
+                        </span>
+                        <span class="pull-right badge badge-info">+{{item.unread_count}}</span>
+                    </div>
+                </a>
+            </li>
+            {% endifnotequal %}
+        {% endfor %}
+    {% endifequal %}
+    <li>
+        <a href="/system/message/message_list?type=1&show_all=1" class="openDialog">
+            查看所有消息
+            <i class="icon-arrow-right"></i>
+        </a>
+    </li>
+</ul>

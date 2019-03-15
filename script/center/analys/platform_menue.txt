@@ -1,0 +1,54 @@
+#格式: 索引 菜单名 url(只是全选也需要占位) 类型(0 不显示菜单,记录日志,1 不显示菜单,不记录日志 ,2 显示菜单,记录日志)
+1 概况
+	1.1 月度历史 /query/view/月度历史
+7 系统管理
+	7.1 模块管理 /system/menu/menu_list
+		7.1.1 模块_添加 /system/menu/menu_edit 0
+		7.1.2 模块_删除 /system/menu/menu_remove 0
+		7.1.3 模块_保存 /system/menu/menu_save 0
+	7.2 管理员设置 /system/admin/admin_list
+		7.2.1 管理员_添加 /system/admin/admin_edit 0
+		7.2.2 管理员_编辑 /system/admin/admin_remove 0
+		7.2.3 管理员_保存 /system/admin/admin_save 0
+	7.3 角色管理 /system/role/role_list 0
+		7.3.1 角色_编辑 /system/role/role_edit 0
+		7.3.2 角色_删除 /system/role/role_remove 0
+		7.3.2 角色_保存 /system/role/role_save 0
+	7.3 日志类管理 /log/log/log_list
+		7.3.1 日志_编辑 /log/log/log_edit 0
+		7.3.2 日志_删除 /log/log/log_remove 0
+		7.3.3 日志_保存 /log/log/log_delete 0
+		7.3.4 日志类同步查询 /log/log/log_syncdb 0
+	7.4 字典管理 /log/dict/list
+		7.4.1 字典_编辑 /log/dict/ 0
+		7.4.2 字典_保存 /log/dict/save/ 0
+		7.4.3 字典_删除 /log/dict/delete/ 0
+	7.5 查询管理 /query/list
+		7.5.1 查询_编辑 /query/edit 0
+		7.5.2 查询_删除 /query/remove 0
+		7.5.3 查询_保存 /query/save 0
+		7.5.4 查询_导出 /query/view?is_export=true 0
+		7.5.5 清除缓存 /query/clear/cache 0
+		7.5.6 查询权限 /query/view 0
+	7.6 统计管理 /statistic/list
+		7.6.1 统计_编辑 /statistic/edit 0
+		7.6.2 统计_保存 /statistic/save 0
+		7.6.3 统计_删除 /statistic/remove 0
+		7.6.4 统计_执行 /statistic/execute 0
+	7.8 用户类型管理 /player/type
+	7.9 充值通道管理 /pay/channel/list
+	7.10 同步模型 /sync/backstage/
+	7.11 GM协议管理 /game/gm/list
+		7.11.0 查询白名单 /game/gm/3119/ 0
+		7.11.1 修改_白名单 /game/gm/3120/ 0
+	7.12 平台管理 /server/platform/list
+10 查询权限 /query/view
+
+
+29 必须权限  0
+	29.1 主页 /index 1
+	29.2 首页 /home 1
+	29.3 修改自己密码 /system/admin/admin_edit_self 0
+	29.4 字典_接口 /log/dict/interface 1
+	29.5 用户自定义菜单 /system/menu/user_menu_list 1
+	29.6 消息列表 system/message/message_list 1

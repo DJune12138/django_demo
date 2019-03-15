@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>宠物信息</title>
+
+{% endblock %}
+{% block content %}
+
+ <script>
+ var server_id = '{{server_id}}'
+ var player_id = '{{player_id}}'
+ </script>
+
+<div class="row">
+	<div class="col-sm-6"></div>
+	<div class="col-sm-6">
+    <button id="pilot-save-btn" class="btn btn-xs radius-4 pull-right"><i class="icon-save"></i>修改</button>
+	<button id="pilot-add-btn" class="btn btn-xs btn-primary radius-4 pull-right"><i class="icon-save"></i>增加宠物</button>
+	</div>
+</div>
+<div class="col-xs-12 widget-container-span ui-sortable">
+		<div class="widget-box ">
+			<div class="widget-header widget-header-small">
+				<h5>宠物信息</h5>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="icon-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="widget-body">
+				<div class="widget-body-inner" >
+				<div class="widget-main no-padding">
+					<table class="table table-bordered">
+						<thead>
+						<tr>
+						<th>宠物名称</th>
+						<th>宠物等级</th>
+						<th>宠物战力</th>
+						<th>是否上阵中</th>
+						</tr>
+						</thead>
+						<tbody>
+							{% for po in pilots_list%}
+							<tr>
+								<td><input id="t0" type="text" name='0' readonly="readonly" class="input-mini text-right" value="{{po.0}}">{{po.0|dict_key:'pilots'}}</td>
+								<td><input id="t1" type="text" name='1' class="input-number input-mini text-right" value="{{po.1}}"></td>
+								<td><input id="t2" type="text" name='2' class="input-number input-mini text-right" value="{{po.2}}"></td>
+                                <td><input id="t3" type="text" name='3' class="input-number input-mini text-right" value="{{po.3}}"></td>
+                            </tr>
+							{%endfor%}
+						</tbody>
+					</table>
+				</div>
+				</div>
+			</div>
+		</div>
+</div>
+
+<script>
+var  quality_map = {{quality_map|json_dumps|safe}}
+var  position_map = {{position_map|json_dumps|safe}}
+var  equipment_map = {{equipment_map|json_dumps|safe}}
+var  pilots_dict = {{pilots_dict|json_dumps|safe}}
+var pilot_modify_url = '/game/pilot/pilot_modify?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_name}}'
+
+$(function(){
+    $('#t1,#t2,#t3').click(function(){
+        $(this).css("background",'yellow')
+        $(this).parents('tr').attr('class','wj')
+    })
+
+	//宠物修改
+	function PlaterModify(){
+		var This = this
+		this.remark_ele = $('[name="remark"]')
+		this.msg = {}
+
+		// 基本信息
+		this.get_wj = function(){
+			var _r = []
+			$('.wj').each(function(i,ele){
+                var _l = []
+                var $ele = $(ele)
+                $ele.find('input[name]').each(function(i,ele){
+                    _l.push(parseInt($(ele).val()))
+                })
+                _r.push(_l)
+			})
+			return _r
+		}
+
+        var msg_map = {"wj":This.get_wj,
+		}
+
+		this.get_msg = function(){
+			This.msg = {}
+			for (var param_name in msg_map){
+				var param_func = msg_map[param_name]
+				var data = param_func ? param_func() : ''
+				if (data) {
+					This.msg[param_name] = data
+				}
+			}
+			return This.msg
+		}
+
+		this.send = function(){
+			var msg = This.get_msg()
+            if (msg['wj'].length > 30) {
+                alert('一次最多修改30个宠物')
+                return
+            }
+			var remark = This.remark_ele.val()
+			if (!remark || $.isEmptyObject(msg)) {
+				$('#dialog-div').dialog().hide()
+				alert('没有要修改的内容!')
+				return
+			}
+			var data = JSON.stringify(msg)
+
+			$.ajax({
+				url: pilot_modify_url,
+				type: 'POST',
+				dataType: 'json',
+				data: {"msg":data,"remark":remark},
+			})
+			.done(function(data) {
+				$('#dialog-div').dialog().hide()
+				if (data.code == 0) {
+					alert('修改成功!')
+					location.reload()
+				} else {
+					art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+				}
+			})
+			.fail(function(o,x,text) {
+				art.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>')})
+			})
+		}
+	}
+
+	var platerModify = new PlaterModify()
+	$('#pilot-save-btn').click(function(){
+		platerModify.remark_ele.val('')
+		$('#dialog-div').dialog({title:"输入备注","top":"10%"})
+		platerModify.remark_ele.focus()
+	})
+
+	$('#player-save-sure-btn').click(function(event) {
+		if (confirm("确认进行此操作吗 ?")) {
+			if (!platerModify.remark_ele.val()) {
+				alert('请输入备注信息!')
+				return
+			}
+			platerModify.send()
+		}
+	});
+
+    $('#pilot-add-btn').click(function(){
+        var html = get_views('wj-add-tmp','')
+        $.dialog({"title":"添加宠物","content":html,"fixed":true})
+	})
+
+})
+
+//以下是对应模版函数
+
+
+function send(msg){
+    var msg_dict = {"add_wj":msg,
+		}
+    var data = JSON.stringify(msg_dict)
+    $.ajax({
+        url: pilot_modify_url,
+        type: 'POST',
+        dataType: 'json',
+        data: {"msg":data},
+    })
+    .done(function(data) {
+        if (data.code == 0) {
+            alert('修改成功!')
+            location.reload()
+        } else {
+            art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+        }
+    })
+    .fail(function(o,x,text) {
+        alert('错误！')
+    })
+}
+
+function add_wj_html(){
+    if ($('.add-wj').length > 5 ){
+        alert('最多30个哦！')
+        return
+    }
+    var html = get_views('wj-info-tmp','')
+    $('.add-wj:last').after(html)
+}
+
+function add_wj_sure(){
+    var _r = []
+    $('.add-wj').each(function(i,ele){
+        var $ele = $(ele)
+        $ele.find('input[name]').each(function(i,ele){
+            var _value = $(ele).val()
+            if (_value && ! isNaN(_value)){
+                _r.push(parseInt(_value))
+            }
+        })
+    })
+
+    if (confirm("确认进行此操作吗 ?")) {
+        send(_r)
+    }
+}
+
+</script>
+
+<div id="dialog-div" class="dialog-div">
+	<div class="row">
+		<textarea name="remark" placeholder="备注(150字内)" maxlength="200"></textarea>
+		<div class="col-md-offset-3 col-md-9">
+		<button id="player-save-sure-btn" class="btn btn-success btn-xs radius-4 "><i class="icon-ok"></i>确认</button>
+		</div>
+	</div>
+</div>
+
+<script id="wj-add-tmp" type="text/template">
+<div class="widget-main no-padding">
+    <table class="table table-bordered">
+        <tr class = 'add-wj'>
+            <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+            <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+        </tr>
+    </table>
+    <a href="javascript:void(0)" onclick="add_wj_html(this)">追加一行</a>
+    <button id="wj-save-sure-btn" onclick="add_wj_sure()" class="btn btn-success btn-xs radius-4 pull-right"><i class="icon-ok"></i>确认</button>
+</div>
+</script>
+
+<script id="wj-info-tmp" type="text/template">
+<tr class = add-wj>
+    <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+    <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+    <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+    <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+    <td><input type="text" value="" name="iid" class="input-small" select-key="pilots" maxlength="8" placeholder="选择"></td>
+</tr>
+</script>
+
+
+{% endblock %}

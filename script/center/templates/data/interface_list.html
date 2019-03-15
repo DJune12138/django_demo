@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>数据接口配置列表</title>
+
+
+{% endblock %}
+
+{% block content %}
+
+<div id="bar">
+<a href="/data/interface/list">数据接口配置列表></a>
+
+<div class="buttons">
+<a   href="/static/data_interface/log/err.log" >错误日志</a>
+<a  onclick="$.get('/data/interface/make_cron?'+$('#interface_table_form').serialize()).success(function(data){alert(data)})">更新定时任务</a>
+ <a href="/data/interface/edit">添加</a>
+  <a href="/data/interface/list">返回</a>
+ </div>
+</div>
+<div class="sub-menu-1">
+	<form id="search_form"  method="get" >
+		
+	</form>
+</div>
+
+<div>
+<form id="interface_table_form"  method="get" >
+<table class="list">
+    	<thead>
+	<tr>
+		<th width="50"><label><input type="checkbox" id="interface" onchange="selectAll(this.id)">全选</label></th>
+		<th width="80">名称</th>
+		<th width="50">间隔</th>
+		<th width="100">最后执行</th>
+		<th width="50">查询QID</th>
+		<th width="200">操作</th>
+	</tr>
+	</thead>
+    <tbody id="interface_area">
+    {%for o in DataInterfaces%}
+        <tr>
+            <td><label><input type="checkbox" name="iid" value="{{o.id}}">{{o.id}}</label></td>
+            <td>{{o.name}}</td>
+            <td>{{o.interval}}</td>
+            <td>{{o.last_action}}</td>
+            <td><a href="/query/view/{{o.qid}}" target="_blank">{{o.qid}}</a></td>
+            <td>
+                <a onclick="if(confirm('确定删除吗')){$.get('/data/interface/delete/{{o.id}}').success(function(data){alert(data)})}" >删除</a>|
+                <a href="/data/interface/edit/{{o.id}}">编辑</a>|
+                <a  class="excute"  iid="{{o.id}}" >执行</a>|
+                <a   href="/static/data_interface/log/{{o.id}}.log" >cron日志</a>
+            </td>
+        </tr>
+    {%endfor%}
+    </tbody>
+</table>
+</form>
+</div>
+<div style="display:none" id="execute_div_hide" class="dialog">
+            开始时间:<input type="text" type="text" name="sdate" value="{{model.sdate|date:'Y-m-d H:i:s'}}" class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})">
+            结束时间:<input type="text" type="text" name="edate" value="{{model.edate|date:'Y-m-d H:i:s'}}" class="Wdate" onClick="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss'})">
+            <input type="button" value="确定" id="success_execute"/>
+            <div>*注意：不填日期则按照当前时间减去统计间隔,不勾选服务器则执行全部服务器
+            </div>
+            <hr>
+            <div id="server_list">
+            
+            </div>
+            
+
+</div>
+            <div id="response">
+            </div>
+<script>
+var iid = null
+var url = '/data/interface/execute'
+var server_list = ''
+
+var i = 0
+function ajax_do(data){
+    var _result = {}
+    $.ajax({
+        url:url,
+        type:'post',
+        timeout:30000,//30秒限制
+        data:data,
+        error:function(x,t,e) {
+            $('#response').append('<span style="color:red">'+data+'&nbsp;&nbsp;错误</span><br>')
+        },
+        success:function(data){
+            _result = $.parseJSON(data)
+            var _msg = ''
+            $('#response').append(_result.file_name)
+            if (_result.page_num){
+                _msg = '&nbsp;&nbsp;' + (parseInt(_result.page_num)-1) +'  页<br>'
+                console.dir(_result.page_num-1)
+            }else{
+                _msg+='&nbsp;&nbsp;完成!<br>'
+            }
+            if (_result.has_next){
+                delete _result.file_name
+                //console.dir(_result)
+                if (i<2){
+                ajax_do($.param(_result))}
+                //i++
+            }else{
+                _msg +='完成!<hr>'
+            }
+            $('#response').append(_msg)
+        }
+    })
+}
+
+$('.excute').click(function(){
+    $('#execute_div_hide').dialog({title:'选择时间段'})
+    iid = $(this).attr('iid')
+    $.get(url+'?action=get_server_list&iid='+iid).success(function(data){
+        var _jdata = $.parseJSON(data)
+        var checkbox_html = ''
+        var _i = 1
+        for (var i in _jdata){
+            checkbox_html+= '<label><input type="checkbox" value="'+ i+'" class="server_list" >'+_jdata[i] +'</label>'
+            if(_i>=10){
+                checkbox_html+='<br>'
+                _i = 0
+            }
+            _i++
+        }
+        $('#server_list').html(checkbox_html)
+    })
+})
+
+function get_server_list(){
+    server_list = ''
+    $('#interface_area input[type=checkbox]:checked').each(function(){
+        server_list+=$(this).val()+','
+    })
+    return server_list
+}
+$("#success_execute").click(function(){
+        var _sdate =  $('input[name="sdate"]').val()
+        var _edate =  $('input[name="edate"]').val()
+        var _data ='iid='+ iid +'&'+ 'sdate='+_sdate+'&'+'edate='+_edate
+        if (confirm('确定吗!')){
+            var server_list_params = get_server_list()
+            server_list_params = server_list_params?'&server_list='+server_list_params:''
+            console.dir(server_list_params)
+            ajax_do(_data+server_list_params)
+        }
+})  
+</script>
+
+{% endblock %}
+

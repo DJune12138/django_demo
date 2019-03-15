@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>查询编辑</title>
+<style type="text/css">
+	.filed-detailed {
+		position: absolute;
+		right: 10px;
+		width: 20%;
+		z-index: 999;
+	}
+	.add_filed{
+		cursor: pointer;
+	}
+
+</style>
+<script type="text/javascript">
+	var def_fiels = {
+		{%for item in log_defs%}
+			"{{item.key}}": {"field_config":{{item.json_config|safe}},"remark":"{{item.remark|linebreaksbr}}"},
+		{%endfor%}
+	}
+	function get_log_def_for_def_key(defLogKey){
+		return def_fiels[defLogKey]
+	}
+
+	function make_log_def_checkbox(defLogId){
+		var checkbox = $('<input>',{"type":"checkbox"})
+
+	}
+
+	// 模版编辑
+	function open_edit_template(){
+		var tpls = $('[name="template_name"]').val()
+		if (!tpls){return}
+		tpls = tpls.split(',')
+
+		for (var i in tpls) {
+			var tpl_name =  tpls[i]
+			if(tpl_name){
+			window.open('/query/edit?edit_type=query&template_name='+ tpl_name,Math.random()*1000,'height=600,width=800,resizable=yes,scrollbars=yes,status=yes')
+			}
+		}
+	}
+
+
+
+
+
+// 增加字段
+$(document).on('click','.add_filed',function(){
+	var This = $(this)
+	var text = This.find('.filed_name').text()
+	var selectInputEle = $('[name="select"]')
+	var selectText = selectInputEle.val()
+
+	if (selectText.indexOf(text)<0) {
+		selectText += ',' + text + ','
+	}
+	selectText = selectText.trim().replace(/^,|,$/g,'')
+	
+	selectInputEle.val(selectText)
+})
+$(function($){
+	var fieldContEle = $('#field-cont')
+	// 选择表是转换字段定义
+	$('[name="log_key"]').click(function(){
+		fieldContEle.html('')
+		var defLogKey = $(this).val()
+		var def_log = get_log_def_for_def_key(defLogKey)
+		var field_configs = def_log['field_config']
+			remark  = def_log['remark']
+		for (var k in field_configs) {
+			var field = field_configs[k]
+			var is_db_index = field.db_index ? ',索引' : ''
+			fieldContEle.append('<div class="add_filed">' + k +':<b class="filed_name">'+ field.verbose_name + '</b><span class="text-danger">'+is_db_index+'</span></div>')
+		}
+		fieldContEle.append('<div class="well">' + remark + '</div>')
+		//console.dir(fields)
+	})
+	$('[name="log_key"]').click()
+
+	function FieldEditor(){
+		this.cont = $('#field_cont')
+		this.textarea = $('[name="field_config"]')
+
+		this.add = function(){
+			this.cont.find('.field_config:last').clone().appendTo(this.cont)
+		}
+
+		this.get_json_config = function(){
+			var config = {}
+			this.cont.find('.field_config').each(function(i,ele){
+				var This  = $(ele)
+
+				var bind_name = This.find('[name="bind_name"]').val().trim(),
+					name = This.find('[name="key_name"]').val().trim(),
+					dict = This.find('[name="dict"]').val().trim(),
+					sort = This.find('[name="sort"]').is(":checked"),
+					search = This.find('[name="search"]').is(":checked"),
+					multiple = This.find('[name="multiple"]').is(":checked"),
+					fixed = This.find('[name="fixed"]').is(":checked"),
+					single = This.find('[name="single"]').is(":checked"),
+					merge_value = This.find('[name="merge_value"]').is(":checked"),
+					order_num = This.find('[name="order_num"]').val()
+					if (bind_name ) {
+						config[bind_name] = {
+											"name":name,
+											"dict":dict,
+											"sort":sort,
+											"multiple":multiple,
+											"search":search,
+											"merge_value":merge_value,
+											"single":single,
+											"fixed":fixed,
+											"order_num" :parseInt(order_num ? order_num : 99)
+											}
+					}
+
+			})
+			return JSON.stringify(config)
+
+		}
+		this.save = function(){
+			var config = this.get_json_config()
+			this.textarea.val(config)
+			
+		}
+	}
+
+	var field_editor = new FieldEditor()
+
+	$('#add_field_config').click(function(event) {
+		field_editor.add()
+	});
+
+	$('#show_config_btn').click(function(e){
+		field_editor.save()
+		field_editor.textarea.show()
+		field_editor.cont.hide()
+	})
+
+	$('#save_query_btn').click(function(e){
+		if (field_editor.textarea.is(':hidden')) {
+			$('#show_config_btn').click()
+		}
+		$('#query_form').submit();
+	})
+
+
+});
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	<a href="/query/list" >查询列表</a> -> 查询编辑
+	<div class="buttons">
+		<a href="/query/view?qid={{model.id}}" target="_blank">查询</a>
+		<a  id="save_query_btn" class="">保存</a>
+	</div>
+</div>
+<div class="widget-box collapsed  filed-detailed ">
+		<div class="widget-header widget-header-small ">
+			<h6>字段描述</h6>
+			<div class="widget-toolbar">
+				<a href="#" data-action="collapse">
+					<i class="icon-chevron-down"></i>
+				</a>
+			</div>
+		</div>
+
+		<div class="widget-body">
+			<div  class="widget-body-inner" style="display: none;">
+				<div id="field-cont" class="widget-main" style=" height:500px; overflow:auto;"></div>
+			</div>
+		</div>
+</div>
+
+
+<form id="query_form" action="/query/save?query_id={{model.id}}" method="post">
+	<table class="form" >
+	<tr>
+			<th>查询日志：</th>
+			<td >
+			<select name="log_key" class="log_def_list" >
+				{%for item in log_defs%}
+				<option value="{{item.key}}" {%ifequal item.key model.log_key%}selected="selected"{%endifequal%}>{{item.name}}({{item.key}})</option>
+				{%endfor%}
+			</select>
+			<input type="text" class="search_log_def"  placeholder="搜索..." style="width:50px;" onkeyup="javascript:search_dbl_list('log_def_list','search_log_def');" />
+			<a href="javascript:;" onclick="art.dialog.open('/log/log/log_edit?log_key='+$('[name=log_key]').val())">编辑</a>
+		</td>
+	</tr>
+	{%if model.id %}
+	<tr>
+		<th>查询id</th><td><input type="text" name="save_id" value="{{model.id}}" size="10" /><span style="color:red">没事别随便改我！</span></td>
+	</tr>
+	{%endif%}
+	<tr>
+		<th>查询说明：</th>
+		<td><input type="text" name="name" value="{{model.name}}" size="50" /></td>
+	</tr>
+	<tr>
+		<th>查询字段：</th>
+		<td><input type="text" name="select" style="width:95%" value="{{model.select}}" />
+			<div id="filed_area">
+
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<th>字段定义:</th>
+		<td>
+			<a id="add_field_config" href="javascript:;" >[添加字段定义]</a>
+			<a id="show_config_btn" href="javascript:;" >[查看配置]</a>
+		</td>
+	</tr>
+	<tr>
+		<th></th>
+		<td>
+			<div id="field_cont">
+				{% for n,c in model.field_config.items%}
+				<div class="field_config">
+					<span class="field_config_cont">
+					绑定名:<input type="text" name="bind_name" value="{{n}}" style="width:100px;">
+					字段名:<input type="text" name="key_name" value="{{c.name}}" style="width:100px;">
+					映射字典:
+					<textarea name="dict" value="{{c.dict}}" style="width:150px;min-height:14px"  placeholder="字典定义名" select_key="dict_key">{{c.dict}}</textarea>
+
+					<!-- <input type="text" name="dict" value="{{c.dict}}" style="width:50%" select_key="dict_key"> -->
+					<br>
+					<label><input type="checkbox" name="sort" {%if c.sort%}checked="checked"{%endif%}> 排序</label>
+					<label><input type="checkbox" name="search" {%if c.search%}checked="checked"{%endif%}> 条件</label>
+					<label><input type="checkbox" name="multiple" {%if c.multiple%}checked="checked"{%endif%}> 多选</label>
+					<label><input type="checkbox" name="single" {%if c.single %}checked="checked"{%endif%}> 单选</label>
+					<label><input type="checkbox" name="fixed" {%if c.fixed%}checked="checked"{%endif%}> 定值(开关)</label>
+					<label><input type="checkbox" name="merge_value" {%if c.merge_value%}checked="checked"{%endif%}> 合并值</label>
+					次序:<input type="number" name="order_num" value="{{c.order_num}}" class="input-mini input-number">
+					</span>
+					<a href="javascript:;" onclick="if ($('.field_config').length>1) $(this).parent().remove()">X</a>
+				</div>
+				{% endfor %}
+			</div>
+			<textarea name="field_config" style="display:none"></textarea>
+		</td>
+	</tr>
+
+<tr>
+	<th>查询条件：</th><td><input  type="text" name="where" size="50" value="{{model.where}}" /> 例如:字段名=值 支持 and or</td>
+</tr>
+<tr>
+	<th>排序字段：</th><td><input type="text" name="order" value="{{model.order}}" /> 
+	<select name="order_type">
+	<option value="0"{%ifequal model.order_type 0%}selected="selected"{%endifequal%}>升序</option>
+	<option value="1"{%ifequal model.order_type 1%}selected="selected"{%endifequal%}>降序</option>
+	</select>
+</td>
+</tr>
+
+<tr>
+
+	<th>分组：</th><td><input type="text" name="group" value="{{model.group}}" select_key="query_group"/>
+	
+
+</td>
+</tr>
+<tr>
+	<th>模版名</th>
+	<td>
+		<input type="text" name="template_name" select-key="query_template_name" value="{{model.template_name}}"/>
+			<a  href="javascript:open_edit_template()">
+		{% if model.template_name%}
+			编辑模版文件
+		{%else%}
+			新建模版文件
+		{%endif%}
+	</a>
+	</td>
+</tr>
+<tr>
+	<th>SQL语句：</th>
+	<td style="border:1px solid gray;width:400px">
+
+	<textarea id="sql_cont"  name="sql" >{{model.sql}}</textarea>
+
+	</td>
+</tr>
+<tr>
+	<th>其他SQL语句：(用作ftoot)</th>
+	<td style="border:1px solid gray">
+	<textarea id="other_sql_cont"  name="other_sql" >{%if model.other_sql%}{{model.other_sql}}{%else%}{%endif%}</textarea>
+	</td>
+</tr>
+<tr>
+	<th>缓存时间(秒,0 默认20分钟)：</th>
+	<td>
+		<input type="text" name="cache_valid" value="{{model.cache_validate}}" />
+	</td>
+</tr>
+<tr>
+	<th>查询备注:</th>
+	<td><textarea name="remark">{{model.remark}}</textarea>
+
+	</td>
+</tr>
+<tr>
+	<th>帮助:</th>
+	<td>
+		<div class="alert alert-info">
+				<p>注意: 中央类查询的时间格式要加两个百分号,即:DATE_FORMAT(log_time,'%%Y-%%m-%%d %%H 点')</p>
+				<p>任何开放给渠道使用的都需要加上{%templatetag  openvariable%}channel_ids{%templatetag  closevariable%}</p>
+				<p>取服务器ID:  log_server={%templatetag  openvariable%}server_id{%templatetag  closevariable%}</p>
+				<p>取服务器名:  {%templatetag  openvariable%}server_name{%templatetag  closevariable%}</p>
+				<p>取母服ID(母服库):  db{%templatetag  openvariable%}master_id{%templatetag  closevariable%}.log_gold</p>
+				<p>取母服库:  {%templatetag  openvariable%}master_db{%templatetag  closevariable%}.log_gold</p>
+				<p>取服务器列表: server_id in ({%templatetag  openvariable%}server_ids{%templatetag  closevariable%})</p>
+				<p>取渠道列表: log_channel in ({%templatetag  openvariable%}channel_ids{%templatetag  closevariable%})</p>
+				<p>取开始时间: {%templatetag  openvariable%}sdate{%templatetag  closevariable%}</p>
+				<p>取结束时间: {%templatetag  openvariable%}edate{%templatetag  closevariable%}</p>
+                <p>取开始时间: {%templatetag  openvariable%}sd{%templatetag  closevariable%}</p>
+				<p>取结束时间: {%templatetag  openvariable%}ed{%templatetag  closevariable%}</p>
+				<p>内部号过滤: player_id not in ({%templatetag  openvariable%}neibuhao{%templatetag  closevariable%})</p> 
+				<p>取统计id: <<统计名称>></p>
+				<hr>
+				字段定义:
+					排序:此列可以排序,指定的字段名必须与SQL语句的字段名相同,
+					条件:页面显示条件
+					多选:多选条件,如果有指定映射字典则下拉多选控件,否则为textarea多选输入
+					定值(开关):控件为checkbox勾选则传递定值,定值在映射字典填写
+					单选:控件为radio,必选
+		</div>
+	</td>
+</tr>
+</table>
+</form>
+
+{% with '/static/js/codemirror' as URL %}
+<script src={{URL}}/lib/codemirror.js></script>
+<link rel="stylesheet" href="{{URL}}/lib/codemirror.css" />
+<style type="text/css">
+      .CodeMirror {
+        border: 1px solid #eee;
+        height: auto;
+        
+      }
+</style>
+<script src="{{URL}}/mode/sql/sql.js"></script>
+<script type="text/javascript">
+window.onload = function() {
+	var mime = 'text/x-mariadb';
+	if (window.location.href.indexOf('mime=') > -1) {
+		mime = window.location.href.substr(window.location.href.indexOf('mime=') + 5);
+	}
+	var sql_editor = CodeMirror.fromTextArea(document.getElementById('sql_cont'), {
+		mode: mime,
+		indentWithTabs: true,
+		smartIndent: true,
+		lineNumbers: true,
+		matchBrackets : true,
+		lineWrapping: true,
+		//autofocus: true,
+		//viewportMargin: Infinity,
+		tabSize: 4,
+	});
+	var other_sql_editor = CodeMirror.fromTextArea(document.getElementById('other_sql_cont'), {
+		mode: mime,
+		indentWithTabs: true,
+		smartIndent: true,
+		lineNumbers: true,
+		matchBrackets : true,
+		//autofocus: true,
+		lineWrapping: true,
+		tabSize: 4,
+	});
+  
+};
+</script>
+
+{%endwith%}
+{% endblock %}

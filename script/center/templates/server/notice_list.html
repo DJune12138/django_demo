@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>公告管理</title>
+<script type="text/javascript" >
+	function filterList(){
+		var server_id = $("#server_id").val();
+		document.location.href=""+server_id;
+	}
+    function add(obj){
+        art.dialog.open("/notice/edit")
+    }
+    function edit(obj){
+        art.dialog.open("/notice/edit?notice_id=" + $(obj).attr('custom_id').split('_')[1])
+    }
+    function remove(obj){
+        if (confirmRandom('确定删除吗?')){
+			window.location.href = "/notice/remove?notice_id=" + $(obj).attr('custom_id').split('_')[1];
+		}
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+公告管理
+
+<div class="buttons">
+ <!--  <a href="/push/list">管理推送消息</a>
+ <a href="/push/create" class="ask">生成推送消息</a>-->
+ <a href="javascript:;" custom_id="id_0" onclick="add(this)">添加</a>
+ </div>
+</div>
+
+
+
+<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+    <li class="active">
+        <a data-toggle="tab" href="#tab1">
+            <i class="icon-info bigger-110"></i>公告管理
+        </a>
+    </li>
+{#    <li class="">#}
+{#        <a data-toggle="tab" href="#tab2">#}
+{#            <i class="icon-wrench bigger-110"></i>公告模版#}
+{#        </a>#}
+{#    </li>#}
+</ul>
+
+<div class="tab-content">
+<div id="tab1" class="tab-pane active">
+{#<div class="sub-menu">#}
+{#	<a href="/notice/list"{%ifequal server_id 0%} class="active"{%endifequal%}>全部</a>#}
+{#	{%for item in server_list%}#}
+{#	<a href="/notice/list?server_id={{item.id}}"{%ifequal item.id server_id%} class="active"{%endifequal%}>{{item.name}}</a>#}
+{#	{%endfor%}#}
+{#</div>#}
+
+<table class="table datatable" data-group-by-index="[2]">
+    <thead>
+        <tr>
+    <th><input type="checkbox" checkbox-area="notice_area" ></th>
+    <th>编号</th>
+    <th>类型</th>
+{#    <th>状态</th>#}
+    <th>公告标题</th>
+    <th>所属渠道</th>
+{#    <th>公告标记</th>#}
+{#    <th>公告排序</th>#}
+{#    <th>服务器</th>#}
+    <th>开始时间</th>
+    <th>结束时间</th>
+    <th>操作</th>
+    </tr>
+    </thead>
+
+<tbody id="notice_area">
+{%for item in list_record%}
+{%ifnotequal item.is_temp 1%}
+<tr>
+<td><input type="checkbox" value="{{item.id}}" name="nid"></td>
+<td><a href="javascript:dialog_response('/notice/create?notice_id={{item.id}}&just_check=true')" title="检查">{{item.id}}</a></td>
+<td>{{item.get_notice_type_display}}</td>
+{#<td>#}
+{##}
+{#    <span class="badge {% if item.status == 1%}{%if item.in_time_range%}badge-danger{%else%}badge-success{%endif%}{%endif%}">#}
+{#                       {{item.get_status_display}}{% if item.in_time_range%}中{%endif%}#}
+{#     </span>#}
+{#</td>#}
+<td>{%if item.link_url%}<a href="{{item.link_url}}" target="_blank">{{item.title}}</a>{%else%}{{item.link_url}}{%endif%}</td>
+<td>{{ item.channel.first.channel_key }}</td>
+{#<td>#}
+{#{%ifequal item.notice_type 5%}#}
+{#{{item.get_tag_display}}#}
+{#{%endifequal%}#}
+{#</td>#}
+{#<td>#}
+{#{%ifequal item.notice_type 5%}#}
+{#{%if item.sort or item.sort == 0 %}#}
+{#{{item.sort}}#}
+{#{%endif%}#}
+{#{%endifequal%}#}
+{#</td>#}
+{#<td>#}
+{##}
+{##}
+{#	{% if usm.is_manager%}#}
+{#		{%for item_server in item.server.all%}#}
+{#            {% if item.is_scroll_notice%}#}
+{#		    <a title="{{item_server.name}}" href="javascript:dialog_response('/static/notice/scroll/{{item_server.id}}.json')">{{item_server.id}}</a>#}
+{#            {% elif  item.is_game_notice %}#}
+{#             <a title="{{item_server.name}}" href="/static/notice/html/{{item_server.id}}/index.html" class="openDialog">{{item_server.id}}</a>#}
+{#            {% elif   item.is_login_notice %}#}
+{#             <a title="{{item_server.name}}" href="/static/notice/login/{{item_server.id}}.json" class="openDialog">{{item_server.id}}</a>#}
+{#            {% endif %}#}
+{#		{%endfor%}#}
+{#	{% endif %}#}
+{#</td>#}
+<td>{{item.begin_time_str}}</td>
+<td>{{item.end_time_str}}</td>
+<td>
+	<a href="/notice/remove?notice_id={{item.id}}" class="del">[删除]</a>
+	<a href="/notice/edit?notice_id={{item.id}}" class="openDialog">[编辑]</a>
+
+<!-- 	<a href="javascript:sendRequest({{item.id}})">[生成]</a> -->
+
+</td>
+</tr>
+{% endifnotequal %}
+{%endfor%}
+</tbody>
+</table>
+
+<div class="sub-menu-1">
+	<input id="del_notice_button" type="button" value="批量删除">
+</div>
+</div>
+
+<div id="tab2" class="tab-pane ">
+
+
+<table class="table datatable" data-group-by-index="[2]">
+    <thead>
+        <tr>
+    <th><input type="checkbox" checkbox-area="notice_area" ></th>
+    <th>编号</th>
+    <th>类型</th>
+    <th>状态</th>
+    <th>公告内容</th>
+    <th>服务器</th>
+    <th>开始时间</th>
+    <th>结束时间</th>
+    <th>操作</th>
+    </tr>
+    </thead>
+
+<tbody id="notice_area">
+{%for item in list_record%}
+{% ifequal item.is_temp 1 %}
+<tr>
+<td><input type="checkbox" value="{{item.id}}" name="nid"></td>
+<td><a href="javascript:dialog_response('/notice/create?notice_id={{item.id}}&just_check=true')" title="检查">{{item.id}}</a></td>
+<td>{{item.get_notice_type_display}}</td>
+<td>
+
+    <span class="badge {% if item.status = 1%}{%if item.in_time_range%}badge-danger{%else%}badge-success{%endif%}{%endif%}">
+                       {{item.get_status_display}}{% if item.in_time_range%}中{%endif%}
+     </span>
+</td>
+<td>{%if item.link_url%}<a href="{{item.link_url}}" target="_blank">{{item.title}}</a>{%else%}{{item.link_url}}{%endif%}</td>
+<td>
+
+
+	{% if usm.is_manager%}
+		{%for item_server in item.server.all%}
+            {% if item.is_scroll_notice%}
+		    <a title="{{item_server.name}}" href="javascript:dialog_response('/static/notice/scroll/{{item_server.id}}.json')">{{item_server.id}}</a>
+            {% elif  item.is_game_notice %}
+             <a title="{{item_server.name}}" href="/static/notice/html/{{item_server.id}}/index.html" class="openDialog">{{item_server.id}}</a>
+            {% elif   item.is_login_notice %}
+             <a title="{{item_server.name}}" href="/static/notice/login/{{item_server.id}}.json" class="openDialog">{{item_server.id}}</a>
+            {% endif %}
+		{%endfor%}
+	{% endif %}
+</td>
+<td>{{item.begin_time_str}}</td>
+<td>{{item.end_time_str}}</td>
+<td>
+	<a href="/notice/remove?notice_id={{item.id}}" class="del">[删除]</a>
+	<a href="/notice/edit?notice_id={{item.id}}" class="openDialog">[编辑]</a>
+
+<!-- 	<a href="javascript:sendRequest({{item.id}})">[生成]</a> -->
+
+</td>
+</tr>
+{% endifequal %}
+{%endfor%}
+</tbody>
+</table>
+
+</div>
+</div>
+
+<script type="text/javascript">
+	function sendRequest(noticeId)
+	{
+		var url="/notice/create?notice_id="+noticeId;
+		$.post(url,{},function(data)
+		{
+			$.dialog(data);
+		});
+	}
+	function dialog_response(url){
+        $.get(url,function(data){
+            $.dialog(JSON.stringify(data))
+        })
+
+    }
+
+function get_notice_list(){
+    var notice_list = []
+    $('#notice_area input[type=checkbox]:checked').each(function(){
+        notice_list.push($(this).val())
+    })
+    return notice_list
+}
+
+function ajax_delete_notice(notice_list){
+	if (notice_list.length>0){
+        var nid = notice_list.pop();
+        var _url = "/notice/remove?ajax=true&notice_id=" + nid;
+        var _ele = $('[value="'+ nid +'"]').parent('td');
+        _ele.append('删除中...');
+
+         $.get(_url).success(function(data){
+            var _jdata = $.parseJSON(data);
+            if (_jdata.code==0){
+                _ele.html(nid+'&nbsp;删除成功！')
+                ajax_delete_notice(notice_list)
+            }
+         })
+	}else{
+        window.location.href = '/notice/list';
+    }
+}
+$('#del_notice_button').click(function(){
+	var notice_list = get_notice_list();
+	
+	if (notice_list.length>0&& confirm('确定删除这些id?\n\n'+notice_list)){
+		if(notice_list.length>5){
+			if(!confirm('真的确定批量删除吗,认真检查下哦.\n'+notice_list)){return}
+		}
+		ajax_delete_notice(notice_list);
+	}
+})
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+<script id="table-tpl" type="text/template">
+<%var data=it.data;%>
+<%var index_list=it.data.table_index_list;%>
+<table id="<%=it.data.id%>"  class="table  table-bordered table-hover list"  >  
+	 <thead>
+		<tr>
+		<%for (var i in data.fields){%>
+
+			<% if (index_list) {%>
+				<%if (  it.w.$.inArray(parseInt(i), index_list)>=0 ) {%>
+					<th><%=data.fields[i]%></th>
+				<%}%>
+			<%}else{%>
+					<th><%=data.fields[i]%></th>
+			<%}%>
+		<%}%>
+
+		</tr>
+ 	</thead>
+ 	<tbody>
+ 	<% for (var i in data.data_list){%>
+		<tr>
+			<%var row=data.data_list[i];%>
+			<%for (var j in row){%>
+				<% if (index_list) {%>
+					<%if (  it.w.$.inArray(parseInt(j), index_list)>=0 ){%>
+						<td><%=row[j]%></td>
+					<%}%>
+				<%}else{%>
+						<td><%=row[j]%></td>
+				<%}%>
+			<%}%>
+		</tr>
+	<%}%>
+	</tbody>
+	<% if (data.tfoot_data){%>
+		<tfoot style="font-weight: bold;">
+		<%for (var i in data.tfoot_data ){%>
+			<%var trs=data.tfoot_data[i];%>
+			
+			<tr>
+				<%for (var k in trs){%>
+				<% if (index_list) {%>
+						<%if (  it.w.$.inArray(parseInt(k), index_list)>=0 ) {%>
+							<td><%=trs[k]%></td>
+						<%}%>
+					<%}else{%>
+							<td><%=trs[k]%></td>
+					<%}%>
+				<%}%>
+			</tr>
+			
+		</tfoot>
+		<%}%>
+	<%}%>
+</table>
+</script>
+
+
+
+<script>
+
+function get_table_html(table_id,fields,data_list,tfoot_data,table_index_list){
+	/*
+	@table_id {int}表格ID
+	@fields {array}th标题
+	@data_list {array} 数据trs
+	@tfoot_data {array} tfoot_data数据trs
+	@table_index_list {array} 只显示包含在索引数组的数据
+	*/
+	var obj = {'id':table_id,'fields':fields,'data_list':data_list,'tfoot_data':tfoot_data,'table_index_list':table_index_list}
+	return get_views('table-tpl',obj)
+}
+</script>

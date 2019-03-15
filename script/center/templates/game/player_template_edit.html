@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>角色模版编辑</title>
+
+{% include 'game/resource_editor.html' %}
+
+<style>
+.equipitem{
+	display: block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	角色模版编辑
+	<div class="buttons">
+		<a id="player_template_save_btn" class="btn btn-app btn-grey btn-xs radius-4 pull-right">保存</a>
+	</div>
+</div>
+
+	<table class="form"  >
+		<tr>
+			<th>
+				模版名称:
+			</th>
+			<td>
+				<input type="text" name="name" value="{{model.name}}"  />
+			
+			</td>
+		</tr>
+		<tr>
+			<th>
+				模版备注:
+			</th>
+			<td>
+				<textarea name="remark">{{model.remark}}</textarea>
+			</td>
+		</tr>
+
+		<tr><th>默认阵营:</th>
+			<td>
+				<select name="country">
+					<option value="-1">无国家</option>
+					<option value="0">帝国</option>
+					<option value="1">联邦</option>
+					<option value="2">自治领</option>
+				</select>
+				*无法把一个有阵营的玩家修改成有阵营的玩家
+			</td>
+		</tr>
+		<tr><th>默认发送资源:</th>
+			<td>
+				<a href="javascript:;" id="add_reward_item_btn">[添加]</a>
+			</td>
+		</tr>
+		<tr><th></th>
+			<td id="resource_cont">
+				
+			</td>
+		</tr>
+
+
+		<tr><th>默认科技:</th>
+			<td  >
+
+			</td>
+		</tr>
+
+
+		<tr><th></th>
+			<td  id="psc_cont">
+					<table class="table table-bordered player-info-table">
+						{% for k,name in keji_name_dict.items %}
+						  {% if forloop.counter0|divisibleby:4 %}<tr>{%endif%}
+						  
+							<td>{{name}}({{k}})</td>
+							<td >
+								<input type="number" key="{{k}}" class="psc input-number input-small" placeholder="" maxlength="11" value="{{k|get_dict_key:keji_value_dict}}">
+							
+							</td>
+						   {% if forloop.counter|divisibleby:4 %}</tr>{%endif%}
+						{%endfor%}
+					</table>
+			</td>
+		</tr>
+
+
+
+		<tr><th>默认进度:</th>
+			<td  >
+
+			</td>
+		</tr>
+
+
+		<tr><th></th>
+			<td id="war_story_process_cont" >
+
+			</td>
+		</tr>
+
+	</table>
+
+
+{% include 'game/war_story_process_checkbox.html' %}
+
+<script>
+var player_war_story_process_editor = new PlayerWarStoryProcessEditor($('#war_story_process_cont'))
+var resource_cont = $('#resource_cont')
+
+
+ResourceMap[5] = {name:"主角经验", unit:[["经验值",default_input_attr]]}
+
+var ri = new ResourceInput()
+var template_data = {{model.json_data|json_dumps|safe}}
+
+// 角色模版编辑器
+function PlayerTemplateEditor(){
+
+	var This = this
+	this.country_ele = $('[name="country"]')
+	this.resource_cont = $('#resource_cont')
+
+
+	// 获取资源标识
+	this.get_resource_list = function(){
+		var resource_list = []
+		$('.equipitem').each(function(i,ele){
+
+			var resource_obj = ri.to_json(ele)
+			resource_list.push(resource_obj)
+		})
+
+		return resource_list
+	}
+
+	// 获取国家标识
+	this.get_country = function(){
+		return parseInt(This.country_ele.val())
+	}
+	// 获取征战进度
+	this.get_war_story_process = function(){
+		return $.parseJSON(player_war_story_process_editor.get_json_msg())
+	}
+	
+	//获取科技
+	this.get_psc = function(){
+			var _r = []
+			$('.psc[key]').each(function(i,ele){
+				var $ele = $(ele)
+				var lv = $ele.val()
+				var id = $ele.attr('key')
+				if (lv && ! isNaN(lv) && !isNaN(id)) {
+					_r.push({"id":parseInt(id),"lv":parseInt(lv)})
+				}
+			})
+			return _r.length>0 ? _r : []
+	}
+
+	this.get_json_data = function(){
+		var data = {'country':This.get_country(),
+					'war_story_process':This.get_war_story_process(),
+					'resource':This.get_resource_list(),
+					'psc':This.get_psc()
+					}
+		console.dir(data)
+		return JSON.stringify(data)
+
+	}
+
+
+	this.padding_data = function(){
+		var country_val = template_data.country 
+		
+		var resource_list = template_data.resource
+		var war_story_process_list = template_data.war_story_process
+
+		for (var i in resource_list){
+			var resource_obj = resource_list[i]
+			This.resource_cont.append(
+					ri.get_item_html(resource_obj)
+				)
+		}
+
+		This.country_ele.val( country_val )
+
+		var checked_id_obj = {}
+		for (var i in war_story_process_list){
+			var war_story_array = war_story_process_list[i]
+			checked_id_obj[war_story_array[0]] = war_story_array[1]
+		}
+		player_war_story_process_editor.init(null,checked_id_obj)
+	}
+}
+
+
+var player_template_editor = new PlayerTemplateEditor()
+
+player_template_editor.padding_data()
+
+
+$(function(){
+
+	var model_id = {{model.id}}
+
+
+	$('#add_reward_item_btn').click(function(){
+		player_template_editor.resource_cont.append(ri.get_item_html())
+	})
+
+	$('#player_template_save_btn').click(function(event) {
+		if( !check_input_empty() ){return}
+
+		var json_data = player_template_editor.get_json_data()
+		var name = $('[name="name"]').val()
+		var remark = $('[name="remark"]').val()
+		$.ajax({
+			url: '/game/player_template/save',
+			type: 'POST',
+			dataType: 'json',
+			data: {name: name,json_data:json_data,id:model_id,remark:remark},
+		})
+		.done(function(data) {
+			if (data.code == 0){
+				$.dialog('保存成功!')
+				model_id = data.content
+			} else{
+				$.dialog(data.msg)
+			}
+		})
+		
+	});
+	setTimeout('player_war_story_process_editor.modify_war_story_process_btn.hide();change_checkbox_background()',100)
+
+})
+
+</script>
+{% endblock %}

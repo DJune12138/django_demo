@@ -1,0 +1,47 @@
+<script>
+//IP地址解析
+
+var SinaIpApi = {
+	api_url : 'http://int.dpool.sina.com.cn/iplookup/iplookup.php?format=js&ip=',
+	callback :function(data){
+		var data = remote_ip_info
+		if (data.ret == 1 ){
+			return data.country + ' ' + data.province + data.city + ' ' + data.isp
+		}else{
+			return '局域网'
+		}
+
+	}
+}
+
+
+dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		row[TH['IP']] = '<a href="javascript:;" class="ip_analys" ip="'+ row[TH['IP']] +'" title="点我解析地域" >'+ row[TH['IP']]  +'</a>'
+	}
+  	return data
+
+})     //输出处理
+
+
+var api = SinaIpApi
+
+$(document).on('click','.ip_analys',function(){
+	var This = $(this)
+	golbal_ip = This.text()
+	$.getScript(api.api_url + golbal_ip,function(data){
+		var address = api.callback(data)
+		if (address) {
+			$('[ip="'+golbal_ip+'"]').html(golbal_ip+'<br>'+ address)
+		}
+	})
+
+})
+</script>
+
+

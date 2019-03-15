@@ -1,0 +1,79 @@
+<script>
+    /*
+        服务器分区组件
+        var checked_server_ids = []; // 定义已经勾选的的服务器
+        var checkbox_server_name = 'server_id'; //定义服务器分区控件的name属性
+        var checked_group_ids = [] //定义已经勾选的组
+        var is_hide_servers = true // 不选是服务器
+    */
+    var checked_server_ids  = checked_server_ids ?checked_server_ids :[]
+    var checked_group_ids = checked_group_ids?checked_group_ids:[]
+    var is_hide_servers = is_hide_servers?is_hide_servers:false
+    $(document).ready(function(){
+        console.dir(checked_server_ids)
+        var url = "/widgets/get_group_server";
+        try{
+            $.getJSON(url, function(responseTxt){
+                var jsonRes = responseTxt;
+                var  checkbox_server_name = checkbox_server_name ? checkbox_server_name :'server_id'
+                if (!jsonRes){
+                    alert('获取服务器列表出错.')
+                }else{
+                    var groupHtml = '';
+                    for (var i in jsonRes){
+                            var servHtml = '';
+                            var groupInfo = jsonRes[i];
+                            var servList = groupInfo.server_list;
+                            if(!is_hide_servers){
+                            for (var j in servList){
+                                var is_checked = $.inArray(servList[j].id, checked_server_ids) != -1 ? 'checked="checked"' : '';
+                                servHtml += '<label><input type="checkbox" name="' + checkbox_server_name + '" value="' + servList[j].id + '"' + is_checked +
+                                        '/>' + servList[j].name + '</label>';
+                               }   
+                            }
+                        is_checked = $.inArray(groupInfo.group_id, checked_group_ids) != -1 ? 'checked="checked"' : '';
+                        groupHtml += '<fieldset><legend ><label><input type="checkbox" name="server_group_id" '+is_checked+' value="' +
+                                groupInfo.group_id + '" />' + groupInfo.group_name + '</label></legend>'+ servHtml +'</fieldset>';
+                    }
+                    var allHtml = '<fieldset><legend class="all-sel"><label><input type="checkbox" id="choice_server" onchange="selectAll(this.id)"/>全选</label><input placeholder="搜索" style="width:100px;" type="text" value="" onkeyup="searchCheckbox(this.value,\'choice_server_area\')"></legend>' +
+                            '<div id="choice_server_area">' + groupHtml + '</div></fieldset>';
+                    $("#group_server_list").html(allHtml);
+
+                    $("#group_server_list :checkbox[name='server_group_id']").click(function(){
+                        var _checked = $(this).is(':checked');
+                        var child_checkboxs = $(this).closest('fieldset').find(":checkbox[name='"+checkbox_server_name+"']")
+                            child_checkboxs.prop('checked',_checked);
+                    })
+                    
+                    change_checkbox_background()
+
+                }
+            });    //进行ajax同步请求获得首次页面加载内容
+        }catch (ex) {
+            $('#group_server_list').html('服务器加载失败！')
+            console.log(ex);
+        }
+    });
+</script>
+<style>
+    .th-style div{
+        text-align: right;
+        padding-right: 5px;
+    }
+    #group_server_list fieldset{
+        border: 1px solid #d3d3d3;
+        border-radius: 5px;
+
+    }
+    #group_server_list legend{
+        font-weight:bold; 
+        color:orange;
+    }
+    .all-sel {
+        color: cornflowerblue;
+        font-weight: bold;
+    }
+</style>
+<div id="group_server_list">
+    <span style="color: darkgrey;margin-left: 10px;">服务器加载中...</span>
+</div>

@@ -1,0 +1,44 @@
+{% include 'game/resource_editor.html' %}
+
+<script type="text/javascript">
+Date.prototype.format = function(format) {
+    var date = {
+       "M+": this.getMonth() + 1,
+       "d+": this.getDate(),
+       "h+": this.getHours(),
+       "m+": this.getMinutes(),
+       "s+": this.getSeconds(),
+       "q+": Math.floor((this.getMonth() + 3) / 3),
+       "S+": this.getMilliseconds()
+    };
+    if (/(y+)/i.test(format)) {
+       format = format.replace(RegExp.$1, (this.getFullYear() + '').substr(4 - RegExp.$1.length));
+    }
+    for (var k in date) {
+       if (new RegExp("(" + k + ")").test(format)) {
+           format = format.replace(RegExp.$1, RegExp.$1.length == 1
+              ? date[k] : ("00" + date[k]).substr(("" + date[k]).length));
+       }
+    }
+    return format;
+}
+//输出处理
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	var list_data = data.list_data
+	var new_list_data = []
+	for (var i in list_data) {
+		var row = list_data[i]
+		var new_row = row.concat()
+		var record_time = row[TH['时间(当前小时至下一小时)']]
+		var server_id = row[TH['服务器ID']]
+		var stimestamp = (Date.parse(new Date(record_time)))/1000;
+		var etimestamp = stimestamp + 3600;
+		etimestamp = new Date(etimestamp*1000)
+		var endTime = etimestamp.format('yyyy-MM-dd hh:mm:ss')
+		new_row[TH['时间(当前小时至下一小时)']] = '<a title="查看5分钟纪录" href="/query/view?qid=770&server_id='+server_id+'&sdate='+record_time+'&edate='+endTime+'" class="openDialog" tag-name="uid">'+record_time+'</a>'
+		new_list_data.push(new_row)
+	}
+	data.list_data = new_list_data
+	return data
+})
+</script>

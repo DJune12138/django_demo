@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>平台编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	<a href="/server/channel/channel_list">渠道管理</a> -> 平台资料编辑 {{model.alias}}
+	<div class="buttons">
+		<a class="btn btn-app btn-grey btn-xs radius-4 pull-right" onclick="check_agent(this)">保存</a>
+	</div>
+</div>
+
+<form action="/server/channel/agent_save?agent_id={{model.id}}" method="post" class="ajax" id="form1">
+
+	<table class="form">
+		<tr>
+			<th>平台KEY：</th><td><input type="text" name="name" value="{{model.name}}" /> *此渠道所属的平台英文字符,不能乱修改</td>
+		</tr>
+
+		<tr>
+			<th>平台别名：</th><td><input type="text" name="alias" value="{{model.alias}}" /></td>
+		</tr>
+		<tr>
+			<th>登录名：</th><td><input type="text" name="username" value="{{model.username}}" /></td>
+		</tr>
+
+		<tr>
+			<th>密 码：</th><td><input type="text" name="password" value="{{model.password}}" /></td>
+		</tr>
+		<tr>
+			<th>游戏APPKEY：</th><td><input type="text" name="game_app_key" value="{{model.game_app_key}}" style="width:300px;"/></td>
+		</tr>
+
+		<tr><th>拥有渠道</th>
+			<td>
+                {%for c in model.channel.all %}
+                <label>
+                    <input type="checkbox" value="{{c.id}}" checked="checked" name="channel_id">{{c.name}}
+                </label>
+                {%endfor%}
+			</td>
+		</tr>
+
+		<tr><th>服务器:</th>
+			<td>* 如果勾选了分区 即有分区下的所有服务器权限,如需限制服务器,请单独勾服务器,不勾分区
+
+		</td>
+		</tr>
+		<tr><th></th>
+			<td>
+				{%include "widgets/group_server.html" with group_servers_dict=group_servers_dict %}
+			</td>
+		</tr>
+	</table>
+</form>
+<script>
+    ////对分区选择做限制，限制只能选一个
+    function check_agent(ele) {
+        var ddd=$('input[name="server_group_id"]:checked')
+
+        if (ddd.length>1){
+            alert('分区只支持选1个')
+            return false
+        }else {
+             $('#form1').submit()
+        }
+    }
+</script>
+{% endblock %}

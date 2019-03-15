@@ -1,0 +1,22 @@
+<script>
+//用户ID,用户名,类型,关联账号,渠道号,手机标示,创建时间,最后时间,登录IP,最后KEY,次数,锁定时间,尝试次数,状态,其他
+
+  
+dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		{%if request.allow_menu.游爱账号_解锁 %}
+		row[TH['锁定时间']] = '<a href="/user/unlock?uid='+row[TH['用户ID']]+'" class="openDialog" title="解锁" >'+ row[TH['锁定时间']]  +'</a>'
+		{%endif%}
+	}
+	
+  	return data
+
+})     //输出处理
+</script>
+
+

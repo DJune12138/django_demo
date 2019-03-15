@@ -1,0 +1,451 @@
+<style>
+  .equipitem {
+    display: block;
+    margin-left: 50px
+  }
+
+  .fnt {
+    font-weight: bold;
+    font-size: 15px;
+  }
+
+  .fnt1 {
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  .gift-item {
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+  }
+
+  .biaoshi {
+    float: right;
+  }
+</style>
+
+<!-- 模版开始 -->
+<script id="Activity-setting-tpl" type="text/template">
+  <div id="Activity-activity-cont">
+    <table class="form">
+<!--       <%var data=it.data;%>
+        <tr>
+          <th>活动ID</th>
+          <td><input type="text" name="kid" class="input input-sm" readonly="readonly" value="<%=data[0] ? data[0] : parseInt(new Date().getTime()/1000)%>"> </td>
+        </tr> -->
+        <tr>
+          <th>活动开始时间</th>
+          <td>
+            <input type="text" class="Wdate" name="ab" value="<%=data['ab'] ? it.w.timestamp_to_datetime_str(data['ab']? data['ab'] : parseInt(new Date()/1000)) : " {{model.sdate|date:"Y-m-d H:i:s"}} " %>">
+          </td>
+        </tr>
+        <tr>
+          <th>活动结束时间</th>
+          <td>
+            <input type="text" class="Wdate" name="ae" value="<%=data['ae']? it.w.timestamp_to_datetime_str(data['ae']? data['ae'] : parseInt(new Date()/1000)) : " {{model.edate|date:"Y-m-d H:i:s"}} " %>">
+          </td>
+        </tr>
+        <tr>
+          <th>生效时间</th>
+          <td>
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et? data.et : parseInt(new Date()/1000)) : " {{model.sdate|date:"Y-m-d H:i:s"}} " %>">
+          </td>
+        </tr>
+    </table>
+
+    <ul id="tab-ul" class="nav nav-tabs">
+      <%var data_list=it.data['pa'];%>
+      <%for (var i in data_list){%>
+        <li class="<%? i==0%>active<%?%> tab-li" day_id="<%= parseInt(i)+1 %>">
+          <a href="#day_<%= parseInt(i)+1 %>" data-toggle="tab">
+            <b>第<span class="day_num"><%= parseInt(i)+1 %></span>天</b>
+          </a>
+        </li>
+      <%}%>
+      <li style="float:right">
+        <a id="add_day" class="btn btn-xs  add_day pointer" onclick="add_day()">+增加天数</a>
+      </li>
+      <li style="float:right">
+          <a id="del_day" class="btn btn-xs  del_day btn-danger" onclick="del_day()">减少天数</a>
+      </li>
+
+    </ul>
+    <div id="tab-cont" class="tab-content">
+      <%for (var i in data_list){%>
+        <%var gift_obj=data_list[i];%>
+        <div class="tab-pane single-cont <%? i==0%> active<%?%>" id="day_<%= parseInt(i)+1 %>" day_id="<%= parseInt(i)+1 %>">
+              <% for (var i in gift_obj){%>
+                <%=it.w.get_level_html(gift_obj[i])%>
+              <%}%>
+        </div>
+      <%}%>
+    </div>
+
+  </div>
+</script>
+
+<script id="Single-setting-tpl" type="text/template">
+  <%var data=it.data;%>
+    <div id="goods" class="gift-item">
+      <label class="fnt">礼包<span class="level_num"></span>:</label>
+      <a style="float:right" href="javascript:;" onclick="$(this).closest('#goods').remove();resize_level_num()" class="gray">[删除]</a><br/>
+      <label class="fnt1">
+        礼包名<input type="text" style="width:60px; height:25px;" name="name" value="<%=data.name? data.name: ''%>" class="not-empty">
+      </label>
+      <label class="fnt1">
+        礼包价格(选择价格ID)<select name="price">
+          {% for k,v in charge_dict.items %}
+          <option value={{k}} <%?data.price == {{k}}%>selected<%?%>>{{k}}({{v}}元)</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="fnt1">
+        限购次数<input type="number" style="width:50px; height:25px;" name="limit" value="<%=data.limit? data.limit: ''%>" class="not-empty">
+      </label>
+      <label class="fnt1">
+        折扣(1-10)<input type="number" style="width:50px; height:25px;" name="dc" value="<%=data.dc? data.dc: ''%>" allow_empty="true">
+      </label>
+      <a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a><br>
+      <div id="rewards-cont">
+        <%var items=data.box;%>
+          <% for (var i in items){ %>
+            <%=it.w.pi.get_item_html(items[i], null)%>
+              <% } %>
+      </div>
+      <a href="javascript:void(0)" onclick="insert_new_level(this.parentElement)">[插入新档次]</a>
+      <!-- <label class="biaoshi">唯一标识<input type="text" style="width:25px; height:18px;" name="did" readonly="readonly" value="<%=data.did ?data.did :'1'%>"></label> -->
+    </div>
+</script>
+
+<script id="Accumulated-setting-tpl" type="text/template">
+  <%var data=it.data;%>
+    <div id="goods" class="gift-item">
+      <label class="fnt">档次<span class="level_num"></span>:</label>
+      <a style="float:right" href="javascript:;" onclick="$(this).closest('#goods').remove();resize_level_num(1)" class="gray">[删除]</a><br>
+      <label class="fnt1">
+        需要积分<input type="text" style="width:50px; height:25px;" name="price" value="<%=data.price? data.price: ''%>" class="not-empty">
+      </label>
+      <a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a><br>
+      <div id="rewards-cont">
+        <%var items=data.box;%>
+          <% for (var i in items){ %>
+            <%=it.w.pi.get_item_html(items[i], null)%>
+              <% } %>
+      </div>
+      <a href="javascript:void(0)" onclick="insert_new_level(this.parentElement, 1)">[插入新档次]</a>
+      <!-- <label class="biaoshi">唯一标识<input type="text" style="width:25px; height:18px;" name="did" readonly="readonly" value="<%=data.did ?data.did :'1'%>"></label> -->
+    </div>
+</script>
+
+<!-- 模版结束 -->
+<script type="text/javascript">
+  var pi = new ResourceInput()
+
+  function print_value(item) {
+    console.log(item)
+  }
+  var print_log = print_value
+
+  function get_level_html(obj, isAccu) {
+    return isAccu ? get_views('Accumulated-setting-tpl', obj) : get_views('Single-setting-tpl', obj)
+  }
+
+  //插入档次
+  function insert_new_level(ele, isAccu) {
+    // if ($('.gift-item').length >= 10) {
+    // alert('档次总数已达上限')
+    // return false
+    // }
+
+    obj = isAccu ? default_msg["pa"][0] : {}
+    var html = get_level_html(obj, isAccu)
+    $(ele).after(html)
+    resize_level_num(isAccu)
+  }
+
+  //添加档次
+  function addlevel(ele, isAccu) {
+    //if ($('.gift-item').length >= 10) {
+    //  alert('档次总数已达上限')
+    //  return false
+    //}
+
+    obj = isAccu ? default_msg["pa"][0] : {}
+    var html = get_level_html(obj, isAccu)
+    if(isAccu){
+      $('#price-cont').append(html)
+    } else {
+      $('#single-cont').append(html)
+    }
+    resize_level_num(isAccu)
+
+    // setid()
+  }
+
+  //添加奖励
+  function add_rewards(ele) {
+    if ($(ele).parents("#goods").find(".equipitem").length >= 20) {
+      alert('奖励总数已达上限')
+      return false
+    }
+    $(ele).parents("#goods").find("#rewards-cont").append(pi.get_item_html())
+  }
+
+  // function setid() {
+  // var _id = parseInt($('[name="sdid"]').val())
+  // var id = $('[name="sdid"]').val(_id + 1).val()
+  // $('.gift-item:last').find('[name="did"]').val(id)
+  // }
+
+  function resize_level_num(isAccu) {
+    $('#price-cont .level_num').each(function(i, ele) {
+      $(this).html(i + 1)
+    })
+
+    $('.single-cont').each(function(i, ele){
+      $(ele).find('.level_num').each(function(i, ele) {
+        $(ele).html(i + 1)
+      })
+    })
+  }
+
+  function substitute(str,o,regexp){
+    return str.replace(regexp || /\\?\{([^{}]+)\}/g, function (match, name) {
+    return (o[name] === undefined) ? '' : o[name];
+    });
+  }
+
+  // 添加天数
+  function add_day(){
+    var new_day_id =  get_max_day_id() + 1
+    var template = '\
+      <li class="tab-li" day_id="{day_id}">\
+        <a href="#day_{day_id}", data-toggle="tab">\
+          <b>第<span class="day_num">{day_id}<span>天</b>\
+        </a>\
+      </li>'
+    var html = substitute(template, {day_id: new_day_id});
+    $('#tab-ul li:last').before(html)
+
+    var gift_obj = default_msg["pa"][0][0]
+    $('#tab-cont').append(
+      '<div id="day_' + new_day_id + '" class="tab-pane single-cont"  day_id="'+ new_day_id +'">' +
+      get_level_html(gift_obj) +
+      '</div>'
+    )
+
+    resize_level_num()
+  }
+
+  // 取最大天数
+  function get_max_day_id(){
+    var id_list = $('.tab-pane').map(function(){
+        return parseInt( $(this).attr('day_id') )
+    }).get()
+    return Math.max.apply(Math, id_list)
+  }
+
+  function active_day_tab(day_id){
+    $('#tab-ul li').removeClass('active').filter('[day_id="'+ day_id +'"]').addClass('active')
+    $('.tab-pane').removeClass('active').filter('[day_id="'+ day_id +'"]').addClass('active')
+  }
+
+  //删除天数
+  function del_day(ele){
+    if (!confirm('确定删除?')){return false}
+    var last_day_id = parseInt($('[day_id]:last').attr('day_id'))
+    $('[day_id="'+last_day_id+'"]').remove()
+    active_day_tab(last_day_id - 1)
+  }
+
+
+  var default_msg = {
+    "rm":false,
+    "pa":[
+      [{                 // 充值档次配置
+        // "id": 1,
+        "name": "xx",       // 礼包名
+        "price": 1, 
+        "limit":1,      // 礼包价格
+        "dc":1,         // 礼包折扣
+        "box": [{        // 奖励描述
+          "aID": 1,
+          "v": 1
+        }]
+      }],
+    ],
+    "ab":0,                 // 活动开始时间  
+    "ae":0,
+    "et":0                 // 活动结束时间
+  }
+
+
+    <!-- 这里重写活动的参数配置 -->
+  activitySetting.check_msg = function(obj) {
+    var msg = obj
+    var allow = false
+
+    // if (msg.sb >= msg.ab) {
+    //     inputTooltip($('[name="sb"]'), '<b class="red">显示时间不能大于等于开始时间!</b>', 3000)
+    //     allow = true
+    // }
+    // if (msg.sb >= msg.se) {
+    //     inputTooltip($('[name="sb"]'), '<b class="red">显示时间不能大于等于消失时间!</b>', 3000)
+    //     allow = true
+    // }
+    // if (msg.sb >= msg.ae) {
+    //     inputTooltip($('[name="sb"]'), '<b class="red">显示时间不能大于等于结束时间!</b>', 3000)
+    //     allow = true
+    // }
+    if (msg.ab >= msg.ae) {
+        inputTooltip($('[name="ab"]'), '<b class="red">开始时间不能大于等于结束时间!</b>', 3000)
+        allow = true
+    }
+    // if (msg.ab >= msg.se) {
+    //     inputTooltip($('[name="ab"]'), '<b class="red">开始时间不能大于等于消失时间!</b>', 3000)
+    //     allow = true
+    // }
+    // if (msg.ae >= msg.se) {
+    //     inputTooltip($('[name="ae"]'), '<b class="red">结束时间不能大于等于消失时间!</b>', 3000)
+    //     allow = true
+    // }
+
+
+    // $('.single-cont .gift-item').each(function(i, ele) {
+    $('.single-cont').each(function(i, ele) {
+      var dl = [{
+        name: 0,
+        price: 0
+      }]
+      var day_id = $(this).attr('day_id')
+
+      $(this).find('.gift-item').each(function(i, ele) {
+        var d = {}
+        d.name = parseInt($(ele).find('[name="name"]').val())
+        d.price = parseInt($(ele).find('[name="price"]').val())
+        if (d.name && d.name <= dl[i].name) {
+          active_day_tab(day_id)
+          inputTooltip($(ele).find('[name="name"]'), '<b class="red">金币数量不能小于前一个档次</b>', 3000)
+          $(ele).find('[name="name"]').focus()
+          allow = true
+        }
+        if (d.price <= dl[i].price ) {
+          active_day_tab(day_id)
+          inputTooltip($(ele).find('[name="price"]'), '<b class="red">积分数量不能小于前一个档次</b>', 3000)
+          $(ele).find('[name="price"]').focus()
+          allow = true
+        }
+        dl.push(d);
+      })
+    })
+
+    dl = [{
+      price: 0
+    }]
+
+    $('#price-cont .gift-item').each(function(i, ele) {
+      var d = {}
+      d.price = parseInt($(ele).find('[name="price"]').val())
+      if (d.price <= dl[i].price ) {
+        inputTooltip($(ele).find('[name="price"]'), '<b class="red">积分数量不能小于前一个档次</b>', 3000)
+        $(ele).find('[name="price"]').focus()
+        allow = true
+      }
+      dl.push(d);
+    })
+    return allow
+  }
+
+  activitySetting.get_json = function(event_name) {
+    if (!this.check_empty_input()) {
+      return false
+    }
+    var msg = {};
+    msg["ab"] = datetime_str_to_timestamp(this.contEle.find('[name="ab"]').val())
+    msg["ae"] = datetime_str_to_timestamp(this.contEle.find('[name="ae"]').val())
+    msg["et"] = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+    msg["pa"] = []
+
+    // $('#single-cont .gift-item').each(function(i, ele) {
+    $('.single-cont').each(function(i, ele) {
+      var single = []
+      $(this).find('.gift-item').each(function(i, ele){
+        var rl= {}
+        // rl.id = parseInt($(ele).find('.level_num').html())
+        rl.name = parseInt($(ele).find('[name="name"]').val())
+        rl.price = parseInt($(ele).find('[name="price"]').val())
+        rl.limit = parseInt($(ele).find('[name="limit"]').val())
+        rl.dc = parseInt($(ele).find('[name="dc"]').val()) || 0
+        rl.box = []
+        $(ele).find('.equipitem').each(function(i, ele) {
+          rl.box.push(pi.to_json(ele))
+        })
+        single.push(rl)
+      })
+      msg["pa"].push(single)
+    })
+
+    // $('#price-cont .gift-item').each(function(i, ele) {
+    //   var rl= {}
+    //   rl.id = parseInt($(ele).find('.level_num').html())
+    //   rl.price = parseInt($(ele).find('[name="price"]').val())
+    //   rl.box = []
+    //   $(ele).find('.equipitem').each(function(i, ele) {
+    //     rl.box.push(pi.to_json(ele))
+    //   })
+    //   msg[2].push(rl)
+    // })
+
+    if (this.check_msg(msg)) {
+      return false
+    }
+    return JSON.stringify(msg)
+  }
+
+  activitySetting.to_html = function(msg) {
+    msg = !$.isEmptyObject(msg) && msg ? msg : default_msg
+    try {
+      var source_json = $.parseJSON(this.get_json())
+    } catch (e) {
+      var source_json = {}
+    }
+    msg = $.extend(source_json, msg)
+
+    var html = get_views('Activity-setting-tpl', msg)
+    this.contEle.html(html)
+    resize_level_num()
+    resize_level_num(1)
+  }
+
+  //状态
+  activitySetting.get_status = function(data) {
+    // console.log('get status', typeof data)
+    console.log(data)
+
+    if ($.isEmptyObject(data) || !data || data["open"] == false) {
+      return '<span class="label label-danger">已关闭</span>'
+    }
+
+    if (data[0] == -1) {
+      return '<span class="label label-danger">活动不存在</span>'
+    }
+
+    var status = ''
+    var st = data["ab"]
+    var et = data["ae"]
+
+    var in_time_range = this.system_timestamp >= st && this.system_timestamp <= et
+    if (in_time_range) {
+      status = '<span class="label label-success">已开启</span>'
+    } else {
+      status = '<span class="label label-primary" title="开启时段' + timestamp_to_datetime_str(st) + '- ' + timestamp_to_datetime_str(et) + '">未开始</span>'
+    }
+    return status
+  }
+
+  activitySetting.to_template_json = function(data) {
+    return data
+  }
+</script>

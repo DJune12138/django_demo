@@ -1,0 +1,25 @@
+﻿
+<html>
+	<head>
+	</head>
+	<body>
+		活动名称:{{task.title}}<br>
+		触发时间:{{task.sdate}}<br>
+		gm URL 地址:{{request_url}}<br>
+		错误消息:{{err_msgs}}
+		<hr>
+		活动配置:
+		{{out_str}}
+		<hr>
+		错误的服务器：[{% for s in err_servers%} {{s.sid}},{%endfor%}]
+		<hr>
+		<div style="font-size: 10px;">
+		详情:<br>
+		{% for s in err_servers%}
+			服务器id:{{s.sid}}<br>
+			错误消息:{{s.msg|linebreaksbr}}
+			<br>
+		{% endfor %}
+		</div>
+	</body>
+</html>

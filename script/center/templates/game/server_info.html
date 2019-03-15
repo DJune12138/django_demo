@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>服务器参数配置</title>
+{% endblock %}
+
+{% block content %}
+
+<div class="bar">
+    <a href="/server/server/server_list">服务器列表</a> &nbsp;-&gt;
+    {{gmp.server.name}}({{gmp.server.id}}) - 服务器参数
+	<div class="buttons">
+		<a href="/server/server/server_list">返回</a>
+	</div>
+</div>
+<div class="sub-menu">
+{%include "widgets/group_server.html" %}
+</div>
+
+{%include "game/activity_base.html"%}
+{%include "game/参数打折.html"%}
+<div id="server-info-cont">
+</div>
+
+<div class="row">
+	<div class="col-sm-6"></div>
+	<div class="col-sm-6">
+	<input id="server-info-btn-sure" type="button"  class="btn btn-xs btn-success" value="保存修改" />
+	</div>
+</div>
+
+
+<script type="text/javascript">
+activitySetting.contEle = $('#server-info-cont')
+var msg = {{server_params|json_dumps|safe}}
+
+$(function(){
+	activitySetting.to_html(msg)
+
+	var server_modify_url = '/game/server/server_modify'
+	function ServerModify(){
+		var This = this
+		this.server_ids = []
+		//{"msg":[1418711473, 1418832000, [[0,2],[1,3]]]}
+
+		this.modify_do = function(){
+			This.server_ids = get_server_ids(true)
+			server_ids = '&server_id=' + This.server_ids.join('&server_id=')
+			var params = activitySetting.get_json()
+			if (!params){
+				return false
+			}
+			var msg = {"msg":params}
+				
+			msg = $.param(msg)
+			var _dialog = $.dialog({"content":'执行中..<img src="/static/skin/images/loading.gif">',"lock":true})
+			$.ajax({
+				url: server_modify_url,
+				type: 'POST',
+				timeout:120000,//超时120秒
+				data: msg + server_ids,
+			})
+			.done(function(data) {
+				_dialog.content(data.replace(/\n/,'<br>'))
+				
+			})
+			.fail(function(o,x,text) {
+				_dialog.contento(responseText.replace(/\n/g,'<br>'))
+			})
+
+		}
+	}
+
+	var server_modify = new ServerModify()
+	$('#server-info-btn-sure').click(function(){
+		server_modify.modify_do()
+	})
+
+})
+
+</script>
+{% endblock %}

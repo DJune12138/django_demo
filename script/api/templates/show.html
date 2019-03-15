@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{%block content%}
+<div class="header">
+	<div class="htitle">
+	 
+	{% if not is_error %}
+	领取成功
+	{% else %}
+	{{card_result}}
+	{% endif %}
+	<script type="text/javascript" >
+		var sec_num = 3;
+		$(document).ready(function() {
+			sec_num = (3 + parseInt(3*Math.random()));
+			$("#cardNunber").hide();
+			$("#secDiv").show();
+			showCard();
+			setInterval(showCard,1000);
+		});
+		function showCard(){ 
+			sec_num --;
+			if (sec_num == 0){
+				$("#cardNunber").show();
+				$("#secDiv").hide();
+			}
+			$("#secDiv").html("卡号"+sec_num+"秒后出现。");
+		}
+	</script>
+	</div>
+</div>
+<div class="body">
+	{% if not is_error %}
+	<div id="secDiv"> </div>
+	<div id="cardNunber"   >
+		请记下此号码，刷新页面或关闭浏览器此礼包卡将不再显示。
+
+		您的礼包卡为：{{card_result}}
+	</div>
+	{% endif %}
+</div>
+
+{%endblock%}
+

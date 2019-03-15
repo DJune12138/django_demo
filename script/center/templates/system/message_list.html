@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block header%}
+    <title>消息系统查看</title>
+    <script>
+        function upgradeMsgStatus(_this, msg_id){
+            _this = $(_this);
+            if(_this.html() == '已读')
+                return false;
+
+            $.ajax({
+                url: "/system/message/upgrade_message",
+                type: "GET",
+                data: {msg_id : msg_id},
+                success: function(reps){
+                    if(reps == 0){
+                        _this.html("已读");
+                        _this.attr("class", "btn btn-sm btn-default");
+
+                        var msg_flag = $("."+_this.parents('table').attr('flag')).children();
+                        msg_flag.html(msg_flag.html() - 1);
+                    }
+                },
+                error: function(){
+                    alert("网络出错.")
+                }
+            })
+        }
+
+        $(document).ready(function(){
+            $(".show-con").click(function(){
+                $(this).next().slideToggle('fast');
+                if($(this).children().hasClass('icon-chevron-down'))
+                    $(this).find("i").attr("class", "icon-chevron-up");
+                else
+                    $(this).find("i").attr("class", "icon-chevron-down");
+            });
+
+            $("#nav-list").find("li").click(function(){
+                $("#nav-list").find("li").attr('class', 'tab-li');
+                $(this).attr("class", "active");
+
+                $(".table").hide();
+                $("[flag='" + $(this).children("a").attr("class") + "']").show();
+            })
+        })
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+     <a href="#">消息系统查看</a>
+</div>
+
+<ul id="nav-list" class="nav nav-tabs padding-12 tab-color-blue background-blue">
+    {% for item in cate_count %}
+    <li class="{% ifequal msg_type item.type%}active{% else %}tab-lit{% endifequal %}">
+        <a href="javascript:;" class="msg_{{item.type}}">
+            {{item.name}}
+            {% ifequal show_all 0 %}
+                <span class="badge badge-important msg_num">{{item.unread_count}}</span>
+            {% endifequal %}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+<div class="hr"></div>
+
+{% for key,val in record.items %}
+<table class="table" flag="msg_{{key}}" style="{% ifequal key msg_type %}display: table{% else %}display: none{% endifequal %}">
+    <thead>
+        <tr>
+            <th width="20%">时间</th>
+            <th width="50%">标题</th>
+            <th width="30%">操作</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for msg in val %}
+            {% ifequal show_all 1%}
+            <tr>
+                <td>{{msg.formattime}}</td>
+                <td>
+                    <div style="cursor: pointer" class="show-con">
+                        <i class="icon-chevron-up"></i>&nbsp;&nbsp;&nbsp;<strong>{{msg.title}}</strong>
+                    </div>
+                    <div class="table-bordered" style="display: none; padding: 10px;">
+                       {{msg.content}}
+                    </div>
+                </td>
+                <td><a href="javascript:;" class="btn btn-sm {% ifequal msg.is_read 0 %}btn-primary{% else %}btn-default{%endifequal%}"
+                       onclick="upgradeMsgStatus(this, '{{msg.id}}')">
+                    {% ifequal msg.is_read 0 %}
+                        未读
+                    {% else %}
+                        已读
+                    {% endifequal %}
+                </a></td>
+            </tr>
+            {% else %}
+                {% ifequal msg.is_read 0 %}
+                <tr>
+                    <td>{{msg.formattime}}</td>
+                    <td>
+                        <div style="cursor: pointer" class="show-con">
+                            <i class="icon-chevron-up"></i>&nbsp;&nbsp;&nbsp;{{msg.title}}
+                        </div>
+                        <div class="table-bordered" style="display: none; padding: 10px;">
+                           {{msg.content}}
+                        </div>
+                    </td>
+                    <td><a href="javascript:;" class="btn btn-sm {% ifequal msg.is_read 0 %}btn-primary{% else %}btn-default{%endifequal%}"
+                           onclick="upgradeMsgStatus(this, '{{msg.id}}')">
+                        {% ifequal msg.is_read 0 %}
+                            未读
+                        {% else %}
+                            已读
+                        {% endifequal %}
+                    </a></td>
+                </tr>
+                {% endifequal %}
+            {% endifequal %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+{% endblock %}

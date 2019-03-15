@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta name="viewport" content="target-densitydpi=device-dpi, width=700, user-scalable=1" />
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="screen-orientation" content="portrait">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="full-screen" content="no">
+
+<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+<META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+<META HTTP-EQUIV="Expires" CONTENT="0">
+
+<title>{{title}}</title>
+<script type="text/javascript" src="/static/js/mobile.js"></script>
+<style type="text/css">
+html{
+	text-align:left;
+    border: 0;
+    margin: 0;
+	padding:0;
+/*	height:100%;*/
+	width:100%;
+	color: white;
+	/*background-color: #270c08;*/
+	/*background-color: #252b35;*/
+    font-family: "微软雅黑";
+/*    -moz-box-shadow: 0 0 20px black inset; 
+	box-shadow: 0 0 100px black  inset;*/
+
+/*        margin-left: -5px;*/
+        background: url("/static/notice/img/w1.png") repeat;
+        background-size: 100%,100%;
+
+    
+}
+body{
+/*	height: 100%;*/
+	padding:5px;
+	margin: 0 auto;
+	overflow-y:auto;
+	overflow-x:hidden;
+}
+/*table{width: 100%}*/
+a{
+	color:#0AAAFF;
+	text-decoration: underline;
+}
+a:hover{
+	color:#0AAAFF;
+	text-decoration: underline;
+}
+body div,body div.a,body div.b,p{
+	width:auto;
+	padding:0 5px;
+	margin:0 auto;
+	text-align:left;
+}
+/*body div.b,p:nth-child(even){
+	background-color:#431312;
+}*/
+</style>
+</head>
+<body>{{content|safe}}</body>
+</html>

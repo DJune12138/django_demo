@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>游戏平台编辑</title>
+
+
+<style>
+.equipitem{
+	display: block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	游戏平台编辑
+	<div class="buttons">
+		<a  class="btn btn-app btn-grey btn-xs radius-4 pull-right submit">保存</a>
+	</div>
+</div>
+<form action="{{self.url_prefix}}/save?id={{model.id}}" method="POST">
+	<table class="form"  >
+		<tr>
+			<th>
+				平台名称:
+			</th>
+			<td>
+				<input type="text" name="name" value="{{model.name}}"  />
+			
+			</td>
+		</tr>
+		<tr>
+			<th>
+				平台key:
+			</th>
+			<td>
+				<input type="text" name="key" value="{{model.key}}"  />
+				
+			</td>
+		</tr>
+		<tr>
+			<th>
+				app密钥:
+			</th>
+			<td>
+				<input type="text" name="app_key" value="{{model.app_key}}"  />
+			</td>
+		</tr>
+			<tr>
+			<th>
+				时区:
+			</th>
+			<td>
+				<input type="number" class="input input-sm input-number"  min=0 max="24" name="time_zone" value="{{model.time_zone}}"  />
+
+			</td>
+		</tr>
+		<tr>
+			<th>
+				平台数据接口地址:
+			</th>
+			<td>
+				<textarea name="address">{{model.address}}</textarea>
+
+			</td>
+		</tr>
+		<tr>
+			<th>
+				平台渠道获取地址:
+			</th>
+			<td>
+				<textarea name="channel_address">{{model.channel_address}}</textarea>
+
+			</td>
+		</tr>
+		<tr>
+			<th>
+				平台服务器获取地址:
+			</th>
+			<td>
+				<textarea name="server_address">{{model.server_address}}</textarea>
+
+			</td>
+		</tr>
+		<tr>
+			<th>
+				备注:
+			</th>
+			<td>
+				<textarea name="remark">{{model.remark}}</textarea>
+			</td>
+		</tr>
+	
+
+	</table>
+</form>
+
+{% endblock %}

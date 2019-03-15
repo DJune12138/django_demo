@@ -1,0 +1,14 @@
+<uwsgi>
+  <socket>0.0.0.0:9002</socket>
+  <listen>128</listen>
+  <master>true</master>
+  <processes>10</processes>
+  <pythonpath>./</pythonpath>  #此处为django项目的目录
+  <module>django_wsgi</module>
+  <profiler>true</profiler>
+  <memory-report>true</memory-report>
+  <enable-threads>true</enable-threads>
+  <logdate>true</logdate>
+  <limit-as>6048</limit-as>
+  <daemonize>django.log</daemonize>
+</uwsgi>             

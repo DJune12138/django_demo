@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>用户资料编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+	<div class="buttons">
+		<a  class="btn btn-app btn-grey btn-xs radius-4 pull-right submit"  />保存</a>
+	</div>
+</div>
+
+<form action="/system/admin/admin_edit_self" method="post">
+	<table class="form">
+
+		<tr>
+			<th>旧密码：</th><td><input type="password" name="old_password" /></td>
+		</tr>
+		<tr>
+			<th>新密码：</th><td><input type="password" name="new_password" /></td>
+		</tr>
+		<tr>
+			<th>再次输入新密码：</th><td><input type="password" name="new_password2" /></td>
+		</tr>
+		<th></th>
+		<td></td>
+	</tr>
+</table>
+</form>
+{% endblock %}

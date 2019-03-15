@@ -1,0 +1,133 @@
+
+<style>
+.point-item{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+}
+.margin10{
+    margin: 10px
+}
+.equipitem{
+    display: block
+}
+.reward_cont{
+    display: inline-table;
+}
+</style>
+
+
+
+<!-- 模版开始 -->
+<script id="rebate-tpl" type="text/template">
+<%var paychanels=it.data.paychanels;%>
+<%var msg=it.data.msg;%>
+
+<table class="form">
+    <tr><th>充值通道标示选择:</th>
+        <td>
+            <div id="paychannels_cont" >
+                <%for(var i in paychanels){%>
+                    <%var paychanel=paychanels[i];%>
+                    <%if(paychanel.link_id){%>
+                    <label><input type="checkbox" value="<%=paychanel.link_id%>" name="link_id" <%? msg[paychanel.link_id]%>checked="checked"<%?%> ><%=paychanel.link_id%></label>
+                    <%}%>
+                <%}%>
+            </div>
+
+        </td>
+    </tr>
+
+    <tr>
+        <th>阶段充值返利设置:</th>
+        <td>
+            <input type="button" id="add-rule-btn"  value="添加规则" onclick="add_rebate_item()" />
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+            <div id="rebate_condition_cont">
+                <%for(var i in msg){%>
+                    <%var rebate_objs=msg[i];%>
+                    <%for(var j in rebate_objs){%>
+                        <%var rebate_obj=rebate_objs[j];%>
+                        <%=it.w.get_rebate_html(rebate_obj)%>
+                    <%}%>
+                <%}%>
+            </div>
+
+        </td>
+    </tr>
+</table>
+</script>
+
+<script id="rebate-item-tpl" type="text/template">
+ <div class="rebate-item">充值金币:
+ <input type="number"  class="input-small input-number" name="start_gold"  size="8" min=0 value="<%=it.data.conditions[0]%>" />
+ -
+ <input type="number" class="input-small input-number" name="end_gold" size="8"  min=0 value="<%=it.data.conditions[1]%>" />
+ 返利(比率):
+ <input type="number" class="input-small input-number" name="amount" step=0.01 min=0 max=1 size="8"  value="<%=it.data.amount%>" />
+ <a href="javascript:;" onclick="$(this).parent().remove()">x</a>
+ </div>
+</script>
+
+
+<script type="text/javascript">
+var default_params = {{default_params|safe}}
+var activity_sdate = "{{model.sdate|date:"Y-m-d H:i:30"}}"
+var activity_edate = "{{model.edate|date:"Y-m-d H:i:30"}}"
+
+function get_rebate_html(rebate_obj){
+    rebate_obj = rebate_obj ? rebate_obj : {"conditions":['',''],"amount":''}
+    console.dir(rebate_obj)
+    return get_views('rebate-item-tpl',rebate_obj) 
+}
+
+function add_rebate_item(rebate_obj){
+    $('#rebate_condition_cont').append(get_rebate_html(rebate_obj))
+}
+
+activitySetting.get_json = function(){
+    var extra_dict = {}
+    var rebate_list = []
+    if (!this.check_empty_input()){return false}
+    $('#rebate_condition_cont .rebate-item').each(function(i,ele){
+            var rebate_ele = $(ele)
+            var start_gold = rebate_ele.find('[name="start_gold"]').val()
+            var end_gold = rebate_ele.find('[name="end_gold"]').val()
+            var amount = rebate_ele.find('[name="amount"]').val()
+            start_gold = !isNaN(start_gold) ? parseFloat(start_gold) : 0
+            end_gold = !isNaN(end_gold) ? parseFloat(end_gold) : 0
+            amount = !isNaN(amount) ? parseFloat(amount) : 0
+            rebate_list.push({"conditions":[start_gold,end_gold],"amount":amount})
+    })
+    $('#paychannels_cont [name="link_id"]:checked').each(function(i,ele){
+        extra_dict[ele.value] = rebate_list
+    })
+    return JSON.stringify(extra_dict)
+
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = {"msg":msg,"paychanels":default_params}
+
+    var html = get_views('rebate-tpl',msg)
+    this.contEle.html(html)
+    change_checkbox_background()
+}
+
+
+activitySetting.get_status = function(data){
+
+    return data[0]
+}
+
+</script>
+
+
+

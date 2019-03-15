@@ -1,0 +1,159 @@
+{% load mytags %}
+
+<!-- 模版开始 -->
+
+<script id="server-params-setting-tpl" type="text/template">
+	<table class="form2">
+        <tr>
+            <th>开始时间：</th>
+            <td><input type="text" class="Wdate" name="st" value="<%=it.data.st ? it.w.timestamp_to_datetime_str(it.data.st ? it.data.st : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        </tr>
+        <tr>
+            <th>结束时间：</th>
+            <td><input type="text" class="Wdate" name="et" value="<%=it.data.et ? it.w.timestamp_to_datetime_str(it.data.et ? it.data.et : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        </tr>
+
+		<!-- 这里开始配置服务器参数字段 -->
+		<% for (k in it.data){ %>
+			<%var params=it.data[k];%>
+			<%if (k != "st" && k != "et"){ %>
+                <tr >
+                    <th ><%=params.name%>：</th>
+                    <td> <input type="<%=params.input_type == 'int' ? 'number' : 'text' %>" name="<%=k%>"  step=<%=params.step ? params.step : 0.1%> aid="<%=k%>" min=<%=params.min ? params.min : -10%>  maxlength=4 class="input-number input-small activity-param pls"  value="<%=params.value ? params.value : ''%>" />
+                        <%? params.remark%>
+                        *<span style="<%=params.style%>"><%=params.remark%></span>
+                        <%?%>
+                    </td>
+                </tr>
+            <% } %>
+		<%}%>
+
+	</table>
+</script>
+
+<!-- 模版结束 -->
+
+
+
+<!-- 这里重写参数打折的参数配置 -->
+<script type="text/javascript">
+var default_params = {{default_params|safe}}
+//默认参数
+// var default_params = {"0": {"remakr": "123", "input_type": "int", "name": "活跃度奖励加成值"}, "1": {"input_type": "int", "name": "精英时间内攻打NPC要塞战科技点加成值"}, "2": {"input_type": "int", "name": "征战物品掉落概率加成"}, "3": {"input_type": "int", "name": "星域争夺战征税参数"}, "4": {"input_type": "int", "name": "在线奖励加成值"}, "101": {"input_type": "int", "name": "VIP购买补给价格加成值"}, "6": {"input_type": "int", "name": "征收（含强征）获得星币加成值"}, "7": {"input_type": "int", "name": "矿源争夺战星币产量加成值"}, "8": {"input_type": "int", "name": "英雄升级道具经验加成值"}, "105": {"input_type": "int", "name": "强制生产价格加成值"}, "106": {"input_type": "int", "name": "快速激活价格加成值"}, "103": {"input_type": "int", "name": "改造时星币价格加成值"}, "st": {"input_type": "timestamp", "name": "活动开始时间"}, "104": {"input_type": "int", "name": "改造时信用点价格加成值"}, "et": {"input_type": "timestamp", "remark": "活动开始时间和结束时间设置清空可以关闭活动", "name": "活动结束时间"}, "102": {"input_type": "int", "name": "强征扣除信用点价格加成值"}}
+
+var default_msg = [[0,0,0,0]]
+
+
+// 获取参数定义的名称
+function get_params_def_name(param_key){
+  var key = param_key.toString()
+  return default_params.hasOwnProperty(key) ? default_params[key]['name'] : '未定义'
+}
+
+
+function msg_handle(msg){
+  var new_msg = default_params
+    new_msg.st = 0
+    new_msg.et = 0
+  var pls = msg
+  for (var i in pls) {
+      var server_param = pls[i]
+      var aid = server_param[0].toString()
+      var param = server_param[1]
+      console.dir(new_msg)
+      if (new_msg.hasOwnProperty(aid)) {
+        new_msg[aid].value = param
+      }
+      if (!new_msg[aid].hasOwnProperty('step')){
+          new_msg[aid].value = param/10000
+      }
+  }
+    if (msg[0].length==4){
+        new_msg.st = msg[0][2]
+        new_msg.et = msg[0][3]
+    }
+
+  return new_msg
+}
+
+activitySetting.get_json = function(){
+    //msg:[[[类型ID, 数值,开始时间, 结束时间], ... ,..., ...]]
+   	//var msg = []
+    var st = datetime_str_to_timestamp(this.contEle.find('[name="st"]').val())
+    var et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+
+    var pls = []
+   	$('.pls').each(function(i,ele){
+   		var This = $(ele)
+   		var value = This.val()
+      if (value.length>0) {
+     		value = value ? parseFloat(value) : ''
+     		var aid = parseInt(This.attr('aid'))
+            if (This.attr('step') == 0.1){
+                value = value * 10000
+            }
+     		pls.push([aid,value,st,et])
+      }
+   	})
+    //msg.push(pls)
+    console.dir(pls)
+    return JSON.stringify(pls)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    var msg = msg_handle(msg)
+    var html = get_views('server-params-setting-tpl',msg)
+    this.contEle.html(html)
+
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+    console.dir(data)
+    var bt = data[0][2]
+    var et = data[0][3]
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if ($.isEmptyObject(data)) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }else if (!in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(bt)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    }
+    return status
+}
+
+$(document).on('keyup','.pls',function(){
+  var This = $(this)
+  var max = parseFloat(This.attr('max')),
+      min = parseFloat(This.attr('min')),
+      value = This.val()
+  var isFail = false
+value = !isNaN(value) ?  parseFloat(value) : 0
+
+if (value<min){
+  value = min
+  isFail = true
+}
+if (value>max){
+  value = max
+  isFail = true
+}
+if (isFail){
+  This.val(value)
+}
+
+})
+
+
+
+</script>
+
+
+

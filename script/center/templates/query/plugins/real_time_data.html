@@ -1,0 +1,11 @@
+<script>
+    function real_time_run(){
+        if($("#query_table").children('tbody').children().length > 0){
+            $SEARCH.trigger('click');
+        }
+    }
+
+    $(document).ready(function(){
+        setInterval("real_time_run()", 10000)
+    })
+</script>

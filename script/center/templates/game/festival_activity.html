@@ -1,0 +1,594 @@
+{% load mytags %}
+
+<!-- 模版开始 -->
+<style>
+.items-cont{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    border-radius: 3px;
+    width: 450px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.rwl-span{
+    border: 1px solid rgb(218, 207, 207);
+    padding: 5px;
+    margin: 2px;
+    width: 400px;
+    border-radius: 3px;
+    margin-left: auto;
+    margin-right: auto;
+}#exc_items .equipitem {
+     display: block;
+ }
+  .fnt {
+    font-weight: bold;
+    font-size: 15px;
+  }
+.level_num{
+    font-weight: bold;
+    font-size: 15px;
+}
+</style>
+
+
+<script id="params-setting-tpl" type="text/template">
+    <%var data=it.data;%>
+    <div class="tpl-cont">
+	<table class="form2">
+        <tr>
+            <th>活动ID：</th>
+            <td><input type="text" name="kid" class="input input-sm" readonly="readonly" value="<%=data.kid ? data.kid : parseInt(new Date().getTime()/1000)%>"> </td>
+        </tr>
+        <tr>
+            <th>开始时间：</th>
+            <td><input type="text" class="Wdate" name="bt" value="<%=data.bt ? it.w.timestamp_to_datetime_str(data.bt  ? data.bt : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        </tr>
+        <tr>
+            <th>结束时间：</th>
+            <td><input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : parseInt(new Date()/1000)) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>"></td>
+        </tr>
+        <tr>
+            <th>转盘：</th>
+            <td><a href="javascript:void(0)" onclick="add_item(this,'ttb')">[添加]</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="ttb_items">
+                <% for (k in data.ttb){ %>
+                    <%var params=data.ttb[k];%>
+                    <%=it.w.get_items_html(params)%>
+                <%}%>
+            </td>
+        </tr>
+        <tr>
+            <th>金蛋：</th>
+            <td><a href="javascript:void(0)" onclick="add_item(this,'egg')">[添加]</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="egg_items">
+                <% for (k in data.egg){ %>
+                    <%var params=data.egg[k];%>
+                    <%=it.w.get_items_html(params)%>
+                <%}%>
+            </td>
+        </tr>
+        <tr>
+            <th>兑换：</th>
+            <td><a href="javascript:void(0)" onclick="add_item(this,'exc')">[添加]</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="exc_items">
+                <% for (k in data.exc){ %>
+                    <%var params=data.exc[k];%>
+                    <%=it.w.get_items_html(params,'exc')%>
+                <%}%>
+            </td>
+        </tr>
+        <tr>
+            <th>活动npc：</th>
+            <td><a href="javascript:void(0)" onclick="add_item(this,'npc')">[添加]</a></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="npc_items">
+                <% for (k in data.npc){ %>
+                    <%var params=data.npc[k];%>
+                    <%=it.w.get_items_html(params,'npc')%>
+                <%}%>
+            </td>
+        </tr>
+
+	</table>
+        <div style="text-align: center;"><span>------------------------------材料额外掉落------------------------------</span></div>
+        <table class="form2">
+            <tr>
+                <th>世界：</th>
+                <td><a href="javascript:void(0)" onclick="add_item(this,'wld')">[添加]</a></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td id="wld_items">
+                    <% for (k in data.extra.wld){ %>
+                        <%var params=data.extra.wld[k];%>
+                        <%=it.w.get_items_html(params)%>
+                    <%}%>
+                </td>
+            </tr>
+            <tr>
+                <th>征战：</th>
+                <td><a href="javascript:void(0)" onclick="add_item(this,'chp')">[添加]</a></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td id="chp_items">
+                    <% for (k in data.extra.chp){ %>
+                        <%var params=data.extra.chp[k];%>
+                        <%=it.w.get_items_html(params)%>
+                    <%}%>
+                </td>
+            </tr>
+            <tr>
+                <th>兵团：</th>
+                <td><a href="javascript:void(0)" onclick="add_item(this,'tmw')">[添加]</a></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td id="tmw_items">
+                    <% for (k in data.extra.tmw){ %>
+                        <%var params=data.extra.tmw[k];%>
+                        <%=it.w.get_items_html(params)%>
+                    <%}%>
+                </td>
+            </tr>
+        </table>
+    </div>
+</script>
+
+<script id="items-tpl" type="text/template">
+        <div class="items-cont">
+                <%var data=it.data;%>
+                <label class="fnt">档次</label><span class="level_num"></span>:
+                <a href="javascript:void(0)" style="float:right" onclick="del_item(this)">[删除]</a><br>
+                权重：<input type="text" class="input-small" name="per" value="<%=data.per%>">
+                <% if (data.hasOwnProperty('bc')) {%>
+                记录中奖信息：
+                    <select name='bc'>
+                        <option value="1" <%? data.bc==true %> selected = "selected" <%?%> >是</option>
+                        <option value="2" <%? data.bc==false %> selected = "selected" <%?%> >否</option>
+                    </select>
+                <%}%>
+                <br>
+
+                <div class="rw-cont">
+                    奖励:
+                <%var items=it.data.rw;%>
+                <% for (var i in items){%>
+                    <%=it.w.pi.get_item_html(items[i],null)%>
+                <%}%>
+                </div>
+        </div>
+</script>
+
+
+<script id="exc-tpl" type="text/template">
+        <div class="items-cont">
+                <label class="fnt">档次</label><span class="level_num"></span>:
+                <a href="javascript:void(0)" style="float:right" onclick="del_item(this)">[删除]</a><br>
+                需要的材料:<a href="javascript:void(0)" onclick="add_rewards(this,'fd')">[添加奖励]</a>
+                <div class="fd-cont">
+                    <%var items=it.data.fd;%>
+                    <% for (var i in items){%>
+                        <%var item=items[i];%>
+                        <span class="equipitem" style="display: block;">
+                            材料:<input type="text" class="input-small" name="fd_id" value="<%=item[0]%>" select-key="equipment">
+                            数量:<input type="number" value="<%=item[1]%>" name="fd_nu" min="1" class="input-small input-number not-empty" maxlength="8">
+                            <input class="equipinput-del" type="button" value="x" onclick="$(this).parent().remove()">
+                        </span>
+                    <%}%>
+                </div>
+                奖励:<a href="javascript:void(0)" onclick="add_rewards(this)">[添加奖励]</a>
+                <div class="rw-cont">
+                <%var items=it.data.rw;%>
+                <% for (var i in items){%>
+                    <%=it.w.pi.get_item_html(items[i],null)%>
+                <%}%>
+                </div>
+        </div>
+</script>
+<!-- 模版结束 -->
+
+<script id="fd-tpl" type="text/template">
+        <span class="equipitem" style="display: block;">
+            材料:<input type="text" class="input-small" name="fd_id" value="" select-key="equipment">
+            数量:<input type="number" value="1" name="fd_nu" min="1" class="input-small input-number not-empty" maxlength="8">
+            <input class="equipinput-del" type="button" value="x" onclick="$(this).parent().remove()">
+        </span>
+</script>
+
+
+<script id="npc-tpl" type="text/template">
+        <div class="items-cont">
+                <%var data=it.data;%>
+                <label class="fnt">档次</label><span class="level_num"></span>:
+                <a href="javascript:void(0)" style="float:right" onclick="del_item(this)">[删除]</a><br>
+                npc名字<input type="text" class="input-small" name="nm" value="<%=data.nm%>">
+                npc随机概率<input type="text" class="input-small" name="rand" value="<%=data.rand%>"><br>
+                奖励列表:<a href="javascript:void(0)" onclick="add_rewards(this,'rwl')">[添加奖励]</a>
+                <div class="rwl-cont">
+                    <% for (var i in data.rwl){%>
+                    <%var items=data.rwl[i];%>
+                    <div class="rwl-span">
+                    <a href="javascript:void(0)" style="float:right" onclick="$(this).parent().remove()">[删除]</a>
+                    权重：<input type="text" class="input-small" name="per" value="<%=items.per%>">
+                    <br>
+
+                    <div class="rw-cont">
+                    奖励:
+                    <% for (var i in items.rw){%>
+                        <%=it.w.pi.get_item_html(items.rw[i],null)%>
+                    <%}%>
+                    </div>
+                    </div>
+                    <%}%>
+                </div>
+
+        </div>
+</script>
+
+<script id="rwl-tpl" type="text/template">
+                <div class="rwl-span">
+                    <a href="javascript:void(0)" style="float:right" onclick="$(this).parent().remove()">[删除]</a>
+                    权重：<input type="text" class="input-small" name="per" value="">
+                    <br>
+
+                    <div class="rw-cont">
+                        奖励:
+                    <% for (var i in it.data){%>
+                        <%=it.w.pi.get_item_html(it.data[i],null)%>
+                    <%}%>
+                    </div>
+                </div>
+</script>
+
+
+<!-- 这里重写参数打折的参数配置 -->
+<script type="text/javascript">
+    var default_msg = {
+        "kid": 0, //(int)活动id
+        "mdt": 0, //(int)修改活动时的时间戳
+        "bt": 0,//(int)开始时间
+        "et": 0,//(int)结束时间
+        "ttb":   //转盘
+                [
+                    {
+                        "rw": [{"aID":1,"v":1}],//奖励
+                        "per": '' ,//概率
+                        "bc": true  // true or false(是否记录中奖信息)
+                    }
+                ],
+        "egg":   //金蛋
+                [
+                    {
+                        "rw": [{"aID":1,"v":1}],//奖励
+                        "per": '',//概率
+                        "bc": true  // true or false(是否记录中奖信息)
+                    }
+                ],
+        "exc":   //兑换
+                [
+                    {
+                        "rw": [{"aID":1,"v":1}],//领取后获取的道具
+                        "fd": [['',1]]  //需要的材料
+                    }
+                ],
+        "npc":   //活动npc
+                [
+                    {
+                        "nm":'',//Npc名字
+                        "rand": '',//随机出来的概率
+                        "rwl": [
+                            {
+                                "rw": [{"aID": 1, "v": 1}],//奖励
+                                "per": '',//概率
+                            }
+                        ]
+                    }
+                ],
+        "extra":  // 材料额外掉落
+        {
+            "wld": // 世界
+                    [
+                        {
+                            "rw": [{"aID": 2, "v": 1}],//奖励,
+                            "per": ''//概率
+                        },
+                    ],
+            "chp": // 征战
+                    [
+                        {
+                            "rw": [{"aID": 2, "v": 1}],//奖励,
+                            "per": ''//概率
+                        },
+                    ],
+            "tmw": // 兵团
+                    [
+                        {
+                            "rw": [{"aID": 2, "v": 1}],//奖励,
+                            "per": ''//概率
+                        },
+                    ]
+        }
+    }
+
+
+var pi = new ResourceInput()
+
+
+
+function resize_level_num(name) {
+var name_obj = {ttb:'转盘',egg:'金蛋',exc:'兑换',npc:'活动npc',wld:'世界',chp:'征战',tmw:'兵团'}
+var name_list = ['ttb','egg','exc','npc','wld','chp','tmw']
+var allow = true
+
+$('#' + name + '_items').find('.level_num').each(function(i, ele){
+    $(this).parents('.items-cont').find('.fnt').text(name_obj[name])
+    $(this).html(i + 1)
+     allow = false
+})
+if (allow) {
+    for (var i in name_list){
+        var name = name_list[i]
+        $('#' + name + '_items').find('.level_num').each(function(i, ele){
+            $(this).parents('.items-cont').find('.fnt').text(name_obj[name])
+            $(this).html(i + 1)
+        })
+    }
+}
+}
+
+function get_items_html(obj,$name){
+    if ($name == 'exc'){
+        return get_views('exc-tpl',obj)
+    }
+    if ($name == 'fd'){
+        return get_views('fd-tpl',obj)
+    }
+    if ($name == 'npc'){
+        return get_views('npc-tpl',obj)
+    }
+    if ($name == 'rwl'){
+        return get_views('rwl-tpl',obj)
+    }
+    return get_views('items-tpl',obj)
+}
+
+function add_item(ele,name){
+    var $name = name
+    var is_extra = false
+    var extra_l = ['wld','chp','tmw']
+    for (var i in extra_l){
+        if ($name == extra_l[i]){
+            is_extra = true
+            break
+        }
+    }
+    if (is_extra){
+        var obj = default_msg['extra'][$name][0]
+    } else{
+        var obj = default_msg[$name][0]
+    }
+    var html = get_items_html(obj,$name)
+    $(ele).parents('.tpl-cont').find('#'+ $name +'_items').append(html)
+    resize_level_num($name)
+}
+
+function del_item(ele){
+    $(ele).parent('.items-cont').remove()
+    resize_level_num()
+}
+
+
+function add_rewards(ele,name){
+
+    if (name == 'fd'){
+        var obj = [10001,1]
+        var html = get_items_html(obj,name)
+        $(ele).parents('.items-cont').find('.fd-cont').append(html)
+    } else if (name == 'rwl'){
+        var obj = [{"aID": 1, "v": 1}]
+        var html = get_items_html(obj,name)
+        $(ele).parents('.items-cont').find('.rwl-cont').append(html)
+    } else if (name == 'rwl-span'){
+        var obj = {"aID":1,"v":1}
+        var html = pi.get_item_html(obj)
+        $(ele).parents('.rwl-span').find('.rw-cont').append(html)
+    } else {
+        var obj = {"aID":1,"v":1}
+        var html = pi.get_item_html(obj)
+        $(ele).parents('.items-cont').find('.rw-cont').append(html)
+    }
+
+}
+
+activitySetting.get_json = function(){
+    if (!this.check_empty_input()) {
+        return false
+    }
+
+    var msg = {
+        "kid": 0, //(int)活动id
+        "mdt": 0, //(int)修改活动时的时间戳
+        "bt": 0,//(int)开始时间
+        "et": 0,//(int)结束时间
+        "ttb":[],
+        "egg":[],
+        "exc":[],
+        "npc":[],
+        "extra":  // 材料额外掉落
+        {
+            "wld":[],
+            "chp":[],
+            "tmw":[]
+        }
+    }
+    msg.mdt = parseInt(new Date().getTime()/1000)
+    msg.kid = parseInt(this.contEle.find('[name="kid"]').val())
+    msg.bt = datetime_str_to_timestamp(this.contEle.find('[name="bt"]').val())
+    msg.et = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+
+    var ttb = []
+    $('#ttb_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.per = parseInt($ele.find('[name="per"]').val())
+        if ($ele.find('[name="bc"]').val() == '1'){
+            obj.bc = true
+        }
+        if ($ele.find('[name="bc"]').val() == '2'){
+            obj.bc = false
+        }
+        obj.rw = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            obj.rw.push(pi.to_json(ele))
+        })
+        ttb.push(obj)
+    })
+    msg.ttb = ttb
+
+    var egg = []
+    $('#egg_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.per = parseInt($ele.find('[name="per"]').val())
+        if ($ele.find('[name="bc"]').val() == '1'){
+            obj.bc = true
+        }
+        if ($ele.find('[name="bc"]').val() == '2'){
+            obj.bc = false
+        }
+        obj.rw = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            obj.rw.push(pi.to_json(ele))
+        })
+        egg.push(obj)
+    })
+    msg.egg = egg
+
+    var exc = []
+    $('#exc_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.rw = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            obj.rw.push(pi.to_json(ele))
+        })
+        obj.fd = []
+        $ele.find('.fd-cont .equipitem').each(function (i,ele) {
+            var l = []
+            var fd_id = parseInt($(ele).find('[name="fd_id"]').val())
+            var fd_nu = parseInt($(ele).find('[name="fd_nu"]').val())
+            l.push(fd_id,fd_nu)
+            obj.fd.push(l)
+        })
+        exc.push(obj)
+    })
+    msg.exc = exc
+
+    var npc = []
+    $('#npc_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.nm = $ele.find('[name="nm"]').val()
+        obj.rand = parseInt($ele.find('[name="rand"]').val())
+        obj.rwl = []
+        $ele.find('.rwl-span').each(function(i,ele){
+            var $ele = $(ele)
+            var _obj = {}
+            _obj.per = parseInt($ele.find('[name="per"]').val())
+            _obj.rw = []
+            $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+                _obj.rw.push(pi.to_json(ele))
+            })
+            obj.rwl.push(_obj)
+        })
+        npc.push(obj)
+    })
+    msg.npc = npc
+
+    var wld = []
+    $('#wld_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.per = parseInt($ele.find('[name="per"]').val())
+        obj.rw = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            obj.rw.push(pi.to_json(ele))
+        })
+        wld.push(obj)
+    })
+    msg.extra.wld = wld
+
+    var chp = []
+    $('#chp_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.per = parseInt($ele.find('[name="per"]').val())
+        obj.rw = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            obj.rw.push(pi.to_json(ele))
+        })
+        chp.push(obj)
+    })
+    msg.extra.chp = chp
+
+    var tmw = []
+    $('#tmw_items').find('.items-cont').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.per = parseInt($ele.find('[name="per"]').val())
+        obj.rw = []
+        $ele.find('.rw-cont .equipitem').each(function (i,ele) {
+            obj.rw.push(pi.to_json(ele))
+        })
+        tmw.push(obj)
+    })
+    msg.extra.tmw = tmw
+
+    //console.dir(msg)
+    return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    console.dir(msg)
+    var html = get_views('params-setting-tpl',msg)
+    this.contEle.html(html)
+    resize_level_num()
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+    console.dir(data)
+    var bt = data.bt
+    var et = data.et
+
+    var in_time_range =   this.system_timestamp >= bt  && this.system_timestamp <=et
+
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if ($.isEmptyObject(data)) {
+        status = '<span class="label label-danger">已关闭</span>'
+    }else if (!in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data.bt)+'- '+ timestamp_to_datetime_str(data.et)+'">未开始</span>'
+    }
+    return status
+}
+
+</script>

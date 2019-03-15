@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>VIP页面编辑</title>
+<script type="text/javascript" src="/static/js/editor.js" ></script>
+<script type="text/javascript" src="/static/js/ajaxForm.js" ></script>
+<script type="text/javascript" src="/static/js/xheditor/xheditor-1.1.14-zh-cn.min.js" ></script>
+<script type="text/javascript" >
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    编辑VIP{{model.level}}页面
+	 <div class="buttons"><a href="javascript:history.back()">返回</a> </div>
+</div>
+
+<form id="vip_page_form" action="/game/vip_page/save?pid={{model.level}}" todo="editFinish" >
+	<input type="hidden" name="ajax" value="true" />
+	<table class="form">
+		<tr>
+			<th>VIP等级：</th>
+			<td><input type="text" name="level" value="{{model.level}}"/>
+				<label><input type="checkbox" name="background">使用背景</label>
+                
+            </td>
+		</tr>
+		<tr>
+			<th>页面内容内容：</th>
+			<td>
+				<textarea id="notice_content" name="content"    rows="32" cols="80" style="width: 80%" >{{model.content}}</textarea><!--这里空行，编辑器会多出字符 -->
+
+			</td>
+		</tr>
+		<!--tr>
+			<th>公告弹窗尺寸：</th>
+			<td>
+				<input type="text" name="size" value="{{model.size}}" />
+				<p style="color:red;">
+				(可为空, 逗号不能中文)<br />
+				(滚动公告不需要填写,大于1的数游戏像素px, 小于1的小数是百分比, -1为客户端默认大小) 格式: 0.9,0.9    意思是宽度90% 高度90%
+				</p>
+			</td>
+		</tr-->
+		<tr>
+			<td></td>
+			<td>
+				<input  type="button" id="vip_page_button" value="生成">
+				<a onclick="this.href= '/static/vip/'+$('[name=level]').val()+'.html'" target="_blank">预览</a>
+			</td>
+		</tr>
+	</table>
+	{% csrf_token %}
+</form>
+<script>
+var editor = null
+$(function(){
+	editor = $('#notice_content').xheditor({linkTag:true})
+
+})
+$('#vip_page_button').click(function(){
+    if ($('[name="level"]').val()){
+    	if (confirm('确定生成吗？')){
+	        $.ajax({
+	            type:'post',
+	            url:'/game/vip_page/save?pid={{model.level}}',
+	            data:$('#vip_page_form').serialize(),
+	            success:function(data){
+	                $.dialog(data)
+	                }
+	            })
+       }
+    }else{
+        alert('没有设置vip等级！')
+    }
+})
+$('[name="background"]').click(function(){
+	var background_css = '<link href="/static/skin/help.css" rel="stylesheet" type="text/css" />'
+	if(this.checked){
+			editor.appendHTML(background_css)
+	}else{
+		re = new RegExp(background_css, "g")
+		editor.setSource(editor.getSource().replace(re,''))
+	}
+
+})
+
+</script>
+{% endblock %}

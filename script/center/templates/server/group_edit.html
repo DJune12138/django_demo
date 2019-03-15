@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>分区编辑</title>
+
+<script type="text/javascript" >
+function editFinish(result) {
+  $("#tip_box").html(result);
+  $("#tip_box").dialog();
+
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+    <a href="/group/list">分区管理</a> -> 分区编辑
+    <div class="buttons">
+       <a href="/group/list">返回</a>
+   </div>
+</div>
+
+<form action="/group/save?model_id={{models.id}}" method="post" >
+    <table class="form">
+        <tr>
+            <th>分区标识：</th><td><input type="text" name="group_key"  class="letter" value="{{models.group_key}}" /> 字母数据,确保唯一</td>
+        </tr>
+        <tr>
+            <th>分区名：</th><td><input type="text" name="name" value="{{models.name}}" /></td>
+        </tr>
+    <!--<tr>-->
+        <!--<th>37联运商ID:</th>-->
+        <!--<td width="500">-->
+            <!--<table class="table table-bordered" >-->
+            <!--<tr>-->
+                <!--<th>选择PID</th>-->
+                <!--<td><input type="text" value="{{model.pid_list}}" name="pid_list"  placeholder="GID关联联远商ID" select-key="gid_pid" data-multiple="true" style="width: 700px;display: inline-block;"></input></td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<th>显示</th>-->
+                <!--<td>-->
+                    <!--{% for k,v in pids_dict.items %}-->
+                    <!--<label style="font-weight: bold;color: red;">{{v}}</label>，-->
+                    <!--{% endfor %}-->
+                <!--</td>-->
+            <!--</tr>-->
+            <!--</table>-->
+        <!--</td>-->
+    <!--</tr>-->
+
+{#    <tr>#}
+{#        <th>版本号：</th><td><input type="number" name="version" size="50" value="{{model.version}}" /></td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th>资源版本：</th><td><input type="number" name="resource_version" size="50" value="{{model.resource_version}}" /></td>#}
+{#    </tr>#}
+{#    <tr>#}
+{#        <th>登陆URL：</th><td><input type="text" name="login_url" size="50"  value="{{model.login_url}}" />例如：10.10.10.10:5000</td>#}
+{#    <tr>#}
+        <th>礼包卡URL：</th><td><input type="text" name="card_url" size="50"  value="{{models.card_url}}" /></td>
+    </tr>
+    <tr>
+        <th>网关公告URL：</th><td><input type="text" name="cdn_url" size="50" value="{{models.cdn_url}}" /></td>
+    </tr>
+    <tr>
+        <th>客服URL：</th><td><input type="text" name="custom_url" size="50" value="{{models.custom_url}}" /></td>
+    </tr>
+   <!--  <tr>
+        <th>SDKURL：</th><td><input type="text" name="sdk_url" size="50" value="{{models.sdk_url}}" /></td>
+    </tr>
+    <tr>
+        <th>审核版本：</th><td><input type="number" name="audit_version" size="50" value="{{models.audit_version}}" /></td>
+    </tr>
+    <tr>
+        <th>审核服：</th><td><input type="number" name="audit_server" size="50" value="{{models.audit_server}}" /></td>
+    </tr> -->
+    <tr>
+        <th>多审核版本：</th><td><input type="text" name="audit_versions" size="50" value="{{models.audit_versions}}" />  必须用分号隔开</td>
+    </tr>
+    <tr>
+        <th>多审核服：</th><td><input type="text" name="audit_servers" size="50" value="{{models.audit_servers}}" />  必须用分号隔开</td>
+    </tr>
+    <tr>
+        <th>游戏APPKEY：</th><td><input type="text" name="game_app_key" size="50" value="{{models.game_app_key}}" /></td>
+    </tr>
+<!--     <tr>
+        <th>分区公告：</th><td>
+        <select name="notice_select">
+            <option value="0">无公告</option>
+            {%for item in list_notice%}
+            <option value="{{item.id}}" {%ifequal item.id model.notice_select%} selected="true"{%endifequal%}>{{item.title}}</option>
+            {%endfor%}
+        </select> <a href="/notice/edit">添加新公告</a>
+    </td>
+</tr>
+<tr>
+	<th>分区描述:</th>
+	<td><textarea name="remark">{{model.remark}}</textarea></td>
+</tr> -->
+
+<tr>
+	<th>附加JSON：</th>
+	<td><textarea name="other" class="check_json">{{models.other}}</textarea></td>
+</tr>
+<tr>
+            <th>分区内服务器：</th>
+            <td></td>
+        </tr>
+        <tr>
+            <th></th>
+            <td id="select_server_area">
+              {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids list_record=list_record %}
+            </td>
+        </tr>
+            <tr>
+                <th>分区内渠道：</th>
+                <!--<td>-->
+                    <!--{% for a in channel %}-->
+                        <!--<a href="/server/channel/channel_edit?channel_id={{ a.id }}&group_id={{ model_id }}">{{ a.name }}</a>-->
+                        <!--<br>-->
+                    <!--{% endfor %}-->
+                <!--</td>-->
+                {% if model_id %}
+                    <td class="details-control pointer" title="查看子渠道">
+                        <br>
+                        <br>
+                        <a href="/server/channel/channel_edit?group_id={{ model_id }}">添加渠道</a>
+                        <table class="table-bordered" style="margin:0 100px 0 10%;width:500px;Text-align:Center">
+                            <thead>
+                                <tr>
+                                    <!--<th><input type="checkbox" checkbox-area='' all=true ></th>-->
+                                    <th style="Text-align:Center">渠道ID</th>
+                                    <th style="Text-align:Center">渠道名(渠道key)</th>
+                                    <th style="Text-align:Center">创建时间</th>
+                                    <th style="Text-align:Center">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="" class="">
+                                {% for cha in channel %}
+                                    <tr class="" trid="">
+                                        <!--<td><input type="checkbox"  value="" name="cid"></td>-->
+                                        <td>{{cha.id}}</td>
+                                        <td>{{cha.name}}({{cha.channel_key}})</td>
+                                        <td>{{cha.create_time|date:"Y-m-d H:i:s"}}</td>
+                                        <td>
+                                            <a href="/server/channel/channel_edit?channel_id={{cha.id}}&group_id={{ model_id }}" class="openDialog">[编辑]</a>
+                                            {%if request.admin.is_root%}
+                                                <a href="javascript:void(0);" id="{{cha.id}}" class="ajax delChannel" onclick="remove_channel(this)" tip="确定删除？">[删除]</a>
+                                            {%endif%}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                {% endif %}
+                        <!--<td >{{agent.channel.all|length}}</td>-->
+                        <!--<td >{{agent.server.all|length}}</td>-->
+                        <!--<td><a href="/server/channel/agent_edit?agent_id={{agent.id}}" class="openDialog">{{agent.username}}</a></td>-->
+                        <!--<td>{{agent.password}}</td>-->
+                        <!--<td>{{agent.create_time|date:"Y-m-d H:i:s"}}</td>-->
+                        <!--<td>{{agent.login_count}}</td>-->
+                        <!--<td>{{agent.last_ip}}</td>-->
+                        <!--<td>{{agent.last_time|date:"Y-m-d H:i:s"}}</td>-->
+            </tr>
+    <tr>
+        <th>新手邮件：</th>
+        <td><textarea name="novice_mail">{{ models.novice_mail }}</textarea></td>
+        <td>除了格式要求输入的空格和换行，输入框内不能输入任何空格和换行！</td>
+    </tr>
+<tr>
+    <th></th>
+    <td><input type="submit" value="保存" /></td>
+    <div id="tip_box" title="提示框" >
+
+    </div>
+</tr>
+</table>
+</form>
+
+<div id="qifu_div" style="display:none">
+    <div id="qifu_items"></div>
+    <div><input type="button" value="添加" id="qifu_add"/><input type="button" value="保存" id="qifu_save"></div>
+</div>
+<script>
+var other = $("textarea[name='other']");
+
+$("#qifu_onoff").click(function(){
+    var ext_json = JSON.parse(other.html());
+    var payPoint = ext_json['payPoint'] ? ext_json['payPoint'] : [];
+
+        $("#qifu_items").children().remove();   //避免叠加
+        $("#qifu_div").dialog({title: "配置祈福值", center:true});
+
+        for(var i in payPoint){
+            var index = parseInt(i) + 1;
+            var data = {item_name: "祈福"+index, checked: payPoint[i] == 1 ? 'checked' : ''};
+            $("#qifu_items").append(getQifuItem(data));
+        }
+    });
+
+$("#qifu_add").click(function(){
+    var items = $("#qifu_items").children();
+    var index = items.length + 1;
+    var data = {item_name: "祈福"+index, checked:''};
+    $("#qifu_items").append(getQifuItem(data));
+});
+
+$("#qifu_save").click(function(){
+    var ext_json = JSON.parse(other.html());
+    var items = $("[name='qifu_val']");
+
+    var qifuList = [];
+    for(var i=0; i<items.length; i++){
+        var checkStatus = $(items[i]).attr('checked');
+        if(checkStatus){
+            qifuList.push(1);
+        }else{
+            qifuList.push(0);
+        }
+    }
+
+    ext_json['payPoint'] = qifuList;
+    other.html(JSON.stringify(ext_json));
+    $("#qifu_div").dialog().hide();
+});
+
+function getQifuItem(data){
+    var label_ele = $("<label>", {html: data.item_name});
+    var checkbox_html = $("<input>", {type:'checkbox', checked: data.checked, name:'qifu_val'});
+    var a_html = $("<a>", {href:"javascript:;", html:'删除', class:'del_qifu'});
+    a_html.click(function(){
+        deleteQifu(this);
+    });
+    var p_html = $("<p>");
+    p_html.append(label_ele).append(checkbox_html).append(a_html);
+    return p_html
+}
+
+function deleteQifu(obj){
+    $(obj).parent().remove();
+
+        //重置索引
+        var items = $("#qifu_items").children();
+        for(var i in items){
+            var item_name = $(items[i]).find('label').html();
+            item_name = item_name.replace(/\d+/g, parseInt(i)+1);
+            $(items[i]).find('label').html(item_name);
+        }
+    }
+
+// 删除渠道
+function remove_channel(ele){
+	swal({
+	  title: "确认删除?",
+	  type: "warning",
+	  showCancelButton: true,
+	  confirmButtonColor: "#DD6B55",
+	  confirmButtonText: "确认",
+	  cancelButtonText: "取消",
+	  closeOnConfirm: false
+	},
+	function(){
+	  var id = ele.id;
+		var url = '/server/channel/channel_remove?channel_id='+id;
+		ajax_do(url,"GET")
+	});
+}
+</script>
+    {% endblock %}

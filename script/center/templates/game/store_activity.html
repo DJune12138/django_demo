@@ -1,0 +1,208 @@
+
+<style>
+.shop-item{
+    border: 1px solid #AAAAAA;
+    padding: 5px 5px 5px 15px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+.switch-cont td label{
+   border: 1px solid #AAAAAA;
+   margin-left:2px;
+   text-align: center;
+}
+
+</style>
+
+<!-- 模版开始 -->
+<script id="shop-setting-tpl" type="text/template">
+<div id="shop-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr class="switch-cont">
+        <th>页面开关:</th>
+        <td>
+        <label class="col-sm-2">热销页面:
+            <input id="shutup-btn" name="hp" class="ace ace-switch ace-switch-5" type="checkbox"  <%? data.hp%>checked="checked"<%?%> >
+            <span class="lbl"></span>
+        </label>
+        <label class="col-sm-2">装备页面:
+            <input id="shutup-btn" name="em" class="ace ace-switch ace-switch-5" type="checkbox" <%? data.em%>checked="checked"<%?%>>
+            <span class="lbl"></span>
+        </label>
+        <label class="col-sm-2">神秘商店:
+            <input id="shutup-btn" name="mh" class="ace ace-switch ace-switch-5" type="checkbox" <%? data.mh%>checked="checked"<%?%>>
+            <span class="lbl"></span>
+        </label>
+            <label class="col-sm-2">资源页面:
+            <input id="shutup-btn" name="rs" class="ace ace-switch ace-switch-5" type="checkbox" <%? data.rs%>checked="checked"<%?%>>
+            <span class="lbl"></span>
+        </label>
+        </label>
+            <label class="col-sm-2">限时抢购:
+            <input id="shutup-btn" name="tl" class="ace ace-switch ace-switch-5" type="checkbox" <%? data.tl%>checked="checked"<%?%>>
+            <span class="lbl"></span>
+        </label>
+        </td>
+    </tr>
+    <tr>
+        <th>活动时段:</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data.st ? it.w.timestamp_to_datetime_str(data.st ? data.st : Date.parse(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:30"}}" %>">
+            到
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : Date.parse(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>抢购时间:</th>
+        <td>
+            <input type="text" name="sTPD" class="Wdate3 input-mini" value="<%=it.w.sec_to_time_str(data.sTPD ? data.sTPD : 0)%>" >
+            到
+            <input type="text" name="eTPD" class="Wdate3 input-mini" value="<%=it.w.sec_to_time_str(data.eTPD ? data.eTPD : 0)%>">
+        </td>
+       
+    </tr>
+    <tr><th>抢购活动的商品信息:</th>
+        <td><a id="add-shop-item-btn" href="javascript:;">[增加商品]</a></td>
+    </tr>
+        <tr><th></th>
+        <td id="shop-item-cont">
+            <%var tLG=data.tLG;%>
+            <% for (var i in tLG){%>
+                <%=it.w.get_shop_item_html(tLG[i])%>
+            <%}%>
+        </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<!-- [1001 ,"商品1", {"aid":7,"iid":10001,"an":1}, 100, 80, {}, 100 ], // [ id,商品名字, 商品类型, 商品id, 商品数量, 原价, 现价,  -->
+<script id="shop-item-tpl" type="text/template">
+        <div class="shop-item">
+            <span style="width:40px;display:inline-block; "><b>商品<span class="shop-item-num"></span></b></span>
+            <span>名字:<input type="text" name="good-name" class="" value="<%=it.data[1]%>"></span>
+            <a href="javascript:;" class="gray" onclick="removeParent(this);reset_shop_item_num()">[删除]</a>
+            <div class="good-item">商品:<%=it.w.ri.get_item_html(it.data[2],null,true)%></div>
+            <span>原价:<input type="text" name="original-price" class="input-mini input-number" value="<%=it.data[3]%>"></span>
+            <span>现价:<input type="text" name="current-price" class="input-mini input-number" value="<%=it.data[4]%>"></span>
+            <span>限购总数量:<input type="text" name="total-num" class="input-mini input-number"  value="<%=it.data[6]%>"></span>
+            <a href="javascript:;" onclick="add_shop_item($(this).parent())">[插入]</a>
+            
+        </div>
+</script>
+
+<!-- 模版结束 -->
+
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+
+var ri = new ResourceInput()
+
+function reset_shop_item_num(){
+    $('.shop-item-num').each(function(i,ele){
+        $(this).html(i+1)
+    })
+}
+
+// 增加商店项目
+function add_shop_item(beforeEle){
+    if ($('.shop-item-num').length<15) {
+        var item_html = get_shop_item_html(['','','','','','','',])
+        if (beforeEle){
+            beforeEle.after(item_html)
+        } else {
+            $('#shop-item-cont').append(item_html)
+        }
+        reset_shop_item_num()
+    } else {
+        alert('商品数超过15个!')
+    }
+}   
+
+function get_shop_item_html(array){
+    return get_views('shop-item-tpl',array)
+}
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(){
+    if (!this.check_empty_input()){return false}
+     var msg =  {
+        "hp" : false,  // 热销页面是否开启
+        "em" : true,  // 装备页面是否开启
+        "mh" : true,  // 神秘商店是否开启
+        "rs" : true,  // 资源页面是否开启
+        "tl" : true,   // 限时抢购是否开启
+        "st" :   0,     // 抢购活动开始时间(时间戳)
+        "et" :   0,      // 抢购活动结束时间(时间戳)
+        "sTPD":  0,    // 抢购活动每天开始时间(时间戳)
+        "eTPD":  0,   // 抢购活动每天结束时间(时间戳)
+        "tLG" :  []     // 抢购活动的商品信息  [1001 ,"商品1", {"aid":7,"iid":10001,"an":1}, 100, 80, {}, 100 ], // [商品索引 商品名字, 商品类型, 商品id, 商品数量, 原价, 现价, 购买条件, 限购总数量
+    }
+    //页面开关
+    this.contEle.find('.switch-cont :checkbox').each(function(i,ele){
+        var checkbox = $(ele)
+        var name = checkbox.attr('name')
+        msg[name] = checkbox.is(':checked')
+    })
+    //开启时间
+     msg['st'] = datetime_str_to_timestamp(this.contEle.find('[name="st"]').val())
+     msg['et'] = datetime_str_to_timestamp(this.contEle.find('[name="et"]').val())
+     msg['sTPD'] = time_str_to_sec(this.contEle.find('[name="sTPD"]').val())
+     msg['eTPD'] = time_str_to_sec(this.contEle.find('[name="eTPD"]').val())
+     var shop_items = $('#shop-item-cont .shop-item')
+     if(shop_items.length==0){
+        alert('没有设置商品!')
+        $('#add-shop-item-btn').focus();
+        return false
+    }
+     shop_items.each(function(i,ele){
+        var itemArray = []
+        var $shopItem = $(ele)
+        itemArray.push(1001+i)                                                      //商品索引
+
+        itemArray.push( $shopItem.find('[name="good-name"]').val() )                //商品名字
+        itemArray.push( ri.to_json($shopItem.find('.good-item')) )                  //商品类型
+        itemArray.push( parseInt($shopItem.find('[name="original-price"]').val()) ) //原价
+        itemArray.push( parseInt($shopItem.find('[name="current-price"]').val()) )  //现价
+        itemArray.push( {} )                                                        //购买条件
+        itemArray.push( parseInt($shopItem.find('[name="total-num"]').val()) )     //限购总数量
+        
+        msg['tLG'].push(itemArray)
+     })
+
+     return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    var html = get_views('shop-setting-tpl',msg)
+    this.contEle.html(html)
+    reset_shop_item_num()
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+
+    var in_time_range =   this.system_timestamp >= data.st  && this.system_timestamp <=data.et 
+    if (data.tl && in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if (data.tl && !in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(data.st)+'- '+ timestamp_to_datetime_str(data.et)+'">未开始</span>'
+    } else {
+        status = '<span class="label label-danger">已关闭</span>'
+    }
+    return status
+}
+
+// 这里绑定事件
+$(document).on('click','#shop-activity-cont #add-shop-item-btn',function(){
+    add_shop_item()
+})
+</script>
+
+
+

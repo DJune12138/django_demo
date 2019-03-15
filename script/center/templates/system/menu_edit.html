@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>功能模块编辑</title>
+
+{% endblock %}
+
+{% block content %}
+{% with model_name='Menu' url_prefix='/system/menu/menu_'  %}
+<div class="bar">
+	<a href="{{url_prefix}}edit?parent_id={{menu.parent_id}}">功能列表</a> -> 功能模块编辑
+	<div class="buttons">
+		<a class="btn btn-app btn-grey btn-xs radius-4 pull-right submit">保存</a>
+	</div>
+</div>
+
+<form action="{{url_prefix}}save?id={{menu.id}}" method="post">
+	<table class="form">
+
+		<tr>
+			<th>模块名称：</th><td><input type="text" name="name" value="{{menu.name}}" /></td>
+		</tr>
+		<tr>
+			<th>父级：</th><td>
+			<select name="parent_id" >
+				{%if menu.parent_id == 0 %}
+					<option value="0">顶级</option>
+				{%else%}
+					{%for item in list_menu%}
+						{%ifnotequal item.id menu.id%}
+						<option value="{{item.id}}" {%ifequal item.id menu.parent_id%}selected="selected"{%endifequal%}>{{item.name}}</option>
+						{%endifnotequal%}
+					{%endfor%}
+				{%endif%}
+			</select>
+		</td>
+		</tr>
+
+	<tr>
+		<th>排序：</th><td><input type="text" name="order" value="{{menu.order}}" /></td>
+	</tr>
+	<tr>
+		<th>菜单显示：</th>
+		<td>
+		<!-- <input type="checkbox" name="is_show" value="1"{%ifequal menu.is_show 1%} checked="checked"{%endifequal%}/> -->
+		<label class="inline">
+			<input type="checkbox" value="1" {%ifequal menu.is_show 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="is_show" role="checkbox" class="FormElement ace ace-switch ace-switch-5"><span class="lbl"></span>
+		</label>
+		</td>
+	</tr>
+	<tr>
+		<th>记录日志：</th><td>
+		<!-- <input type="checkbox" name="is_log" value="1"{%ifequal menu.is_log 1%} checked="checked"{%endifequal%}/> -->
+		<label class="inline">
+			<input type="checkbox"  value="1" {%ifequal menu.is_log 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="is_log" role="checkbox" class="FormElement ace ace-switch ace-switch-5"><span class="lbl"></span>
+		</label>
+		</td>
+	</tr>
+
+	<tr>
+		<th>模块路径：</th><td><input type="text" name="url" value="{{menu.url}}" class="input-xxlarge"/></td>
+	</tr>
+	<tr>
+		<th>模块图标：</th><td>
+
+		<input id="menu_icon" class="pull-left" type="text" name="icon" value="{{menu.icon}}" />
+		<a href="javascript:;" onclick="openwindow('/static/cus-icons.html?eid=menu_icon','menu_icon_select',0.3,0.3)">选择</a>
+
+	</td>
+	</tr>
+	<tr>
+		<th>模块样式：</th><td><input type="text" name="css" value="{{menu.css}}" /></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td></td>
+	</tr>
+</table>
+
+</form>
+{% endwith %}
+{% endblock %}

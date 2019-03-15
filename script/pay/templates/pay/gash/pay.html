@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//Dtd XHTML 1.0 Transitional//EN" "http://www.w3.org/tr/xhtml1/Dtd/xhtml1-transitional.dtd">
+<html>
+<head>
+	<title>GashPlus儲值</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=yes;" />
+	<link rel="stylesheet" type="text/css" href="/static/skin/mobile.css" />
+	
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/js/pay/gash.js?v=20131031"></script>
+	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
+	<script type="text/javascript">
+	
+		var platform = "{{platform}}";
+		$(document).ready(function() {
+			$("#step2").hide();
+			$("#step3").hide();
+			var checkbox_str = '';
+			var tmpArray = {};
+			var keyArray = new Array();
+			for (var i = 0; i < pay_category.length; i++) {
+				tmpArray[pay_category[i][2]]="<label><input type='radio' name='amount' value='" + pay_category[i][2] + "' />" + pay_category[i][2] + "</label>";
+			}
+			for(var i in tmpArray)
+			{
+				keyArray[keyArray.length]=i;
+			}
+			
+			keyArray = sortPayArray(keyArray);
+			
+			checkbox_str = '<ul>';
+			for(var i=0;i<keyArray.length;i++)
+			{
+				checkbox_str += '<li>';
+				checkbox_str += tmpArray[keyArray[i]];
+				checkbox_str += '</li>';
+			} 
+			checkbox_str += '</ul>';
+			
+			
+			$("#div_silver").html(checkbox_str);
+			$("[name='amount']").first().attr("checked","checked");
+			
+		}); 
+	
+		function sortPayArray(array) {
+			for (var i = 0; i < array.length; i++) {
+				for (var k = 0; k < array.length; k++) {
+					var iSource = array[i];
+					var kSource = array[k];
+					var iNum = new Number(array[i]);
+					var kNum = new Number(array[k]);
+					if (iNum < kNum) {
+						var nTemp = iSource;
+						array[i] = kSource;
+						array[k] = nTemp;
+					}
+				}
+			}
+			return array;
+		}
+	
+		function checkform() {
+			var pay_amount = $('[name="amount"]:checked');
+			var server_code = $('[name="type"]:checked');
+	
+			if(pay_amount.length == 0){
+				alert('請選擇儲值金額');
+				return false;
+			}
+			if(server_code.length == 0){
+				alert('請選擇付費方式');
+				return false;
+			}
+			
+			return true;
+		}
+	
+		function goback() {
+			$('#step1').show();
+			$('#step2').hide();
+			$("#step3").hide();
+			$('[name="payment"]').each(function() {
+				$(this).unbind();
+			});
+	
+			$('#div_payment').html();
+	
+		}
+	
+		function nextSetup() {
+			var selected_amount = $("[name='amount']:checked"); 
+			if(selected_amount.length == 0){
+				alert('請選擇儲值金額');
+				return;
+			}
+			var amount = selected_amount.val();
+			
+			$("#step1").hide();
+			$("#step3").hide();
+			$("#step2").show();
+			
+			var checkbox_str = '';
+			var tmpArray = {};
+			for (var i = 0; i < pay_category.length; i++) {
+				var tt = pay_category[i][1];
+				if (platform == 'haiwai' && (tt == 'TELCHT07' || tt == 'TELCHT06' || tt == 'TELCHT05')){
+					continue;
+				}
+				if(pay_category[i][2]==amount)
+					tmpArray[pay_category[i][0]] = "<label><input type='radio' name='type' value='" + pay_category[i][1] + "' />" + pay_category[i][0] + "</label>";
+			}
+			checkbox_str = '<ul>';
+			for(var i in tmpArray)
+			{
+				checkbox_str += '<li>';
+				checkbox_str += tmpArray[i];
+				checkbox_str += '</li>';
+			} 
+			checkbox_str += '</ul>';
+			$("#div_payment").html(checkbox_str);
+			$("[name='type']").first().attr("checked","checked");
+		}
+		
+		function doSubmit()
+		{
+			$("#step2").hide();
+			$("#step3").show();
+			return true;
+		}
+	</script>
+	
+	<style>
+		ul { list-style: none;}
+	</style>
+	</head>
+
+	<body>
+		 <form method="post" action="/client/pay/gash/transaction" onsubmit="doSubmit()">
+		 	
+			<input type="hidden" name="orderid" value="{{orderid}}" /> 
+			<input type="hidden" name="platform" value="{{platform}}" />
+			<input type="hidden" name="product_name" value="{{product_name}}" />
+			<div id='step1'>
+				<h2 class="header">請選擇儲值金額</h2>
+				<div id="div_silver" class="body"></div>
+				<div class="footer">
+				<input type="button" class="button" value="下一步" name="下一步" onclick="nextSetup();" />
+				</div>
+			</div>
+			<div id='step2'>
+				<h2 class="header">請選擇付費方式</h2>
+				<div id="div_payment" class="body"></div>
+				<div class="footer">
+				<input type="button" value="后退" class="button" onclick="goback();" /> 
+				<input type="submit" value="提交" class="submit" onclick="return checkform();" />
+				</div>
+			</div>
+			<div id="step3">
+				<h4 class="header">請稍候</h4>
+				<div class="body">正在轉向Gash進行付款,請稍候...</div>
+			</div>
+		</form>
+		
+		
+	</body>
+</html>

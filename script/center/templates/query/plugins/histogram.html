@@ -1,0 +1,237 @@
+<!-- 加载highcharts -->
+<script type="text/javascript" src="/static/js/highcharts/highcharts.js"></script>
+<script type="text/javascript" src="/static/js/highcharts/exporting.js"></script>
+
+<div id="charts-div" >
+
+</div>
+
+<script type="text/javascript">
+
+
+function hightcharts(container) {
+	container = container?container:document.createElement('div')
+	var _this = this
+	this.hightcharts_obj = null
+        this.opt = {
+        			chart: {//配置chart选项
+                            renderTo: container, //容器名，和body部分的div id要一致
+                            type: 'bar',            //spline 图表类型，这里选择折线图
+                            zoomType: 'x',//选区域
+                            backgroundColor:'#FFFFFF',
+							borderWidth:0,
+							borderRadius:5,
+							defaultSeriesType:'spline',
+							shadow: true,
+							reflow:true,
+							events:'',
+							height:1000
+
+                    },
+	                title: {//配置标题
+						text:'',
+						align:'center',
+						verticalAlign:'',
+						margin:0,
+						floating:0,
+						style:{
+							color: '#3E576F',
+							fontSize: '20px'
+						}
+	                },
+	                subtitle: {//配置副标题
+	                    text: '',
+	                    //y:30
+	                },
+					legend : {
+						layout:'horizontal',
+						align:'center',
+						backgroundColor:null,
+						borderColor:'#909090',
+						borderRadius:5,
+						enabled:1,
+						floating:0,
+						shadow:0,
+			            itemStyle: {
+			                color: '#7cb5ec',
+			                fontWeight: ''
+			            },
+						borderWidth:1
+					},
+	                credits: {
+            	 		text: '',
+            	 		href:""
+            		},
+	                yAxis: {// 配置y轴
+	                            title: {text: ''},
+							    minPadding: 0,//最小的填充值系数
+							    startOnTick:true,
+	                },
+	                tooltip: {//配置数据点提示框
+				  //          formatter :  function() {
+						// 	var s = '<b>'+ Highcharts.dateFormat('%Y-%m-%d',this.x) +'</b>';
+						// 		$.each(this.points, function(i, point) {
+						// 			s += '<br/>'+ '<b style="color:'+point.series.color+';">'+point.series.name +'</b>'+': '+point.y +'';
+						// 		});
+						// 	return s;
+						// } ,
+	                    crosshairs: true,//竖线
+	                    shared: true,//显示所有项目
+	                },
+	                xAxis: {
+	                	categories:[],
+				        labels: {
+			                style: {
+			                    
+			                },
+			                formatter:function() { //格式化标签
+			                	return this.value 
+
+							}
+			            }
+						//type: 'datetime',//类型
+						//dateTimeLabelFormats: {day: '%e of %b'}//日期格式
+					},//配置x轴
+					plotOptions : { 						
+						line: {
+							lineWidth: 2,
+							states: {
+								hover: {
+									lineWidth: 4
+								}
+							},
+							dataLabels : {
+								enabled : true,
+								align:"right"
+							},
+							marker: {
+								enabled: false,
+								states: {
+									hover: {
+										enabled: true,
+										symbol: 'circle',
+										radius: 5,
+										lineWidth: 3
+									}
+								}
+							}
+						}					 
+					},
+	                series:[],
+                   }
+	this._getAvg = function(list){
+		var num = 0
+		for(i in list){num += list[i]}
+		return 	(num / list.length).toFixed(1)
+	}
+	this.push_data = function(list_data,fields,item_handle,first_item_handle){//增加数据
+		var data_list = []
+		var xAxis = [] //横轴项目，即第一列
+		var lines = list_data
+		var columns = fields    //数据项
+		for (var i=1;i<columns.length;i++){
+			data_list.push({
+				'name':columns[i],
+				'data':[],
+				dataLabels: {
+                	enabled: true,
+            	}
+			})
+		}
+
+		for (var i = 0;i<lines.length;i++){//跳过第一行
+			var items = lines[i]
+			if (items[0].indexOf('合计')>=0||items[0].indexOf('最高')>=0) {
+				continue
+			}
+			xAxis.push( first_item_handle ? first_item_handle(items[0]) : items[0])//横轴增加第一项
+			for(var j=1;j<columns.length;j++){
+				var item = items.length>=j+1?items[j]:'0'
+				data_list[j-1]['data'].push( item_handle ? item_handle(item) : parseFloat(!isNaN(item) && item ? item : 0))
+			}
+		}
+		_this.opt.xAxis.categories = xAxis//增加横轴项目
+		for(var i in  data_list ){
+			var o = data_list[i]
+			o['name'] += ' (Min:'+ Math.min.apply(Math,o['data'])
+			o['name'] += ' Max:'+ Math.max.apply(Math,o['data'])
+			o['name'] += ' Avg:'+ _this._getAvg(o['data'])+')'
+		}
+		_this.opt.series = data_list //增加序列数据
+		return [xAxis,data_list]
+	}
+
+	this.done = function(){
+		Highcharts.setOptions({
+								global:{
+				        				useUTC: 0 
+				        		},
+				        		lang:{
+				        			resetZoom:"重置",
+				        		}
+        })
+		_this.hightcharts_obj = new Highcharts.Chart(_this.opt)
+
+		return container
+	}
+}
+
+/*
+var h = new hightcharts()
+h.opt.title.text='我爱物联网 2012/09/22 访问统计'
+h.opt.subtitle.text='数据来源：百度统计'
+h.opt.xAxis.categories = [ '1', '2', '3', '4', '5','6', '7', '8', '9', '10', '11','12','13','14','15','16','17','18','19','20','21','22','23']
+h.opt.series.push({name: '浏览次数（PV）',data: [16,10, 8, 0, 0, 0, 2, 1, 5,10,25,34,8,12,38,22,13,14,11, 8, 8, 5, 8,33]})
+h.opt.series.push({name: 'IP数',data: [ 7, 2, 1, 0, 0, 0, 1, 1, 3, 5, 4, 2,5, 5, 2, 1, 5, 3, 1, 4, 4, 4, 5, 9]})
+h.done()
+console.dir(h.hightcharts_obj)	
+$("#container").append(h.done())	
+//document.body.appendChild(h.done())
+*/
+//---------------------------------
+
+</script>
+
+
+
+<script>
+
+	function item_handle(item){
+		if (item) {
+		var item = parseFloat(item.toString().split(/%/)[0])
+		item = !isNaN(item) ? item : 0
+		}else{
+			item=0
+		}
+		return item
+	}
+if (window.dataTableOption) {
+	var $charts_cont = $('#charts-div')
+	$charts_cont.insertBefore($QUERY_TABLE)
+
+
+	dataTableOption.page_size = 291
+	dataTableOption.page_size_list = [291,580]
+
+	var LIST_DATA = null
+
+	dataTableOption.convertInputDataFuncs.push(function(data){
+		console.dir(data)
+		return data
+	})//输入处理
+	dataTableOption.convertOutputDataFuncs.push(function(data) {
+		LIST_DATA = data.list_data
+		var h = new hightcharts('charts-div')
+		h.opt.title.text = data.query_name
+		var tol_num = data.total_record <= data.page_size ? data.total_record : data.page_size
+		//h.opt.chart.height = tol_num * 10
+		h.push_data(data.list_data,data.fields,item_handle)
+		h.done()
+	  	return data
+	}) 
+}
+</script>
+
+
+
+

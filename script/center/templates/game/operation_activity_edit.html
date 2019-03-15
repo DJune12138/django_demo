@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block header %}
+    <title>活动编辑</title>
+{% endblock %}
+{% block content %}
+    <ul id="nav-list" class="nav nav-tabs padding-12 tab-color-blue background-blue">
+        <li class="active">
+            <a href="">
+                <i class="icon-edit bigger-110"></i>活动信息
+            </a>
+        </li>
+    </ul>
+
+    <div id="activity-edit-cont">
+        <form id="activity_form">
+            <table class="form">
+                <tr>
+                    <th>参与的服务器:</th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td width="90%">
+                        <div class="">
+                            {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids %}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>活动类型:</th>
+                    <td>
+                        <select id="activityId">
+                            {% for key, value in operation_activity.items %}
+                                <option value="{{ key }}"{% if key == model.activityId %}
+                                        selected="selected"{% endif %}>{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+
+                <!-- 打渣男  -->
+                <tr>
+                    <th>主界面图标:</th>
+                    <td><input type="text" id="icon" class="not-empty" value="{{ model.icon }}"></td>
+                </tr>
+                <tr>
+                    <th>第一界面背景图:</th>
+                    <td><input type="text" id="backIcon1" class="not-empty" value="{{ model.backIcon1 }}"></td>
+                </tr>
+                <tr>
+                    <th>第二界面背景图:</th>
+                    <td><input type="text" id="backIcon2" class="not-empty" value="{{ model.backIcon2 }}"></td>
+                </tr>
+                <tr>
+                    <th>标题图片:</th>
+                    <td><input type="text" id="titleIcon" class="not-empty" value="{{ model.titleIcon }}"></td>
+                </tr>
+                <tr>
+                    <th>商铺图片:</th>
+                    <td><input type="text" id="shopIcon" class="not-empty" value="{{ model.shopIcon }}"></td>
+                </tr>
+                <tr>
+                    <th>进入图片:</th>
+                    <td><input type="text" id="enterIcon" class="not-empty" value="{{ model.enterIcon }}"></td>
+                </tr>
+                <tr>
+                    <th>活动名称:</th>
+                    <td><input type="text" id="name" class="not-empty" value="{{ model.name }}"></td>
+                </tr>
+                <tr>
+                    <th>活动内容描述:</th>
+                    <td><input type="text" id="content" class="not-empty" value="{{ model.content }}"></td>
+                </tr>
+                <tr>
+                    <th>形象图片:</th>
+                    <td><input type="text" id="imageIcon" class="not-empty" value="{{ model.imageIcon }}">格式：图片1|图片2|图片3|...</td>
+                </tr>
+                <tr>
+                    <th>形象说话:</th>
+                    <td><input type="text" id="imageContent" class="not-empty" value="{{ model.imageContent }}">格式：说话1|说话2|说话3|...</td>
+                </tr>
+                <tr>
+                    <th>形象分数:</th>
+                    <td><input type="text" id="imageScore" class="not-empty" value="{{ model.imageScore }}">格式：分数1|分数2|分数3|...</td>
+                </tr>
+                <tr>
+                    <th>排行榜奖励:</th>
+                    <td><textarea id="eventActivityRankAwardList"
+                                  class="not-empty">{{ model.eventActivityRankAwardList }}</textarea>格式：开始名次|结束名次|奖励组ID + 回车</td>
+                </tr>
+                <tr>
+                    <th>活动开始时间:</th>
+                    <td><input type="text" class="Wdate4 not-empty" id="startTime"
+                               value="{{ model.startTime|date:"Y-m-d H:i:s" }}"></td>
+                </tr>
+                <tr>
+                    <th>活动结束时间:</th>
+                    <td><input type="text" class="Wdate4 not-empty" id="endTime"
+                               value="{{ model.endTime|date:"Y-m-d H:i:s" }}"></td>
+                </tr>
+                <tr>
+                    <th>领取结束时间:</th>
+                    <td><input type="text" class="Wdate4 not-empty" id="endRewardTime"
+                               value="{{ model.endRewardTime|date:"Y-m-d H:i:s" }}"></td>
+                </tr>
+
+                {% if model.status != 1 %}
+                    <tr>
+                        <th></th>
+                        <td>
+                            <a id="save_btn" class="btn btn-app btn-grey btn-xs radius-4" sid="{{ model.sid }}">保存</a>
+                        </td>
+                    </tr>
+                {% endif %}
+            </table>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        // 返回服务器列表
+        function return_servers() {
+            var servers = $('#server_area').find('td').find('input');
+            var server_list = '[';
+            $.each(servers, function (index, item) {
+                if ($(item).attr('checked') == 'checked') {
+                    server_list += $(item).val() + ','
+                }
+            });
+            server_list += ']';
+            return server_list
+        }
+
+        // 保存按钮
+        $('#save_btn').click(function () {
+
+            $.ajax({
+                url: '/game/activity/operation_activity_save',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    'server': return_servers(),
+                    'activityId': $('#activityId').val(),
+                    'icon': $('#icon').val(),
+                    'backIcon1': $('#backIcon1').val(),
+                    'backIcon2': $('#backIcon2').val(),
+                    'titleIcon': $('#titleIcon').val(),
+                    'shopIcon': $('#shopIcon').val(),
+                    'enterIcon': $('#enterIcon').val(),
+                    'name': $('#name').val(),
+                    'content': $('#content').val(),
+                    'imageIcon': $('#imageIcon').val(),
+                    'imageContent': $('#imageContent').val(),
+                    'imageScore': $('#imageScore').val(),
+                    'eventActivityRankAwardList': $('#eventActivityRankAwardList').val(),
+                    'startTime': $('#startTime').val(),
+                    'endTime': $('#endTime').val(),
+                    'endRewardTime': $('#endRewardTime').val(),
+                    'sid': $(this).attr('sid'),
+                    'content_type': $('#content_type').val()
+                },
+                success: function (data) {
+                    alert('保存成功！')
+                },
+                error: function () {
+                    alert('服务器超时，请重试！');
+                }
+            })
+        })
+    </script>
+{% endblock %}

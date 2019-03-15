@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>{{type}}创建查询</title>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	{{type}}创建查询
+</div>
+<script>
+function searchStatus(obj){
+    var item_name = $(obj).html()
+    var _str = ''
+    var server_num = 0
+     $("a:contains('"+item_name+"')").each(function(){
+                var sid = $(this).attr('sid')
+                var code = $(this).attr('code')
+                var server_name = $("#server_name_"+sid).html()
+                if(code == 0){_str += '<br>' + server_name;server_num += 1}
+                //console.dir($(this).html())
+            })
+    _str = '<b>未完成服务器('+server_num+'):</b><hr>' + _str
+    $("#sync_dialog").html(_str)
+    //$("#sync_dialog").attr({"title":item_name})
+    $("#sync_dialog").dialog()
+    $("#dialog-1 .bar span").html(item_name)
+
+
+}     
+</script>
+<script type="text/javascript" >
+$(function(){
+    function color(text,color){return '<span style="color:'+color+'">'+text+'</span>'}
+    
+    var serv_ids = [{% for item in list_record %} {{item.id}},{% endfor%}].reverse()
+    console.dir(serv_ids)
+    var tol_num = serv_ids.length
+    function ajax_get_status(sids){
+        if (sids.length>0){
+                        var sid = sids.pop()
+                        $.ajax({ 
+                            timeout : 12000,
+                            url: '/log/syncdb/querysyncstatus?&type={{type}}&server_id=' + sid,
+                            type: "get", 
+                            //async : false, 
+                            error:function(x,t,e) {
+                            	if (x.responseText){
+                            		alert(x.responseText)
+                            	}else{
+                            		alert(sid+' 超时')
+                            	}
+                               $("#progress").html(tol_num-sids.length)
+                               ajax_get_status(serv_ids)
+                                },
+                            success: function(data,statuc,x) {
+                                var ret = $.parseJSON(data)
+                                var retth = $("#item_status_"+ret.server_id)
+                                var redtd = $("#ret_"+ret.server_id)
+                                var tol_item_num = 0 //总共的索引数量
+                                var ok_item_num = 0  //完成的索引数量
+                                var fail_item_num = 0 //错误的索引数量
+                                for ( var ka in ret.status){
+                                    var table_item_status = ret.status[ka]
+                                    //console.dir(ka)
+                                    //redtd.append(ka+':')
+                                    for ( var kb in table_item_status){
+                                        var item_status = table_item_status[kb]
+                                        var item_name = item_status[1]
+                                        var item_code = item_status[0]
+                                        //console.dir(index_status)
+                                        if (item_code == 1){
+                                            ok_item_num += 1
+                                            //redtd.append('<a href="javascript:void(0)" onclick="searchStatus(this)" style="color:green;" code=1 sid="'+ret.server_id+'" >'+item_name+'</a>&nbsp;')
+                                        }else{
+                                            fail_item_num += 1
+                                            redtd.append('<a href="javascript:void(0)" onclick="searchStatus(this)" style="color:red;" code=0 sid="'+ret.server_id+'" >'+item_name+'</a>&nbsp;&nbsp;')
+                                        }
+                                     tol_item_num += 1
+                                    }
+                                //redtd.append('<br>')
+                                retth.html('('+color(fail_item_num,'red')+'/'+color(ok_item_num,'green')+'/'+tol_item_num+')')
+                                }
+                             $("#progress").html(tol_num-sids.length)
+                             ajax_get_status(serv_ids)   
+                            }
+                        })
+                        
+        }else{
+            return
+        }         
+    }
+    ajax_get_status(serv_ids)
+/*
+     for (i in serv_ids){
+        console.dir(serv_ids[i])
+        ajax_get_status(serv_ids[i])
+     }   
+  */
+}) 
+</script>
+<div id="ret">
+
+</div>
+<table class="list">
+		<tr>
+			<!-- <th width="60">全选
+				<input type="checkbox" name='allserv' onclick="javascript:changeCheckBox(this);" >
+			</th>
+			<th width="40">编号</th>
+			<th>服务器名</th>
+			<th>排序</th>
+			<th width="160">IP,端口</th>
+			<th width="160">开服时间</th>
+			<th width="60">状态</th> -->
+			<th width="" >状态&nbsp;<span id="progress">0</span>/{{list_record|length}}</th>
+		</tr>
+		{%for item in list_record%}
+		<tr>
+            <td colspan="1">
+				<h3 id="server_name_{{item.id}}">{{item.name}}&nbsp;<span id="item_status_{{item.id}}"></span></h3>
+            </td>
+        </tr>
+		<tr>
+			<!-- <td>
+			<input type="checkbox"  value="{{item.id}}" name="serv_id">
+			</td>
+			<td>{{item.id}}</td>
+			<td>{{item.name}}</td>
+			<td>{{item.order}}</td>
+			<td>{{item.game_addr}}:{{item.game_port}}</td>
+			<td>{{item.create_time_str}}</td>
+			<td>{{item.get_status_display}}</td> -->
+			<td id='ret_{{item.id}}'>
+			</td>
+		</tr>
+
+		{%endfor%}
+</table>
+    
+<div id="sync_dialog" >
+	
+</div>
+  
+<div id="tip_box" title="提示框" >
+
+</div>
+{% endblock %}

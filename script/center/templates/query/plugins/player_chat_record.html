@@ -1,0 +1,33 @@
+{% include 'game/resource_editor.html' %}
+<script type="text/javascript">
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+    LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+    var channel_color_map = {"世界频道":"green","部族频道":"red","队伍频道":"blue","彩聊频道":"black","私聊频道":"pink","系统频道":"brown","附近频道":"purple","走马灯全服":"navy","走马灯附近":"palegreen","新手频道":"orange","攻城战战报":"beige"};
+	var new_list_data = [];
+    //获取禁言玩家列表
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+		var player_id = row[TH['角色ID']]
+        var server_id = parseInt(SERVER_ID)
+		var ulr_params = 'player_id='+row[TH['角色ID']]+'&server_id='+server_id+'&type=single'
+		var chat_channel = row[TH["聊天频道"]]
+		new_row[TH['角色ID']] = '<a  title="查看角色信息" href="/player/player/player_list?'+ ulr_params +'" class="openDialog" tag-name="pid">'+player_id+'</a>'
+		new_row[TH["聊天频道"]] = "<span style='color:"+channel_color_map[chat_channel]+"'>"+chat_channel+"</span>"
+		new_list_data.push(new_row)
+		}
+    data.list_data = new_list_data
+	return data
+}
+)
+
+$(document).ready(function(){
+	setInterval(function(){
+	if($('#auto-query-btn').prop("checked")){
+		 $SEARCH.trigger('click')
+		}
+	},10000)
+})
+</script>

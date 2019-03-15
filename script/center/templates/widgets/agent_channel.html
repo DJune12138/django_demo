@@ -1,0 +1,33 @@
+<!-- 渠道勾选-->
+
+<div >
+        <div class="table_toolbar">
+            <!--<label><input type="checkbox"  checkbox-area='channel_area'>全选</label>-->
+            <!--<input placeholder="搜索"  type="text" value="" onkeyup="searchTableCheckbox(this.value,'channel_area')">  -->
+            <!-- 感觉不需要折叠，先注释 -->
+            <a href="javascript:;"  onclick="enfoldment('channel_area')" style="float:right">[折叠]</a>
+        </div>
+        <!-- <div id="channel_area" class="enfoldment"> -->
+        <div id="channel_area">
+            <table class="table table-bordered">
+                {% for group, channels in group_channels_dict.items %}
+                <tr>
+                    <th width="150">                    
+                        <label><input type="checkbox" name="agent_id" checkbox-area="agent_{{ group.id }}_area" value="{{ group.id }}" {% if group.id in select_group_ids %}checked="checked"{% endif %}>{{ group.name }}</label>
+                    </th>
+                    <td>
+                        <div id="agent_{{group.id}}_area">
+                        {% for c in channels %}
+                            <label >
+                            <input type="checkbox" name="channel_id" value="{{c.id}}"  {% if c.id in select_channel_ids %}checked="checked"{% endif %}>{{ c.name }}
+                            </label>
+                        {% endfor %}
+                        </div>
+                    </td>
+                </tr>
+                 {% endfor %}
+            </table>
+        </div>
+</div>
+
+

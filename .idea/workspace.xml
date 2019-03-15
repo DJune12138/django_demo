@@ -1,0 +1,829 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="15f72c3e-ab66-47f3-bf5a-0236f546a5fc" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/youai$script.coverage" NAME="script Coverage Results" MODIFIED="1552445793210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../tiny" />
+    <SUITE FILE_PATH="coverage/youai$manage__1_.coverage" NAME="api Coverage Results" MODIFIED="1550139941294" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/script/api" />
+    <SUITE FILE_PATH="coverage/youai$center.coverage" NAME="center Coverage Results" MODIFIED="1552615151116" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/script/center" />
+    <SUITE FILE_PATH="coverage/youai$daemon_service.coverage" NAME="daemon_service Coverage Results" MODIFIED="1545725698356" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/refs/trunk" />
+    <SUITE FILE_PATH="coverage/youai$manage__3_.coverage" NAME="manage (3) Coverage Results" MODIFIED="1545794748712" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/refs/trunk/game_service" />
+    <SUITE FILE_PATH="coverage/youai$manage.coverage" NAME="pay Coverage Results" MODIFIED="1552458844399" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/script/pay" />
+    <SUITE FILE_PATH="coverage/youai$script__1_.coverage" NAME="script (1) Coverage Results" MODIFIED="1546866088754" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tool/tiny" />
+    <SUITE FILE_PATH="coverage/youai$manage__2_.coverage" NAME="manage (2) Coverage Results" MODIFIED="1545732337998" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/refs/trunk/game_card" />
+    <SUITE FILE_PATH="coverage/youai$api.coverage" NAME="api Coverage Results" MODIFIED="1550540847298" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/script/api" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
+  </component>
+  <component name="FileEditorManager">
+    <leaf />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+        <option value="HTML File" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>property_dict</find>
+      <find>resource_dict</find>
+      <find>select_server_ids</find>
+      <find>groups</find>
+      <find>channel</find>
+      <find>imageContent</find>
+      <find>query/clear/cache</find>
+      <find>query_clear_cache</find>
+      <find>confirm</find>
+      <find>imageIcon_list</find>
+      <find>server.json</find>
+      <find>server_merge_json</find>
+      <find>StatisticExcute</find>
+      <find>log_statistic_result</find>
+      <find>pay_action</find>
+      <find>url.json</find>
+      <find>COMMEND_CHOICES</find>
+      <find>STATUS_CHOICES</find>
+      <find>all.json</find>
+      <find>server_edit</find>
+      <find>name</find>
+      <find>sync/backstage/push</find>
+      <find>activity.json</find>
+      <find>GMProtocolBase</find>
+      <find>邮件</find>
+      <find>send_mail</find>
+      <find>103101</find>
+      <find>service/question/sync</find>
+      <find>question/sync</find>
+      <find>question_sync_interface</find>
+    </findStrings>
+    <replaceStrings>
+      <replace />
+      <replace>role_management</replace>
+      <replace>玩家角色管理</replace>
+      <replace>ip_analysis</replace>
+      <replace>chart_e</replace>
+      <replace>chart</replace>
+      <replace>award_array</replace>
+      <replace>crosswise_pie</replace>
+      <replace>pie</replace>
+      <replace>group_channel</replace>
+      <replace>groups_channel</replace>
+    </replaceStrings>
+    <dirStrings>
+      <dir>F:\youai\script\center\analys</dir>
+      <dir>F:\youai\script</dir>
+      <dir>F:\youai\script\center</dir>
+      <dir>F:\youai\script\api</dir>
+      <dir>F:\youai\script\center\analys\models</dir>
+      <dir>F:\youai</dir>
+    </dirStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/ya" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/script/center/analys/models/center.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/game/send_mail.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/widgets/agent_channel.html" />
+        <option value="$PROJECT_DIR$/script/center/analys/models/card.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/card/batch.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/game/resource_editor.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/widgets/group_server.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/server/server_merge.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/server/server_list.html" />
+        <option value="$PROJECT_DIR$/script/api/card/util/base.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/card/batch_edit.html" />
+        <option value="$PROJECT_DIR$/script/api/card/settings.py" />
+        <option value="$PROJECT_DIR$/script/api/card/util/http.py" />
+        <option value="$PROJECT_DIR$/script/api/card/management/commands/CardDaemon.py" />
+        <option value="$PROJECT_DIR$/script/api/card/views/game/base.py" />
+        <option value="$PROJECT_DIR$/script/api/card/views/__init__.py" />
+        <option value="$PROJECT_DIR$/script/api/card/models/center.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/leading_end.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/urls/__init__.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/query/plugins/aaa.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/query/plugins/log_accompany_property.html" />
+        <option value="$PROJECT_DIR$/script/api/card/models/server.py" />
+        <option value="$PROJECT_DIR$/static/server/url.json" />
+        <option value="$PROJECT_DIR$/script/center/analys/models/channel.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/server/channel.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/server/group.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/server/group_edit.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/server/manage_channel_edit.html" />
+        <option value="$PROJECT_DIR$/db/log.sql" />
+        <option value="$PROJECT_DIR$/script/center/templates/game/activity_list.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/query/plugins/game_activity_list.html" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/game/activity_def.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/game/feather_become_god.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/game/activity_edit.html" />
+        <option value="$PROJECT_DIR$/script/center/analys/util/constant.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/settings.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/util/time_util.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/game/server.py" />
+        <option value="$PROJECT_DIR$/static/server/activity.json" />
+        <option value="$PROJECT_DIR$/script/center/templates/server/server_edit.html" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/game/pay.py" />
+        <option value="$PROJECT_DIR$/db/center.sql" />
+        <option value="$PROJECT_DIR$/script/center/analys/models/game.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/models/server.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/server/server.py" />
+        <option value="$PROJECT_DIR$/script/center/templates/query/plugins/operation_activity_list.html" />
+        <option value="$PROJECT_DIR$/script/center/templates/game/operation_activity_edit.html" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/game/base.py" />
+        <option value="$PROJECT_DIR$/script/center/analys/views/game/activity.py" />
+        <option value="$PROJECT_DIR$/../tiny/config.ini" />
+        <option value="$PROJECT_DIR$/../tiny/script.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="260" />
+    <option name="y" value="20" />
+    <option name="width" value="1400" />
+    <option name="height" value="1000" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DatabaseDriversLRU" value="mysql" />
+    <property name="DefaultHtmlFileTemplate" value="HTML File" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../refs" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.center">
+    <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/youai/script/center/templates/index.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="api" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="youai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/script/api" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/api/manage.py" />
+      <option name="PARAMETERS" value="runserver 10.21.211.49:8002" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="center" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="youai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/script/center" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/center/manage.py" />
+      <option name="PARAMETERS" value="runserver 10.21.211.49:8001" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pay" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="youai" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/script/pay" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/script/pay/manage.py" />
+      <option name="PARAMETERS" value="runserver 10.21.211.49:8003" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="JavaScript Debug.index.html" />
+      <item itemvalue="Python.center" />
+      <item itemvalue="Python.api" />
+      <item itemvalue="Python.pay" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.center" />
+        <item itemvalue="Python.pay" />
+        <item itemvalue="Python.api" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration" cleanupOnStartRun="true">
+    <configuration>C:\Users\Administrator\AppData\Roaming\Subversion</configuration>
+    <supportedVersion>125</supportedVersion>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="15f72c3e-ab66-47f3-bf5a-0236f546a5fc" name="Default Changelist" comment="" />
+      <created>1545643613881</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1545643613881</updated>
+      <workItem from="1545643616615" duration="3078000" />
+      <workItem from="1545702628404" duration="8311000" />
+      <workItem from="1545718493350" duration="11118000" />
+      <workItem from="1545732297218" duration="2005000" />
+      <workItem from="1545786395801" duration="10348000" />
+      <workItem from="1545809986191" duration="10417000" />
+      <workItem from="1545875609748" duration="22184000" />
+      <workItem from="1545959915205" duration="24287000" />
+      <workItem from="1546046238852" duration="21568000" />
+      <workItem from="1546393014487" duration="11837000" />
+      <workItem from="1546480477900" duration="18062000" />
+      <workItem from="1546565872550" duration="16013000" />
+      <workItem from="1546824724909" duration="17176000" />
+      <workItem from="1546855948715" duration="9798000" />
+      <workItem from="1546910919872" duration="27257000" />
+      <workItem from="1546997665654" duration="28468000" />
+      <workItem from="1547083000292" duration="3008000" />
+      <workItem from="1547088253515" duration="2338000" />
+      <workItem from="1547091090729" duration="18802000" />
+      <workItem from="1547170192858" duration="14944000" />
+      <workItem from="1547433330564" duration="18029000" />
+      <workItem from="1547516348412" duration="20383000" />
+      <workItem from="1547602083554" duration="25597000" />
+      <workItem from="1547689488473" duration="25065000" />
+      <workItem from="1547775783809" duration="24172000" />
+      <workItem from="1548034816431" duration="25943000" />
+      <workItem from="1548119918457" duration="27901000" />
+      <workItem from="1548206644610" duration="11978000" />
+      <workItem from="1548295381709" duration="17808000" />
+      <workItem from="1548318006445" duration="8506000" />
+      <workItem from="1548379912977" duration="24296000" />
+      <workItem from="1548467579131" duration="22503000" />
+      <workItem from="1548640229702" duration="9264000" />
+      <workItem from="1548726389849" duration="12135000" />
+      <workItem from="1548811887941" duration="6697000" />
+      <workItem from="1548898548396" duration="20180000" />
+      <workItem from="1548985200869" duration="8247000" />
+      <workItem from="1549072139583" duration="2005000" />
+      <workItem from="1549935276731" duration="21082000" />
+      <workItem from="1550021493545" duration="16897000" />
+      <workItem from="1550108400374" duration="20601000" />
+      <workItem from="1550196999029" duration="21137000" />
+      <workItem from="1550455053080" duration="4613000" />
+      <workItem from="1550538905900" duration="12588000" />
+      <workItem from="1550626423685" duration="5603000" />
+      <workItem from="1550712818340" duration="4037000" />
+      <workItem from="1550799753276" duration="8328000" />
+      <workItem from="1551061499841" duration="11520000" />
+      <workItem from="1551145423608" duration="15085000" />
+      <workItem from="1551231485324" duration="20582000" />
+      <workItem from="1551317544224" duration="25100000" />
+      <workItem from="1551405242950" duration="18158000" />
+      <workItem from="1551491764925" duration="14458000" />
+      <workItem from="1551751493711" duration="14427000" />
+      <workItem from="1551836451386" duration="5901000" />
+      <workItem from="1551921634919" duration="7549000" />
+      <workItem from="1552008106934" duration="1868000" />
+      <workItem from="1552270704543" duration="7635000" />
+      <workItem from="1552354811281" duration="15314000" />
+      <workItem from="1552441445419" duration="9795000" />
+      <workItem from="1552527198907" duration="626000" />
+      <workItem from="1552615085547" duration="667000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="875299000" />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <layout>
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49819493" visible="true" weight="0.2793177" />
+      <window_info id="Structure" order="1" sideWeight="0.50180507" side_tool="true" weight="0.13646056" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32936078" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49840087" weight="0.27843988" />
+      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.49840087" visible="true" weight="0.3329718" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32936078" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50159913" side_tool="true" weight="0.33261105" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32936078" />
+      <window_info anchor="bottom" id="Python Console" order="12" sideWeight="0.4989339" weight="0.32936078" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" weight="0.32995737" />
+      <window_info anchor="right" id="SciView" order="4" weight="0.32995737" />
+    </layout>
+    <layout-to-restore>
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49819493" visible="true" weight="0.21055438" />
+      <window_info id="Structure" order="1" sideWeight="0.50180507" side_tool="true" weight="0.13646056" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32936078" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49840087" weight="0.27843988" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4989339" visible="true" weight="0.33261105" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32936078" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Database Changes" order="9" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.50159913" side_tool="true" weight="0.27843988" />
+      <window_info anchor="bottom" id="Terminal" order="11" weight="0.32936078" />
+      <window_info anchor="bottom" id="Python Console" order="12" sideWeight="0.4989339" weight="0.32936078" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" weight="0.32995737" />
+      <window_info anchor="right" id="SciView" order="4" weight="0.32995737" />
+    </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/script/api/card/views/__init__.py</url>
+          <line>330</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="evaluateCodeFragment">
+      <expression>
+        <expression-string>result[1</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>CODE_FRAGMENT</evaluation-mode>
+      </expression>
+    </expressions>
+    <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>self.ping()</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>self.img_msg(os.path.join(fpathe, f))</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>os.path.getsize(the_path)</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>img.format</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>os.path.getmtime(os.path.join(fpathe, f))</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>old_activity_list</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>sid</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>model</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+      <expression>
+        <expression-string>model.activityId</expression-string>
+        <language-id>Python</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/game/gang.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="97">
+          <caret line="31" column="33" selection-start-line="31" selection-start-column="23" selection-end-line="31" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/models/log.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="188">
+          <caret line="287" column="6" selection-start-line="287" selection-start-column="6" selection-end-line="287" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/game/resource_editor.html">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/card/batch_edit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="4" column="85" selection-start-line="4" selection-start-column="85" selection-end-line="4" selection-end-column="85" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/card/batch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="229">
+          <caret line="182" column="17" selection-start-line="182" selection-start-column="4" selection-end-line="182" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/widgets/group_server.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="36" column="241" selection-start-line="36" selection-start-column="241" selection-end-line="36" selection-end-column="241" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://E:/Python27/Lib/site-packages/django/core/handlers/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="111" selection-start-line="111" selection-end-line="111" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/settings.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="363">
+          <caret line="14" column="12" lean-forward="true" selection-start-line="14" selection-start-column="8" selection-end-line="14" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/query/plugins/mail_list.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="726">
+          <caret line="22" column="35" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/query/plugins/game_activity_list.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="69" lean-forward="true" selection-start-line="69" selection-end-line="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/game/activity_edit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="203">
+          <caret line="128" column="130" lean-forward="true" selection-start-line="128" selection-start-column="105" selection-end-line="128" selection-end-column="130" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Desktop/tiny/script.py" />
+    <entry file="file://$PROJECT_DIR$/script/center/analys/util/time_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="188">
+          <caret line="7" column="4" selection-start-line="7" selection-start-column="4" selection-end-line="7" selection-end-column="4" />
+          <folding>
+            <element signature="e#215#226#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/cache/memcached_util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="65" column="6" selection-start-line="65" selection-start-column="6" selection-end-line="65" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/log/query.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="354" column="22" lean-forward="true" selection-start-line="354" selection-start-column="22" selection-end-line="354" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/management/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/management/commands/GamePayDaemin.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/views/client.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/urls/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/views/pay/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="398" column="11" selection-start-line="398" selection-start-column="11" selection-end-line="398" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/util/constant.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="99">
+          <caret line="3" column="10" selection-start-line="3" selection-end-line="3" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/game/roll_broadcast.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1770" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/server/merge.json" />
+    <entry file="file://$PROJECT_DIR$/db/center.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="2259" column="22" lean-forward="true" selection-start-line="2259" selection-start-column="22" selection-end-line="2259" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/game/pay.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="24">
+          <caret line="99" column="54" lean-forward="true" selection-start-line="99" selection-start-column="54" selection-end-line="99" selection-end-column="54" />
+          <folding>
+            <element signature="e#40#66#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/log/statistic_module.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="500">
+          <caret line="70" column="43" selection-start-line="70" selection-start-column="43" selection-end-line="70" selection-end-column="43" />
+          <folding>
+            <element signature="e#44#88#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/models/game.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="467">
+          <caret line="282" selection-start-line="282" selection-end-line="282" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/game/server.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="485">
+          <caret line="198" lean-forward="true" selection-start-line="198" selection-end-line="198" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/models/server.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="134" column="17" selection-start-line="134" selection-start-column="17" selection-end-line="134" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/server/server_edit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="64" column="66" selection-start-line="64" selection-start-column="52" selection-end-line="64" selection-end-column="66" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/server/all.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="122" selection-start-column="121" selection-end-column="122" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/server/server.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-812">
+          <caret line="284" column="15" lean-forward="true" selection-start-line="284" selection-start-column="15" selection-end-line="284" selection-end-column="15" />
+          <folding>
+            <element signature="e#76#89#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/query/plugins/operation_activity_list.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="79">
+          <caret line="52" column="129" selection-start-line="52" selection-start-column="129" selection-end-line="52" selection-end-column="129" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/server/group.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1683">
+          <caret line="279" column="17" selection-start-line="279" selection-start-column="17" selection-end-line="279" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/util/http.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1289">
+          <caret line="28" column="4" selection-start-line="28" selection-start-column="4" selection-end-line="28" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/server/activity.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="167" selection-start-column="167" selection-end-column="167" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/management/commands/ResetVipetpick.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="8" column="28" selection-start-line="8" selection-start-column="28" selection-end-line="8" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/api/card/views/game/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="196">
+          <caret line="706" column="8" selection-start-line="706" selection-start-column="8" selection-end-line="706" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://E:/Python27/Lib/site-packages/tinify/__init__.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/game/activity.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="26829">
+          <caret line="850" column="38" selection-start-line="850" selection-start-column="38" selection-end-line="850" selection-end-column="38" />
+          <folding>
+            <element signature="e#37#46#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/game/base.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="22341">
+          <caret line="690" column="26" selection-start-line="690" selection-start-column="8" selection-end-line="690" selection-end-column="26" />
+          <folding>
+            <element signature="e#25#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/api/card/views/game/mail_list.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2178">
+          <caret line="102" column="43" selection-start-line="101" selection-start-column="16" selection-end-line="102" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/templates/game/operation_activity_edit.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2904">
+          <caret line="88" column="117" selection-start-line="88" selection-start-column="117" selection-end-line="88" selection-end-column="117" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../tiny/script.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2772">
+          <caret line="84" column="28" selection-start-line="84" selection-start-column="28" selection-end-line="84" selection-end-column="28" />
+          <folding>
+            <element signature="e#24#37#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../tiny/config.ini">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/manage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#54#104#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/manage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="297">
+          <caret line="10" selection-start-line="10" selection-end-line="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/alipay/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-8457" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/views/question_sync.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="143">
+          <caret line="278" column="4" lean-forward="true" selection-start-line="278" selection-start-column="4" selection-end-line="278" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/pay/services/urls/service.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="295">
+          <caret line="43" column="15" lean-forward="true" selection-start-line="43" selection-start-column="15" selection-end-line="43" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script/center/analys/views/sync/backstage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="135" selection-start-line="135" selection-end-line="135" />
+          <folding>
+            <element signature="e#92#136#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

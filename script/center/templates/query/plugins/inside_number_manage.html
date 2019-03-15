@@ -1,0 +1,120 @@
+<span id="add_inside_player" class=" ">
+	<a id="add-inside_player_btn" href="javascript:;" class="btn  btn-xs btn-primary" >
+        <i class="cus-add"></i>
+        增加内部号
+    </a>
+    <a id="cancel-inside_player_btn" href="javascript:;" class="btn  btn-xs btn-primary" >
+        <i class="cus-cross"></i>
+        取消标记内部号
+    </a>
+</span>
+
+<script type="text/javascript">
+$('#add_inside_player').appendTo('.widget-header');
+
+function getPlayerIds(){
+	return $QUERY_TABLE.find('tbody :checked').serialize()
+}
+
+$('#cancel-inside_player_btn').click(function(event) {
+	if (confirm('确定取消已标记的内部号吗?')) {
+		this.href = '/player/player/inside_player_remove?' + getPlayerIds()
+	}
+});
+
+var register = function(data) {
+		$.ajax({
+			url: '/player/player/inside_player_register',
+			type: 'POST',
+			dataType: 'json',
+			data: data
+		})
+		.done(function(data) {
+			$.dialog( {"title":"消息","content":linebreaksbr(data.msg)} )
+		})
+		.fail(function(o,t,e) {
+			$.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>')})
+		})
+}
+
+$('#add-inside_player_btn').click(function(){
+		$.dialog({
+			title:"标记内部号:",
+		    content: '输入角色ID:<br><textarea id="player_ids_cont" class="input-sm" value=""></textarea><br>标记原因:<br><textarea id="inside_player_remark"></textarea>',
+			    ok: function () {
+			        var player_ids=[];          //////
+			    	var remark = $('#inside_player_remark').val();
+			    	var player_id = $('#player_ids_cont').val();
+                    var lines=player_id.split(/\n/)
+                    for (var i in lines){
+                        var line = lines[i];
+                        var fields = line.split(/[,\t ]+/)
+                        player_ids.push(fields.toString())
+                    }
+
+			    	if (!player_id) {alert('没有填写角色ID!');return false}
+			    	if (!remark) {alert('请输入标记原因!');return false}
+			    	var data = 'player_id=' + player_ids +'&remark=' + remark;
+
+				    register(data);
+
+				    this.close();
+			    },
+			    cancelVal: '关闭',
+			    cancel: true //为true等价于function(){}
+			});
+})
+
+$(function(){
+	hideSearchToolbar()
+	flushDataTable()
+})
+</script>
+
+<script>
+//输入处理
+dataTableOption.convertInputDataFuncs.push(function(data){
+	LIST_DATA = null
+	return data
+})
+//输出处理
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+    LIST_DATA = data.list_data
+    SERVER_ID = data.server_id
+	var new_list_data = []
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+
+		var caozuo_index = TH['操作']
+		var player_id = row[TH['角色ID']]
+		var server_id = parseInt(player_id)>>20
+		var ulr_params = 'player_id='+row[TH['角色ID']]+'&server_id='+server_id+'&player_name='+row[TH['角色名称']]
+
+		new_row[TH['-']] = '<input type="checkbox" name="player_id" value="'+ row[TH['角色ID']] +'">'
+		new_row[TH['角色ID']] = '<a title="查看角色信息" href="/game/player/player_info?'+ ulr_params +'" class="openDialog" tag-name="uid">'+player_id+'</a>'
+
+		new_row[TH['关联账号']] = '<a title="查看游爱帐号" href="/user/list?key_type=0&key='+row[TH['关联账号']]+'" class="openDialog">'+row[TH['关联账号']]+'</a>'
+
+
+		{% if request.allow_menu.踢下线%}	
+		new_row[caozuo_index]	+= '<a href="/game/send?'+ ulr_params +'" class="openDialog">[消息]</a>' 
+		{% endif %}
+
+		{% if request.allow_menu.解封号%}	    
+		new_row[caozuo_index]	+=  '<a href="/game/player/player_kick?'+ ulr_params +' " class="openDialog">[踢下线]</a>'
+		{% endif %}
+
+		
+
+		new_list_data.push(new_row)
+	}
+    data.list_data = new_list_data
+	return data
+}
+)
+</script>
+
+
+
+

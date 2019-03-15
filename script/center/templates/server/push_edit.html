@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>公告编辑</title>
+<script type="text/javascript" src="/static/js/editor.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+<a href="/push/list">推送消息列表</a> -> 推送消息
+<div class="buttons">
+ <a href="/push/list">返回</a>
+ </div>
+</div>
+
+<form action="/notice/save/{{model.id}}?type={{notice_type}}" method="post">
+<input type="hidden" name="type" value="{{notice_type}}" />
+<table class="form">
+<tr>
+<th>推送标题：</th><td><input type="text" name="title" value="{{model.title}}" /></td>
+</tr>
+<tr>
+<th>文案内容：</th><td><textarea name="content">{{model.content}}</textarea></td>
+</tr>
+
+
+<tr>
+<th>链接地址(http://)：</th><td><input type="text" name="link_url" size="50"  value="{{model.link_url}}" />例子:http://www.baidu.com</td>
+</tr>
+
+<!-- <tr>
+<th>公告状态：</th><td><select name="status">
+{%for item in model.STATUS_CHOICES%}
+<option value="{{item.0}}"{%ifequal model.status item.0%} selected="selected"{%endifequal%}>{{item.1}}</option>
+{%endfor%}
+</select>
+</td>
+</tr> -->
+
+<tr>
+	<th>跳转函数:</th>
+	<td><select name="jump">
+
+	{%for k,v in jump_function.items %}
+	<option value="{{k}}"{%ifequal model.jump k%} selected="selected"{%endifequal%}>{{v}}</option>
+	{%endfor%}
+	</select>
+</tr>
+
+<tr>
+	<th>图片ID：</th>
+	<td><select name="photo_id">
+	{%for k,v in photo_list.items %}
+	<option value="{{k}}"{%ifequal model.photo_id k%} selected="selected"{%endifequal%}>{{v}}</option>
+	{%endfor%}
+	</select>
+</tr>
+<tr>
+<th>权重：</th><td><input type="number" name="noticeSort" size="50" value="{{model.sort}}" /></td>
+</tr>
+<tr id="st">
+        <th class="th-style">
+            <div><a href="/server/server/server_list" class="openDialog">接收服务器(分区公告不需勾选)</a><label></label></div>
+        </th>
+        <td>
+            {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids%}
+        </td>
+    </tr>
+<tr>
+<th>开始时间：</th><td><input type="text" name="begin_time" class="Wdate" value="{{model.begin_time_str}}" /></td>
+</tr>
+<tr>
+<th>结束时间：</th><td><input type="text" name="end_time" class="Wdate" value="{{model.end_time_str}}" /></td>
+</tr>
+
+<!-- <tr>
+	<th>间隔时间</th>
+	<td><input type="text" name="intervalSecond" value="{{model.intervalSecond}}"> 秒</td>
+<tr> -->
+
+<th></th>
+<td><input type="submit" value="保存" /></td>
+</tr>
+</table>
+{% csrf_token %}
+</form>
+{% endblock %}

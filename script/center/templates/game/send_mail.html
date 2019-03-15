@@ -1,0 +1,993 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+
+<title>发送邮件</title>
+{% include 'game/resource_editor.html' %}
+<style type="text/css">
+.reward_item{
+	border:2px solid #1b6aaa!important;
+	margin: 2px
+}
+
+.send-config {
+  min-width:100px;
+  min-height: 80px;
+}
+
+#rw-order-cont {
+  margin: 0 auto;
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="/static/css/combo.select.css">
+<script src="/static/js/jquery.combo.select.js"></script>
+
+<div class="bar">
+	发送邮件
+</div>
+
+<ul class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+  <li class="active">
+    <a data-toggle="tab" href="#tab1">
+      <i class="icon-info bigger-110"></i>发送邮件
+    </a>
+  </li>
+{#  <li class="">#}
+{#    <a data-toggle="tab" href="#tab2">#}
+{#      <i class="icon-wrench bigger-110"></i>批量发送#}
+{#    </a>#}
+{#  </li>#}
+</ul>
+
+<div id="reward_setting_cont" class="modal fade" style="overflow: auto;">
+  <div class="modal-dialog" style="width: 900px;height: 100px">
+      <div class="modal-content" >
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h3 class="modal-title">奖励配置</h3>
+          </div>
+          <form class="form-horizontal">
+              <div id="editTagConfig" class="modal-body">
+                  <table id="tags-table" class="table table-condensed table-bordered table-striped table-hover">
+                      <thead>
+                          <tr>
+                            <th class="col-lg-5" style="text-align: center;font-size: 16px; width: 60px">名称</th>
+                            <th class="col-lg-5" style="text-align: center;font-size: 16px; width: 60px">数量</th>
+{#                            <th class="col-lg-5" style="text-align: center;font-size: 16px; width: 60px">是否绑定</th>#}
+                            <th class="col-lg-2" style="text-align: center;font-size: 16px; width: 60px">操作</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="reward_config">
+                          <td class="tagName" style="width: 100px;">
+                          </td>
+
+                          <td style="width: 60px;text-align: center">
+                          <div class="col-lg-12" style="width: 60px;margin-right: 40px">
+                          <input type="number" name="count" class="count" size="50" value="" style="width: 140px"/>
+                          </div>
+                          </td>
+
+{#                   mh2 增加的东西        #}
+{#                          <td style="width: 60px">#}
+{#                             <div class="col-lg-12" style="width: 60px;margin-left: 20px;margin-right: 40px">#}
+{#                                 <select name="bind" id="" style="width: 140px">#}
+{#                                   <option value="1">绑定</option>#}
+{#                                   <option value="0" >非绑定</option>#}
+{#                                 </select>#}
+{#                          </div>#}
+{#                          </td>#}
+
+
+                          <td style="text-align: center;width: 140px" >
+                            <div class="col-lg-12"><button type="button" data-type="add" class="btn btn-success btn-xs addButton" style="width: 100px">增加</button></div>
+                          <div class="col-lg-12"><button type="button" data-type="del" class="btn btn-danger btn-xs delButton" style="width: 100px">删除</button></div>
+                          </td>
+                        </tr>
+                      </tbody>
+                  </table>
+              </div>
+              <div class="modal-footer">
+                  <button class="btn btn-default" data-dismiss="modal" aria-hidden="true" style="">关闭</button>
+                  <button id="save-rewardModal" class="btn btn-primary">保存修改</button>
+              </div>
+          </form>
+          </div>
+      </div>
+  </div>
+
+<div class="tab-content">
+  <div id="tab1" class="tab-pane active">
+    <div class="sub-menu-1">
+      {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=server_id%}
+    </div>
+
+    <table class="form">
+      <tr>
+        <th>发送对象：</th>
+        <td>
+          <select name="send_type" >
+            <option value="0">角色ID(不需勾服务器)</option>
+            <!-- <option value='1'>世界等级</option> -->
+            <option value='2'>全服</option>
+{#            <option value='3'>联远商ID</option>#}
+          </select>
+          <textarea id="players" name="send_obj" sid='0' style="width:100px;min-height:10px;display:none" placeholder=",号分割角色ID(所有角色ID必须同服)">{{player_ids}}</textarea>
+          <input class="Wdate" type="text" name="edate" sid='3' class="input-sm" style="display:none" placeholder="结束时间" value="">
+          <input type="text" value="" name="pid" sid='3' placeholder="联远商ID" select-key="pid" data-multiple="true">
+          <input type="text" value="" style="visibility:hidden" name="svr" sid='-1' placeholder="子服ID（换行或,号分隔）" >
+{#          <b class="red" sid="-1">留空默认发所有服（母服和子服）</b>#}
+        </td>
+      </tr>
+      {% if request.allow_menu.发送资源权限 %}
+        <tr>
+          <th>奖励内容：</th>
+          <td> <a href="javascript:;" id="gift_setting_btn">[配置]</a></td>
+        </tr>
+        <tr>
+          <th></th>
+          <td>
+            <textarea name="send_reward" class="check_json"></textarea>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <th></th>
+          <td>
+            <input type="hidden" name="send_reward" readonly="readonly" value="[]" >
+          </td>
+        </tr>
+      {% endif %}
+      <tr>
+        <th>
+        邮件标题：
+        </th>
+        <td>
+          <input type="text" name="mail_title" class="input-sm maxlength="20" placeholder="邮件标题">
+        </td>
+      </tr>
+     <tr>
+        <th>
+        定时发送：
+        </th>
+        <td>
+            <input type="button"  value="定时发送" onclick="displayblock(this)">
+          <input type="text" style="display:none" id="sdate" name="sdate" class="Wdate" value="" />
+            <span onclick="displayNONE(this)">X</span>
+        </td>
+      </tr>
+
+      <tr>
+
+
+        <th>
+        邮件内容(1000字)：
+        </th>
+        <td>
+          <textarea name="send_text" maxlength="1000" placeholder="限定1000字" class="">{{send_text}}</textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>操作：</th>
+        <td>
+          <input type="button" id="send_btn" class="btn btn-app btn-xs" value="发送">
+        </td>
+      </tr>
+    </table>
+
+    <div id="send_mail-process-div" class="dialog-div" >
+      <div class="row" style="min-width:90%">
+        <table id="send_mail-process-table" class="table table-bordered">
+          <thead>
+            <tr><th>服务器ID</th><th>状态</th></tr>
+          </thead>
+          <tbody  id="send_mail-process-table-cont">
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+<!--     <div id="reward_setting_cont" class='dialog-div'>
+      <div id="reward_cont">
+      </div>
+      <div >
+        <input type="button" class="btn btn-success btn-xs pull-left" id="save_reward_btn" value="保存">
+        <input type="button" class="btn btn-primary btn-xs pull-right" id="add_reward_btn" value="添加奖励">
+      </div>
+    </div>
+
+    <script id="reward_item_tpl" type="text/tpl">
+      <div class="reward_item">
+        <table>
+        <tr>
+          <th><h3>奖励<span class="reward_seq"></span></h3></th>
+          <td>
+            <input type="button" class="add_gift_btn pull-right btn btn-xs"  value="添加礼品">
+            <a href="javascript:;" class="del_reward_btn">[删除]</a>
+          </td>
+        </tr>
+        <tr>
+          <th>奖励类型：
+          </th>
+          <td>
+            名称：<input type="text" name="gn" class="input-small not-empty" maxlength="6" value="<%=it.data.gn%>">
+          </td>
+        </tr>
+        <tr>
+          <th></th>
+          <td>
+            <div class="gift_cont">
+                  <div class="gift_item">
+                  </div>
+            </div>
+          </td>
+        </tr>
+        </table>
+      </div>
+    </script>！ -->
+  </div>
+
+
+  <div id="tab2" class="tab-pane">
+    <table class="form">
+      <tr>
+        <th>奖励顺序：</th>
+        <td><a href="javascript:;" id="add-order-btn">[添加]</a></td>
+      </tr>
+      <tr>
+        <th></th>
+        <td>
+          <ul class="list-inline" id='rw-order-cont'>
+            <li>
+              <select>
+                <option value="0">角色ID</option>
+              </select>
+            </li>
+          </ul>
+        </td>
+      </tr>
+      {% if request.allow_menu.发送资源权限 %}
+        <tr>
+          <th>奖励配置：</th>
+          <td>
+            <textarea name="batch_send_config" id="send-config" placeholder=""></textarea>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <th></th>
+          <td>
+            <input type="hidden" name="batch_send_config" readonly="readonly" value="[]" >
+          </td>
+        </tr>
+      {% endif %}
+        <th>
+        邮件内容(100字)：
+        </th>
+        <td>
+          <textarea name="batch_mail_cont" maxlength="100" placeholder="限定100字">{{send_text}}</textarea>
+        </td>
+      </tr>
+      <tr>
+        <th>发送结果：</th>
+        <td>
+          <div>
+            <div id="succ_result"></div>
+            <div id="fail_result"></div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>操作：</th>
+        <td>
+          <input type="button" id="batch_send_btn" class="btn btn-app btn-xs" value="发送">
+        </td>
+      </tr>
+    </table>
+
+    <script id="reward_item_order_tpl" type="text/tpl">
+      <li>
+        <select>
+          <%var resmap=it.data;%>
+          <% for (var i in resmap) %>
+            <%? i != 12 && i != 13 && i != 14 %>
+            <option value="<%= i %>"><%= resmap[i].name %></option>
+            <%?%>
+          <% } %>
+
+        </select>
+        <input type="button" value="x" onclick="$(this).parent().remove()" />
+      </li>
+    </script>
+  </div>
+</div>
+<div id="award_type_dict" hidden>{{ award_type_dict }}</div>
+<div id="subordinate_list" hidden>{{ subordinate_list }}</div>
+
+<script>
+var equipment = $.parseJSON(sessionStorage["equipment"]);
+var select_map = $.parseJSON($('#award_type_dict').html())
+
+ //修改奖励下拉选项
+   function addItem(){
+    var html = '<select  type="hidden" class="selectpicker baseSelect">'
+    html += "<option></option>"
+    for(var key in select_map){
+       html += "<option value ='"+ key +"'>"+ select_map[key] +"</option>"
+    }
+    html += '</select>'
+    return html
+  }
+
+  function refresh_select(ele){
+    $(ele).comboSelect();
+  }
+
+  $('#gift_setting_btn').unbind("click").on("click",function(){
+    if($(".tagName").length == 1 && $(".tagName").text() == false){
+    var html = addItem();
+    $(".tagName").eq(0).html(html);
+    }
+    var ele = ".baseSelect"
+    refresh_option()
+    refresh_select(ele)
+    $('#reward_setting_cont').modal("show");
+  })
+
+  function turnSuperior(){
+    $(".option-item").unbind("click").on("click",function(){
+      if($(this).data("index")==0){
+        var This = $(this).parent().parent()
+        var html = addItem();
+        This.html(html);
+        refresh_option()
+        var ele = ".secondSelect"
+        refresh_select(ele)
+        This.find("div:eq(0)").addClass("combo-open")
+      }
+    })
+  }
+
+  function refresh_option(){
+  $(".baseSelect").comboSelect().on("change",function(event){
+    var itemSelect = $(this).parents(".tagName:eq(0)");
+    //道具需要增加下级目录
+    if (itemSelect.find("option:selected").val()){
+      var html = '<select class="secondSelect equipment show-tick">'
+      html += '<option class="turnSuperior" value="' + itemSelect.find("option:selected").val() + '"' + '>返回上级</option>';
+      var count = 0
+      var equipment = $.parseJSON($('#subordinate_list').html())[itemSelect.find("option:selected").val()-1]
+      for (var e in equipment){
+        if (count == 0){
+          html += "<option value ='"+ e +"' selected>"+ e+":" + equipment[e] +"</option>"
+          count += 1
+          continue
+        }
+        html += "<option value ="+ e +">"+ e+":" + equipment[e] +"</option>"
+    }
+    html += "</select>"
+    itemSelect.html(html)
+
+    setTimeout(function(){
+    itemSelect.find("div:eq(0)").addClass("combo-open")},100)
+    var ele = ".secondSelect"
+    refresh_select(ele)
+    turnSuperior()
+    }
+  })
+  }
+
+  function addButton(){
+  $(".addButton").unbind("click").on("click",function(){
+    var cloneObj = $(this).parents("tr:eq(0)").clone()
+    var newTR  = cloneObj.find(".tagName")
+    var html = addItem();
+    newTR.html(html)
+    $(this).parents("tbody:eq(0)").append(cloneObj)
+    refresh_option()
+    refresh_select()
+    delButton()
+    addButton()
+  })
+  }
+
+  function delButton(){
+    $(".delButton").unbind("click").on("click",function(){
+      if ($(this).parents("tbody").find("tr").length == 1){
+        swal({
+          title:"至少保留一个奖励哦！",
+          type:"error"
+        })
+        return
+      }
+      $(this).parents("tr:eq(0)").remove()
+    })
+  }
+
+  addButton()
+  delButton()
+
+
+  $("#save-rewardModal").click(function(event){
+    // 保存成这样 [{"gn":"1","act":[{"aID":1,"v":1},{"aID":4,"id":30001,"v":1}]}]
+    event.preventDefault();
+    var insertJson = [{"gn":"xx","act":[]}]
+    $("#tags-table>tbody").find("tr").each(function(){
+      var reward = {}
+      var aID = parseInt($(this).find(".tagName>div>select").val() || $(this).find(".option-selected").data("value"))
+        var aaID = $(this).find(".tagName>div>select>.turnSuperior").val()
+        reward = {"aID":aaID,"id":aID}
+      var reward_count = parseInt($(this).find("input:eq(1)").val())
+      var bind = parseInt($(this).find('[name="bind"]').val())
+        reward["b"] = bind
+      if(reward_count){ reward["v"] = reward_count}
+      insertJson[0]["act"].push(reward)
+    });
+    $("#reward_setting_cont").modal("hide");
+    $('[name="send_reward"]').val(JSON.stringify(insertJson))
+  })
+
+
+  function SendMailEditor(){
+    var This = this
+    this.ri = new ResourceInput(); //资源控件
+    this.reward_cont = $('#reward_cont')
+    // this.default_json = {"gn":"","gpid":"","act":[]}
+    this.default_json = {"gn":"","act":[]}
+
+    this.to_html = function(reward_obj){
+      //console.dir(reward_obj)
+      var html = ''
+      for (var i in reward_obj){
+        reward_item = reward_obj[i]
+        html  += This.get_reward_item_html(reward_item)
+      }
+      //console.dir(html)
+
+      return html
+    }
+
+    this.to_json = function(){
+      var array = []
+      var gt_map = {1:15001,2:15002,3:15003}
+      This.reward_cont.find('.reward_item').each(function(i,ele){
+        var $reward_item = $(ele)
+        var reward_obj = $.extend(true,{},This.default_json)
+        reward_obj['gn'] = $reward_item.find('[name="gn"]').val()
+
+        // reward_obj['gt'] = parseInt($reward_item.find('[name="gt"]').val() )
+        // reward_obj['gpid'] = gt_map[reward_obj['gt']]
+        $reward_item.find('.gift_cont>.gift_item .equipitem').each(function(_i,_ele){
+          var jj = This.ri.to_json(_ele)
+          console.dir(jj)
+          reward_obj['act'].push(
+            This.ri.to_json(_ele)
+            )
+        })
+        array.push(reward_obj)
+      })
+      return JSON.stringify(array)
+    }
+
+    this.get_reward_item_html = function(obj){
+      var html = get_views('reward_item_tpl',obj ? obj : This.default_json)
+      return html
+    }
+
+    this.reset_reward_seq = function(){
+      This.reward_cont.find('.reward_seq').each(function(i,ele){
+        $(ele).html(i+1)
+      })
+    }
+
+    $(document).on('click','.add_gift_btn',function(){ //增加礼品
+	  var gift_html = send_mail_editor.ri.get_item_html()
+      gift_html = '<div class="gift_item">' +  gift_html + '</div>'
+      $(this).closest('.reward_item').find('.gift_cont').append(gift_html)
+
+    }).on('click','.del_reward_btn',function(){       //删除奖励
+      $(this).closest('.reward_item').remove()
+      This.reset_reward_seq()
+    })
+
+
+    $('#add_reward_btn').click(function(e) {
+      if (This.reward_cont.find('.reward_seq').length<1) {
+        This.reward_cont.append(
+          This.get_reward_item_html()
+          )
+        This.reset_reward_seq()
+      } else {
+        alert('最多可添加1个奖励!')
+      }
+    });
+  }
+
+
+  var send_mail_editor = new SendMailEditor()
+  var $reward_setting_cont = $('#reward_setting_cont')
+
+  // $('#gift_setting_btn').click(function(){
+
+  //   var html = addItem();
+  //   $(".tagName").eq(0).html(html)
+  //   $('#reward_setting_cont').modal("show");
+  //   send_mail_editor.reward_cont.html('')
+  //   try{
+  //     var reward_obj = $.parseJSON($('[name="send_reward"]').val())
+
+  //     var reward_html = send_mail_editor.to_html(reward_obj)
+
+  //     send_mail_editor.reward_cont.html(reward_html)
+
+  //     $reward_setting_cont.dialog({"title":"奖励设置"})
+
+  //     send_mail_editor.reset_reward_seq()
+  //   }catch(e){
+  //     alert('奖品配置错误!')
+  //   }
+  // })
+
+  $('#save_reward_btn').click(function(event) {
+    var is_done = check_input_empty()
+    if (is_done) {
+      $('[name="send_reward"]').val(send_mail_editor.to_json())
+      $reward_setting_cont.dialog().close()
+    }
+
+  });
+
+  $('[name="send_type"]').change(function(){
+    var sid = $(this).val()
+    $(this).nextAll('[sid]').hide()
+    $(this).nextAll('[sid="'+sid+'"]').show()
+    if(sid != 0){
+      $(this).nextAll('[sid="-1"]').show()
+    }
+  })
+  $('[name="send_type"]').val({{send_type}})
+  $('[name="send_type"]').change()
+
+  function displayblock(ele){
+    $(ele).next().css('display','inline-block')
+    console.log('9999999999999',$(ele).next().val())
+  }
+
+   function displayNONE(ele){
+
+    $(ele).prev().css('display','none')
+    $(ele).prev()[0].value =''
+
+  }
+
+
+  var post_url = '/game/player/send_mail'
+  var is_running = false
+  var server_process = new ServerProcess()
+  var running_server_ids = []
+  function ajaxDo(server_id,data,err_count, post_timeout){
+    var err_count = err_count ? err_count : 0
+    var post_timeout = post_timeout ? post_timeout: 0
+    var data = $.extend({"server_id":server_id}, data);
+    var server_status_cont = server_process.get_server_status_cont(server_id)
+    server_status_cont.html('<img src="/static/skin/images/loading.gif">')
+    if (is_running) {
+      $.ajax({
+        url: post_url,
+        dataType:'json',
+        type: 'POST',
+        data: data,
+        timeout: post_timeout,
+
+      })
+      .done(function(data) {
+        if (data.succ.length || data.fail.length) {
+          $("#succ_result").html('成功' + data.succ.length + '个：' + data.succ.toString())
+          $("#fail_result").html('失败' + data.fail.length + '个：' + data.fail.toString())
+        }
+        msg = data.msg ? data.msg : '成功'
+        server_status_cont.html(linebreaksbr(msg))
+      })
+      .fail(function(o,x,text) {
+        var msg = o.responseText ? linebreaksbr(o.responseText) : text
+        if (err_count<=1) {
+
+          ajaxDo(server_id,data,err_count + 1, 10000)
+
+        } else {
+          server_status_cont.html(text)
+        }
+      })
+      .always(function() {
+        running_server_ids.splice($.inArray(server_id,running_server_ids),1);
+
+        if (running_server_ids.length==0){
+          $('#stop-post-btn').remove()
+        }
+      });
+    } else {
+      server_status_cont.html('停止!')
+    }
+  }
+
+  function get_send_type(send_type){
+    var server_ids = get_server_ids(true)
+
+    if ( send_type == 0 ) {
+      var player_ids = []
+      var player_id_str = $('[name="send_obj"]').val()
+      var player_ids_sp = player_id_str.split(/[\n;,\s]/)
+      {#$(':checkbox[name="server_id"]').prop("checked",false)#}
+
+      for (var i in player_ids_sp){
+        var player_id = parseInt( player_ids_sp[i] )
+        if( !isNaN(player_id) ) {
+          player_ids.push( player_id )
+        }
+      }
+      if ( player_ids.length>0 ) {
+        return player_ids
+      }
+
+    } else if (send_type == 1) {
+      // var gj = []
+      // var army_name = $('[name="army_name"]').val()
+      // gj.push(parseInt(army_name))
+      // if (gj.length>0){
+      //   return gj
+      // 原来是选择国家
+      // 现在改为世界等级
+      var world_level = [];
+      var world_level_begin = parseInt($(".world_level_begin").val());
+      var world_level_end = parseInt($(".world_level_end").val());
+      if ( 0 < world_level_begin < 100 & 0 < world_level_end < 100 & world_level_begin <= world_level_end){
+        world_level.push(world_level_begin);
+        world_level.push(world_level_end);
+        return world_level
+      }else{
+        alert("世界等级数值有误！")
+        return
+      }
+    } else if (send_type == 2) {
+      return []
+    } else if (send_type == 3) {
+      var pl = []
+      var edate = datetime_str_to_timestamp($('[name="edate"]').val())
+      var pids_str = $('[name="pid"]').val()
+      var pid_l = pids_str.split(/[\n;,\s]/)
+
+      pl.push(pid_l)
+      pl.push(edate)
+
+      return pl
+
+    }
+  }
+
+  function get_send_svr(send_type){
+    var svr = []
+    var svr_str = $('[name="svr"]').val()
+    var svr_split = svr_str.split(/[\n;,\s]/)
+    for (var i in svr_split){
+      var ssid = parseInt(svr_split[i] )
+      if(!isNaN(ssid) ) {
+        svr.push(ssid)
+      }
+    }
+    return svr
+  }
+
+  function get_server_msg(){
+    var server_ids = get_server_ids(true)
+    var send_type = parseInt( $('[name="send_type"]').val() )
+
+    var o_send_type = get_send_type(send_type)
+    var o_send_reward = $.parseJSON( $('[name="send_reward"]').val() ) ? $.parseJSON( $('[name="send_reward"]').val() ) : []
+    var o_send_text = $('[name="send_text"]').val()
+    var o_send_title = $('[name="mail_title"]').val()
+
+    var o_on_time = $('#sdate').val()
+    var check_text= finds(o_send_title);
+    var check_title = finds(o_send_text);
+
+    if (check_text === true || check_title === true){
+        alert("标题或内容包含非法字符");
+        return
+    }
+
+
+    // 获取分服ID
+    var o_send_svr = get_send_svr(send_type)
+
+    if (server_ids.length > 1 && o_send_svr.length != 0) {
+      alert('子服不为空时只支持选择单个服务器')
+      return
+    }
+
+    if (! o_send_type) {
+      alert('发送类型设置错误!')
+      return
+    }
+    // if (! o_send_reward) {
+    //   console.dir(o_send_reward)
+    //   alert('奖励内容错误!')
+    //   return
+    // }
+    if (! o_send_text) {
+      alert('没有邮件内容!')
+      return
+    }
+
+    if (! o_send_title) {
+      alert('没有邮件标题!')
+      return
+    }
+
+    var server_obj_dict = {}
+    var msg = {}
+    {#if (send_type ==0) {#}
+    {#  //将角色id列表转换成 {'server_id':[p1,p2]}的方式#}
+    {#  var server_player_dict = {}#}
+    {#  var player_ids = o_send_type#}
+    {#  for (var i in player_ids) {#}
+    {#    var player_id = player_ids[i]#}
+    {#    var the_server_id = player_id >> 20#}
+    {#    if (the_server_id <= 0) {continue}#}
+    {#    if (! server_player_dict.hasOwnProperty(the_server_id) ){#}
+    {#      var  server_checkboxs = $(':checkbox[name="server_id"][value="' + the_server_id + '"]:first')#}
+    {#      server_checkboxs.prop("checked",true)#}
+    {#      change_checkbox_background(server_checkboxs)#}
+    {#      server_player_dict[the_server_id] = []#}
+    {#      // server_player_dict[the_server_id] = {}#}
+    {#    }#}
+    {#    server_player_dict[the_server_id].push(player_id)#}
+    {#    // server_player_dict[the_server_id]["player_ids"] = []#}
+    {#    // server_player_dict[the_server_id]["player_ids"].push(player_id)#}
+    {#  }#}
+    {#  for (var k in server_player_dict){#}
+    {#    var server_player_ids = server_player_dict[k]#}
+    {#    //var msg = [server_player_ids,o_send_reward,o_send_text]#}
+    {#          var msg = {}#}
+    {#          msg.ty = send_type#}
+    {#          msg.arg = server_player_ids#}
+    {#          msg.rw = o_send_reward#}
+    {#          msg.m = o_send_text#}
+    {#          msg.t = o_send_title#}
+    {#          if(o_on_time){msg.on_time = o_on_time}#}
+    {##}
+    {#    msg = JSON.stringify(msg)#}
+    {#    server_obj_dict[k] = {"msg":msg,"send_type":send_type,"send_text":o_send_text,"player_ids":JSON.stringify(server_player_ids)}#}
+    {#    // $.extend(server_obj_dict[k],{"msg":msg,"send_type":send_type,"send_text":o_send_text});#}
+    {#  }#}
+    {##}
+    {# }else {#}
+      // var msg = [o_send_type,o_send_reward,o_send_text]
+      {#var msg = {}#}
+      msg.ty = send_type
+      msg.arg = o_send_type
+      msg.rw = o_send_reward
+      msg.m = o_send_text
+      msg.svr = o_send_svr
+      msg.t = o_send_title
+	  if(o_on_time){msg.on_time = o_on_time}
+      for (var i in server_ids) {
+        var server_id = server_ids[i]
+        if(o_send_svr.length == 0 ){
+          // msg.svr = [server_id]
+          msg.svr = [-1]
+        }
+
+        send_msg = JSON.stringify(msg)
+
+          var players = ''
+          if ($('#players').val()){
+              players = '[' + $('#players').val() + ']'
+          }
+
+          if (send_type ==0){
+            server_obj_dict[server_id] = {"msg":send_msg,"send_type":send_type,"send_text":o_send_text,"player_ids":players}
+        }else {
+              server_obj_dict[server_id] = {"msg":send_msg,"send_type":send_type,"send_text":o_send_text}
+          }
+        // $.extend(server_obj_dict[server_id],{"msg":msg,"send_type":send_type,"send_text":o_send_text});
+      }
+    {# }#}
+    return server_obj_dict
+  }
+
+  function stop_post(){
+    if(running_server_ids.length>0 && is_running==true) {
+      if ( confirm('是否停止发送!') ) {
+        is_running = false
+        return true
+      } else {
+        return false
+      }
+    }
+  }
+
+  $('#send_btn').click(function(){
+    var server_objs = get_server_msg()
+      console.log(server_objs)
+    var server_ids = get_server_ids(true)
+    running_server_ids = server_ids
+    if (! server_objs) {
+      return
+    }
+    // if(send_type != 1){
+      if (server_ids.length<=0) {
+        alert('没有勾选服务器!')
+        return
+      }
+    // }
+    server_process.show({"title":"邮件发送状态:","top":'20%',"close":function(){
+      return stop_post()
+    }})
+
+    is_running = true
+    for (var k in server_objs) {
+      var msg = server_objs[k]
+      var server_id = k
+      server_process.make_tr_for_server_id(server_id)
+      ajaxDo(server_id, msg, 0, 10000)
+    }
+    if(running_server_ids.length>1){
+      server_process.process_bar.append(
+      $('<a>',{
+          "id":"stop-post-btn",
+          "html":"停止",
+          "class":"btn btn-sm btn-primary pull-right",
+          "click":function(){
+            return stop_post()
+          }
+        })
+      )
+    }
+  })
+
+//查找非法字符
+function finds(html) {
+    var pattens = /[ ;；]/;
+    var result = pattens.test(html);
+    return result
+}
+
+
+  // 批量发送处理
+  $("#add-order-btn").click(function(){
+    var html = get_views('reward_item_order_tpl', ResourceMap)
+    $("#rw-order-cont").append(html)
+  });
+
+  function get_rw_order(){
+    var rw_order = []
+    $("#rw-order-cont select").each(function(i, ele){rw_order.push(parseInt(ele.value))})
+    if (rw_order.length == 1) {
+      alert('没有奖励顺序！')
+      return
+    }
+    return rw_order
+  }
+
+  function get_batch_mail_cont() {
+    var mail_cont = $('[name="batch_mail_cont"]').val()
+    if (! mail_cont) {
+      alert('没有邮件内容!')
+      return
+    }
+    return mail_cont
+  }
+
+  function get_batch_send_config(config_base_length){
+    var server_player_dict = {}
+    var batch_send_config_str = $('[name="batch_send_config"]').val()
+    if (! batch_send_config_str) {
+      alert('没有奖励配置!')
+      return
+    }
+
+    var batch_send_config_sp = batch_send_config_str.split(/\n/)
+    try {
+      for (var i in batch_send_config_sp){
+        var pconfig = batch_send_config_sp[i].trim().split(/\s+/)
+        pconfig = pconfig.map(Number)
+        if (pconfig.length == 1) {
+          continue
+        }
+        if (pconfig.length != config_base_length) {
+          alert('角色ID: ' + pconfig[0] + ' 奖励格式错误!')
+          return
+        }
+        var player_id = pconfig[0]
+        var the_server_id = player_id >> 20
+        if (the_server_id <= 0) {
+          alert('角色ID: ' + player_id + ' 对应游戏服不存在')
+          return
+        }
+        if (!server_player_dict.hasOwnProperty(the_server_id)) {
+            server_player_dict[the_server_id] = []
+        }
+        server_player_dict[the_server_id].push(pconfig)
+      }
+    }catch(e){
+      alert('奖励格式错误!')
+      return
+    }
+    if (! server_player_dict ) {
+      alert('奖励配置错误!')
+      return
+    }
+    return server_player_dict
+  }
+
+  $("#batch_send_btn").click(function(){
+    // msg:{"ty":0,"arg":[1048606],"rw":[{"gn":"游戏大礼包","gpid":15001,"act":[{"aID":1,"v":1}],"gt":1}],"m":"test"}
+    // msg: {"rw_order": rw_order, "mail_cont": "", "send_config": ""}
+
+    var rw_order = get_rw_order()
+    var mail_cont = get_batch_mail_cont()
+    var send_config = get_batch_send_config(rw_order.length)
+    var base_config = {"ty":0, "arg":[], "rw":[{"gn":"游戏大礼包", "gpid":15001, "act":[], "gt":1}],"m": ""}
+    if (!rw_order || ! mail_cont || !send_config){
+      return
+    }
+
+    is_running = true
+    var server_ids = Object.keys(send_config)
+    running_server_ids = server_ids
+    server_process.show({"title":"邮件发送状态:","top":'20%',"close":function(){
+      return stop_post()
+    }})
+
+    for (var i in send_config) {
+      var server_id = parseInt(i)
+      server_process.make_tr_for_server_id(server_id)
+      msg = {"rw_order": rw_order, "mail_cont": mail_cont, "send_config": send_config[i], "base_config": base_config}
+      msg = JSON.stringify(msg)
+      data = {"msg": msg}
+      ajaxDo(server_id, data, 2, 5000)
+    }
+    if(running_server_ids.length > 1){
+      server_process.process_bar.append(
+      $('<a>',{
+          "id":"stop-post-btn",
+          "html":"停止",
+          "class":"btn btn-sm btn-primary pull-right",
+          "click":function(){
+            return stop_post()
+          }
+        })
+      )
+    }
+  })
+
+  $(document).ready(function(){
+    $('[checkbox-area="channel_area"],[name="channel_id"],[name="agent_name"],[name="agent_id"]').click(function(){
+      setTimeout(change_channel_ids,10)
+      //change_channel_ids();
+    });
+
+  });
+
+  function change_channel_ids(){
+    var target = $("input[name='channel']");
+    var channel_ids = '';
+    var first = true;
+    $('input[name="channel_id"]:checked:visible').each(function(){
+      if(!first){
+        channel_ids +=',';
+      }
+      channel_ids += this.value;
+      first = false;
+    });
+    target.val(channel_ids);
+  }
+
+</script>
+
+{% endblock %}"#editTagConfig > "

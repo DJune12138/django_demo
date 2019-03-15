@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+
+<title>发红包</title>
+{% include 'game/resource_editor.html' %}
+<style type="text/css">
+.reward_item{
+	border:2px solid #1b6aaa!important;
+	margin: 2px
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="bar">
+	发红包
+</div>
+
+<div class="sub-menu-1">
+{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict server_id=server_id%}
+</div>
+
+
+<table class="form">
+	<tr>
+	<th>频道id：</th>
+	<td>
+		<select name="send_type" >
+			<option value="-1">世界</option>
+			<option value="0">国家</option>
+			<option value='1'>地区</option>
+			<option value='2'>星盟</option>
+            <option value='3'>玩家</option>
+		</select>
+        <input type="text" name="channel_id" sid='-1' class="input-sm" style="display:none" placeholder="世界id" value="1000">
+        <input type="text" name="channel_id" sid='0' class="input-sm" style="display:none" placeholder="0-帝国，1-联邦，2-自治领" value="">
+        <input type="text" name="channel_id" sid='1' class="input-sm" style="display:none" placeholder="地区id" value="">
+        <input type="text" name="channel_id" sid='2' class="input-sm" style="display:none" placeholder="星盟id" value="">
+        <input type="text" name="channel_id" sid='3' class="input-sm" style="display:none" placeholder="角色id" value="10001">
+
+	</td>
+	</tr>
+
+		<tr> <th>数量：</th>
+			<td><input type="text" name="num" value=""> </td>
+		</tr>
+		<tr>
+			<th>红包总金额</th>
+			<td><input type="text" name="sum" value="">
+			</td>
+		</tr>
+    	<tr>
+			<th>角色名字(玩家频道显示)</th>
+			<td><input type="text" name="username" value="" style="display:none">
+			</td>
+		</tr>
+
+	<tr>
+		<th>
+		留言(1~30字)：
+		</th>
+		<td>
+			<textarea name="send_text" maxlength="30" placeholder="限定30字" class=""></textarea>
+		</td>
+	</tr>
+	<tr>
+		<th>操作：</th>
+		<td>
+			<input type="button" id="send_btn" class="btn btn-app btn-xs" value="发送">
+		</td>
+	</tr>
+</table>
+
+<script>
+
+$('[name="send_type"]').change(function(){
+	var sid = $(this).val()
+    switch(parseInt(sid)){
+        case -1:
+        $(this).nextAll('[sid]').hide()
+        break;
+        case 0:
+        $(this).nextAll('[sid]').hide()
+        $(this).nextAll('[sid="'+sid+'"]').show()
+        break;
+        case 1:
+        $(this).nextAll('[sid]').hide()
+        $(this).nextAll('[sid="'+sid+'"]').show()
+        break;
+        case 2:
+        $(this).nextAll('[sid]').hide()
+        $(this).nextAll('[sid="'+sid+'"]').show()
+        break;
+        case 3:
+        $(this).nextAll('[sid]').hide()
+        break;
+    }
+    if (parseInt(sid) == 3){
+        $('[name="username"]').show()
+        $('[name="username"]').val("{{player_name}}")
+    }
+    else{
+        $('[name="username"]').hide()
+        $('[name="username"]').val("")
+    }
+})
+
+function get_server_msg(){
+	var o_send_type = parseInt($('[name="send_type"]').val())
+    var channelid = $('[name="send_type"]').val()
+    var o_send_channel_id = parseInt($('[sid="'+channelid+'"]').val())
+	var o_send_text = $('[name="send_text"]').val()
+    var o_send_num = parseInt($('[name="num"]').val())
+    var o_send_sum = parseInt($('[name="sum"]').val())
+    var o_send_username = $('[name="username"]').val()
+
+	if (! o_send_num) {
+		alert('请输入数量!')
+		return
+	}
+    if (! o_send_sum) {
+		alert('请输入总金额!')
+		return
+	}
+	if (! o_send_text) {
+		alert('留言不能空!')
+		return
+	}
+    var msg = [o_send_type,o_send_num,o_send_sum,o_send_text,o_send_channel_id,o_send_username]
+    msg = JSON.stringify(msg);
+    return msg
+}
+
+var post_url = '/game/player/send_red_packet'
+var is_running = false
+var server_process = new ServerProcess()
+var running_server_ids = []
+function ajax_do(server_id,data){
+    var data = {"server_id":server_id,"msg":data};
+    var server_status_cont = server_process.get_server_status_cont(server_id)
+	server_status_cont.html('<img src="/static/skin/images/loading.gif">')
+    if (is_running) {
+        $.ajax({
+            url: post_url,
+            dataType: 'json',
+            type: 'POST',
+            data: data,
+            timeout: 10000
+        }).done(function (data) {
+            server_status_cont.html(linebreaksbr(data.msg))
+        })
+    }
+    else {
+		server_status_cont.html('停止!')
+	}
+}
+
+function stop_post(){
+	if(running_server_ids.length>0 && is_running==true) {
+		if ( confirm('是否停止发送!') ) {
+			is_running = false
+			return true
+		} else {
+			return false
+		}
+	}
+}
+
+$('#send_btn').click(function(){
+	var msg = get_server_msg()
+	var server_ids = get_server_ids(true)
+	running_server_ids = server_ids
+	if (! msg) {
+		return
+	}
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!')
+		return
+	}
+	server_process.show({"title":"发送状态:","top":'20%',"close":function(){
+		return stop_post()
+	}})
+
+	is_running = true
+	console.dir(msg)
+	for (i in server_ids) {
+		var server_id = server_ids[i]
+		server_process.make_tr_for_server_id(server_id)
+		ajax_do(server_id,msg)
+	}
+	if(running_server_ids.length>1){
+		server_process.process_bar.append(
+	$('<a>',{"id":"stop-post-btn","html":"停止","class":"btn btn-sm btn-primary pull-right","click":function(){
+		return stop_post()
+	}})
+)
+	}
+})
+</script>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>[{{template_name}}]编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+[{{template_name}}] 模版编辑
+<div class="buttons">
+    <a href="javascript:window.close()">关闭</a>
+ </div>
+</div>
+<div class="sub-menu">
+<form action="/query/edit?template_name={{template_name}}&edit_type={{edit_type}}&action=save" method="post">
+<textarea  id="code" name="code">{{file_content}}
+</textarea>
+<br><hr>
+<input type="submit" value="保存" style="float:right">
+</form>
+</div>
+<div class="well">
+<p>模版变量:request ,query_analysis<p>
+<pre>
+全局变量:
+    $SEARCH_FORM = $('#search_form'),
+    QUERT_URL = "{{request.get_full_path}}",
+    QUERY_NAME = "{{the_query.name}}",
+    $CONT = $('#plugins-cont'),                           //
+    $SEARCH= $('#search_btn'),                           //查询按钮
+    $EXPORT_ALL = $('#export_all_btn'),            //导出按钮
+    $EXPORT_CURRENTLY = $('#export_currently_btn'),      // 导出当前按钮
+    $QUERY_TABLE = $('#query_table')
+    函数:
+    getThindex(thText) //获取th索引
+    
+    dataTableOption.convertInputDataFuncs = [function(data){return data}]  //增加转换数据输入处理方法数组
+    dataTableOption.convertOutputDataFuncs = [function(data){return data}] //增加转换数据输出处理方法数组
+
+</pre>
+</div>
+{% with '/static/js/codemirror' as URL %}
+<script src={{URL}}/lib/codemirror.js></script>
+<link rel="stylesheet" href="{{URL}}/lib/codemirror.css" />
+<script src="{{URL}}/mode/vbscript/vbscript.js"></script>
+<script src="{{URL}}/mode/javascript/javascript.js"></script>
+<script src="{{URL}}/mode/xml/xml.js"></script>
+<script src="{{URL}}/mode/htmlmixed/htmlmixed.js"></script>
+<script type="text/javascript">
+window.onload = function() {
+    var mixedMode = {
+    name: "htmlmixed",
+    scriptTypes: [{matches: /\/x-handlebars-template|\/x-mustache/i,
+                   mode: null},
+                  {matches: /(text|application)\/(x-)?vb(a|script)/i,
+                   mode: "vbscript"}]
+  };
+  var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+    mode: mixedMode,
+    indentWithTabs: true,
+    smartIndent: true,
+    lineNumbers: true,
+    matchBrackets : true,
+    lineWrapping: true,
+    //autofocus: true,
+    tabSize: 4,
+  });
+  editor.setSize('100%','100%')
+};
+</script>
+{%endwith%}
+{% endblock %}
+

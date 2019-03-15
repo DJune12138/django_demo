@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>国家人数统计</title>
+
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	国家人数统计
+</div>
+
+
+{%include 'widgets/group_server.html' %}
+
+<form id="player_list_form" action="" method="post">
+<div class="sub-menu-1">
+		等级>=:<input name="level" type="text" class="" value="{{level}}">
+		最后登录时间>=:<input name="lut" type="text" class="Wdate" value="{{last_time}}">
+		<input type="button" id="query_btn" value="查询" /> *请勿频繁查询
+	
+</div>
+</form>
+<table id="table" class="table table-bordered ">
+	<thead>
+	<tr>
+		{% for th in ths%}
+		<th>{{th}}</th>
+		{%endfor%}
+	</tr>
+	</thead>
+	<tbody>
+	{% if list_data%}
+	<tr >
+		{%for number in list_data%}
+		<td>{{number}}</td>
+		{%endfor%}
+	</tr>
+	{% endif %}
+	</tbody>
+</table>
+<script type="text/javascript">
+	var tableContEle = $('#table tbody')
+	var server_list = []
+	function get_server_list(){
+		server_list = []
+		$('#server_area :checked').each(function(i,ele){
+			value = parseInt($(ele).val())
+			if ($.inArray(value, server_list)<0 && value!==null) {
+					server_list.push(value)
+				}
+		})
+		return server_list
+	}
+	function findServerCheclBox(server_id){
+		return $(':checkbox[name="server_id"][value="'+server_id+'"]')
+	}
+	function addTr(list_data) {
+		var tr_html = '<tr>'
+		for(var i in list_data) {
+			tr_html += '<td>' + list_data[i] +'</td>'
+		}
+		tr_html += '</tr>'
+		tableContEle.append(tr_html)
+	}
+	function ajaxDo(server_id) {
+		if (!server_id) {return}
+		$.ajax({
+			url: '',
+			type: 'POST',
+			dataType: 'json',
+			data: $('#player_list_form').serialize() + '&server_id=' + server_id  ,
+		})
+		.done(function(data) {
+			addTr(data)
+			ajaxDo(server_list.pop())
+			$(".tablesorter").trigger("update")	
+			
+			var cc = findServerCheclBox(server_id)
+			cc.attr('checked',false)
+			console.log("success");
+		})
+		.fail(function() {
+			ajaxDo(server_list.pop())
+		})
+		
+
+	}
+
+
+	$('#query_btn').click(function(){
+		if (confirm('是否清空当前内容?')) {tableContEle.html('')}
+		
+		get_server_list()
+		ajaxDo(server_list.pop())
+
+	})
+</script>
+{% endblock %}

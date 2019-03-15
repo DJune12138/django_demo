@@ -1,0 +1,26 @@
+<script>
+// 列 操作时间,管理员,服务器,操作类型,协议号,活动名,操作,结果,参数
+// 最后一列为活动ID,点击查看当时的参数配置
+  
+dataTableOption.convertInputDataFuncs.push(function(data){return data})//输入处理
+
+
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+	LIST_DATA = data.list_data
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		{%if request.allow_menu.游戏活动_参数历史 %}
+		row[TH['参数']] = '<a href="/game/activity/activity_setting?is_read=true&activity_id='+row[TH['参数']]+'" class="openDialog">[查看活动参数]</a>'
+		{%endif%}
+	}
+	
+  	return data
+
+})     //输出处理
+</script>
+
+
+
+
+
+

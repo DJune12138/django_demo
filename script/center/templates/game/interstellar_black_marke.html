@@ -1,0 +1,294 @@
+
+<style>
+.items .equipitem{
+    display: block;
+    margin-left: 50px
+}
+
+</style>
+
+<!-- 模版开始 -->
+<script id="setting-tpl" type="text/template">
+<div id="activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+    <th>活动ID</th>
+    <td><input type="text" class="input input-sm" readonly="readonly" name="key_id"  value="<%=data.key_id ? data.key_id : parseInt(new Date().getTime()/1000)%>"></td>
+    </tr>
+    <tr>
+        <th>活动时间:</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data.activity_time[0] ? it.w.timestamp_to_datetime_str(data.activity_time[0] ? data.activity_time[0] : parseInt(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:s"}}" %>">
+            到
+            <input type="text" class="Wdate" name="et" value="<%=data.activity_time[1]? it.w.timestamp_to_datetime_str(data.activity_time[1]?data.activity_time[1] : parseInt(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>营业时间:</th>
+        <td>
+            <input type="text" class="WdateH input-mini" name="bst" value="<%=data.business_time[0] ? it.w.day_sec_to_str(data.business_time[0] ? data.business_time[0] : 2000) : "20:00" %>">
+            到
+            <input type="text" class="WdateH input-mini" name="bet" value="<%=data.business_time[1] ? it.w.day_sec_to_str(data.business_time[1]  ? data.business_time[1] : 2230) : "22:30" %>">
+        </td>
+    </tr>
+
+    <tr><th>商品列表:</th>
+        <td><a href="javascript:;" onclick="add_commodity()">[增加商品]</a></td>
+    </tr>
+        <tr><th></th>
+        <td id="item-cont">
+            <%var rl=data.commodities;%>
+            <% for (var i in rl){%>
+                <%=it.w.get_item_html(rl[i])%>
+            <%}%>
+        </td>
+    </tr>
+</table>
+</div>
+</script>
+
+<script id="item-tpl" type="text/template">
+    <%var data=it.data;%>
+<div class="goods">
+   <hr />
+   <h3>商品配置<span class="commodity_id"><%=data.commodity_id%></span></h3>
+
+   <a href="javascript:void(0)" onclick="delete_commodity(this)" style="float:right">[删除]</a>
+
+   商品名字:<input type="text" class="commodity_name" value="<%=data.commodity_name%>" />
+   <div class="items">
+    商品项目:
+    <a href="javascript:viod(0)" onclick="add_item(this)">[增加商品]</a>
+        <div class="items-cont">
+            <%var items=data.items;%>
+
+            <% for (var i in items){%>
+                <%=it.w.ri.get_item_html(items[i],null)%>
+            <%}%>
+        </div>
+   </div>
+   <div class="price">
+    商品单价:
+     <%=it.w.pi.get_item_html({'aid':data.price[0],'v':data.price[1]},null,false)%>
+   </div>
+    商品数量:<input type="number" class="num input-small input-number not-empty"  value="<%=data.num%>" />
+    每人限购次数:<input type="number" class="buy_limit input-small input-number not-empty" value="<%=data.buy_limit%>" />
+   <br />
+   <a href="javascript:void(0)" onclick="add_commodity({},this.parentElement)" >[插入]</a>
+</div>
+
+</script>
+<!-- 模版结束 -->
+
+
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+
+var ri = new ResourceInput()
+
+//0 银币 1 金币 2 科技点 3 威望
+function array_output_handler(resouce_obj){
+
+        return [resouce_obj['aid'],resouce_obj['v']]
+}
+var price_map = {  
+
+                     0:{name:"星币",unit:[["数量",default_input_attr]],output_handler:array_output_handler}, 
+                     1:{name:"赠劵", unit:[["数量",default_input_attr]],output_handler:array_output_handler},    
+                     2:{name:"科技点", unit:[["数量",default_input_attr]],output_handler:array_output_handler}, 
+                     3:{name:"荣誉值", unit:[["数量",default_input_attr]],output_handler:array_output_handler}, 
+                     4:{name:"充值钻石", unit:[["数量",default_input_attr]],output_handler:array_output_handler}
+}
+
+
+
+var default_msg = {
+        "key_id":0,  // 活动id
+        "activity_time":[0, 0],  // 活动时间
+        "business_time":[2000, 2100],   // 营业时间(20:00 - 21:00)
+        "commodities":[  // 商品列表
+        {
+                "commodity_id":1,  // 商品id
+                "commodity_name": "商品名", // 商品名字
+                "price":[1,''],  // 价格[类型,数量]  价格类型:0 银币 1 金币 2 科技点 3 威望
+                "items":[{"aid":1,"v":0}],  // 物品列表
+                "num":10, // 每天总数量
+                "buy_limit":1  // 每天每人限购次数
+        }]
+     }
+
+var pi = new ResourceInput(price_map)
+
+
+function time_to_day_sec(sDate_str){
+    return parseInt( sDate_str.replace(/:/g,'') )
+//hh:ss转秒数
+    var time_and_min = sDate_str.split(':')
+    return parseInt(time_and_min[0])*3600 +  parseInt(time_and_min[1])*60
+}
+
+function day_sec_to_str(iTimeSec){
+    iTimeSec = iTimeSec.toString()
+    return iTimeSec.substr(0,2) + ':' + iTimeSec.substr(2)
+//秒数转hh:ss
+    iTimeSec = parseInt(iTimeSec)
+    var hours = parseInt(iTimeSec/3600)
+    var min = parseInt((iTimeSec%3600)/60)
+    hours = hours<10?'0' + hours : hours
+    min = min<10?'0' + min : min
+    return hours+':'+min
+}
+
+//重置 商品ID
+function reset_commodity_id(){
+    $('.commodity_id').each(function(i,ele){
+        $(ele).text(i+1)
+    })
+}
+
+//删除商品
+function delete_commodity(aEle){
+    if ( confirm('确定删除?') ) {
+        $(aEle).parents('.goods').remove()
+        reset_commodity_id()
+    }
+}
+
+//增加商品
+function add_commodity(obj,ele){
+     if ($('.commodity_id').length>=20) {
+        alert('最多配置20个商品!')
+        return
+     }
+
+    obj = !$.isEmptyObject(obj) ? obj : default_msg.commodities[0]
+
+    var html = get_item_html(obj)
+    if (ele) {
+        $(ele).after(html)
+    } else {
+        $('#item-cont').append(html)
+    }
+    reset_commodity_id()
+}
+
+//增加商品项目
+function add_item(ele){
+    $(ele).parents('.items').find('.items-cont').append( ri.get_item_html())
+}
+
+function get_item_html(array){
+    return get_views('item-tpl',array)
+}
+
+
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(event_name){
+    if (!this.check_empty_input()){return false}
+     var msg =  {
+        "key_id":0,  // 活动id
+        "activity_time":[0, 0],  // 活动时间
+        "business_time":[2000, 2100],   // 营业时间(20:00 - 21:00)
+        "commodities":[  // 商品列表
+        {
+                "commodity_id":1,  // 商品id
+                "commodity_name": "商品名", // 商品名字
+                "price":[1,''],  // 价格[类型,数量]  价格类型:0 银币 1 金币 2 科技点 3 威望
+                "items":[{"aid":1,"v":0}],  // 物品列表
+                "num":10, // 每天总数量
+                "buy_limit":1  // 每天每人限购次数
+        }]
+     }
+
+    //开启时间
+     var st = datetime_str_to_timestamp( this.contEle.find('[name="st"]').val() )
+     var et = datetime_str_to_timestamp( this.contEle.find('[name="et"]').val() )
+
+     msg.key_id = parseInt(this.contEle.find('[name="key_id"]').val() )
+
+     var bst = this.contEle.find('[name="bst"]').val() 
+     var bet = this.contEle.find('[name="bet"]').val()
+     bst =  time_to_day_sec(bst)
+     bet =  time_to_day_sec(bet)
+
+     msg.activity_time = [st,et]
+
+     msg.business_time = [bst,bet]
+
+     
+
+     var good_items = $('.goods')
+     if(good_items.length==0){
+        alert('没有设置商品项目!')
+        return false
+    }
+    var commodities = []
+     good_items.each(function(i,ele){
+        var commodity = {}
+        var $item = $(ele)
+        commodity.commodity_id =  parseInt($item.find('.commodity_id').text() )                     
+        commodity.commodity_name =  $item.find('.commodity_name').val()
+        commodity.price = pi.to_json($item.find('.price'))
+        commodity.num = parseInt($item.find('.num').val() )  
+        commodity.buy_limit = parseInt($item.find('.buy_limit').val() )  
+
+        commodity.items = []
+        $item.find('.items-cont .equipitem').each(function(i,_ele){
+            commodity.items.push( ri.to_json(_ele))
+        })
+        commodities.push(commodity)
+     })
+
+     msg.commodities = commodities
+
+     //json导出不需要 活动ID
+    if (event_name == 'json-output') {
+        delete msg.key_id
+     }
+
+     console.dir(msg)
+     return JSON.stringify(msg)
+}
+
+
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+    msg = !$.isEmptyObject(msg) && msg ? msg : default_msg
+
+    console.dir(msg)
+    var html = get_views('setting-tpl',msg)
+    this.contEle.html(html)
+}
+
+
+activitySetting.get_status = function(data){
+    if ( $.isEmptyObject(data) || data.key_id==0 || !data) {
+
+        return '<span class="label label-danger">已关闭</span>'
+    }
+
+    var status = ''
+    var activity_time = data.activity_time
+
+    var st = activity_time[0]
+    var et = activity_time[1]
+
+    var in_time_range =   this.system_timestamp >= st  && this.system_timestamp <=et 
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(st)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    } 
+
+    return status
+}
+
+
+
+</script>
+
+
+

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>帐号管理</title>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	帐号管理
+
+	<div class="buttons">
+		<!--  <a href="/user/edit">添加</a> -->
+	</div>
+</div>
+
+<script type="text/javascript">
+	function change_user_status() {
+		if (confirm('确定修改账号状态吗!')){
+			$.ajax({
+				url: '/user/user_status_edit',
+				type: 'POST',
+				dataType:'json',
+				data: $('#post_form').serialize()
+			})
+			.done(function(data) {
+				art.dialog(data.msg)
+                location.reload()
+			})
+			.fail(function() {
+				art.dialog('失败!')
+			})
+		}
+	}
+</script>
+
+
+<div class="sub-menu-1">
+	<form action="/user/list" method="get">
+		查询:
+		<select name="key_type">
+			<option value='1'>登录名或第三方ID</option>
+			<option value='0'>账号ID</option>
+			<option value='2'>手机标识查询</option>
+		</select>
+		状态:
+		<select name="select_status"  id="select_status" >
+			{% for item in status_choices %}
+			<option title="{{item.1}}" value="{{item.0}}" {% if item.0 == user_status %}selected = "selected" {%endif%}>{{item.1}}</option>
+			{% endfor %}
+		</select>
+		<input type="text" name="key" value="{{user_key}}" />
+		<input type="submit" value="查询" />
+	</form>
+</div>
+
+<form id="post_form"  method="post" >
+<table class="table table-bordered datatable" data-group-by-index="[3]">
+	<thead>
+	<tr>
+        <th width="60">
+        <input type="checkbox"   checkbox-area='{{model_name}}_area'  >
+        </th>
+		<th>账号ID</th>
+		<th>登录名</th>
+        <th>帐号状态</th>
+		<th>登录次数</th>
+		<th>上次登录IP</th>
+		<th>上次登录时间</th>
+		<th>创建时间</th>
+		<th width="120">操作</th>
+	</tr>
+	</thead>
+	<tbody>
+	{%for item in list_record%}
+	<tr>
+        <td>
+        <input type="checkbox"  value="{{item.id}}" name="uid">
+        </td>
+		<td>{{item.id}}</td>
+		<td>{{item.username}}</td>
+        <td>{{item.get_status_display}}</td>
+		<td>{{item.login_num}}</td>
+		<td>{{item.last_ip}}</td>
+		<td>{{item.last_time_str}}</td>
+		<td>{{item.create_time_str}}</td>
+		<td>
+			{%if item.is_lock %}
+			<a href="/user/lock?user_id={{item.id}}&is_lock=0" class="ask">解封</a> 
+			{%else%}
+			<a href="/user/lock?user_id={{item.id}}&is_lock=1" class="ask">封号</a>
+			{%endif%}
+			{%ifequal item.user_type 0 %}
+			<a href="/user/password?user_id={{item.id}}" class="openDialog">改密码</a>
+			<a href="/user/mibao/modify?user_id={{item.id}}" class="openDialog" >改密保</a>
+			{%endifequal%}
+		</td>
+	</tr>
+	{%endfor%}
+	</tbody>
+</table>
+
+{% if request.allow_menu.修改帐号状态 %}
+<div class="sub-menu-1">
+	<label>选中操作：</label>
+	<span id="change_status" class="action-cont">
+		状态:
+		<select name="user_status"  id="change_option" >
+			{% for item in status_choices %}
+			<option title="{{item.1}}" value="{{item.0}}">{{item.1}}</option>
+			{% endfor %}
+		</select>
+	</span>
+	<input type="button" class="btn btn-xs btn-danger" title="提交" value="提交操作"  onclick="change_user_status()"/>
+</div>
+{%endif%}
+
+</form>
+{% include "pager.html" %}
+{% endblock %}

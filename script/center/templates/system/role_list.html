@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>角色列表</title>
+{% endblock %}
+
+{% block content %}
+{% with model_name='Role' url_prefix='/system/role/role_'  %}
+<script type="text/javascript">
+
+	function add{{model_name}}(ele) {
+		art.dialog.open("{{url_prefix}}edit")
+	}
+
+	function edit{{model_name}}(ele) {
+		art.dialog.open("{{url_prefix}}edit?id=" + selectId)
+	}
+
+	function remove{{model_name}}(ele) {
+		if (confirmRandom('确定删除吗?')) {
+			window.location.href = "{{url_prefix}}remove?"+$('#{{model_name}}_area :checkbox').serialize()
+		}
+	}
+
+	function copy{{model_name}}(ele) {
+		if (selectId) {
+			art.dialog.open("{{url_prefix}}edit?copy=true&id=" + selectId)
+		}
+		
+	}
+
+
+
+$(function(){
+     $('#{{model_name}}_area tr').contextMenu('contextMenu',   
+     {  
+          bindings:   
+          {  
+            'c_edit': function(t) {  
+               edit{{model_name}}(t)
+            },   
+            'c_remove': function(t) {  
+               remove{{model_name}}(t)
+            },
+            'c_copy':function(t){
+            	copy{{model_name}}(t)
+            }
+          }  
+  
+    });  
+})
+</script>
+
+<div class="bar"></div>
+
+<div  id="contextMenu" class="contextMenu">  
+	<ul>  
+		<li id="c_edit" class="btn no-border btn-white" ><i class="icon-edit"></i>编辑</li>  
+		<li id="c_copy" class="btn no-border btn-white" ><i class="icon-cogs"></i>复制</li>    
+	</ul>  
+</div> 
+
+<div >
+	 <ul id="nav-list" class="nav nav-tabs" >
+		  <li >
+		  	<a href="/system/admin/admin_list" >用户列表</a>
+		  </li>
+		  <li class="active" >
+		  	<a href="/system/role/role_list" >角色列表</a>
+		  </li>
+	</ul>
+	<!-- 按钮工具条 -->
+	<div id='datatable_toolbar' >
+		<div class="btn-toolbar pull-right">
+			<div class="btn-group ">
+				<a class="btn btn-sm btn-success" onclick="add{{model_name}}(this)">
+				<i class="icon-plus-sign"></i>添加
+				</a>
+			</div>
+			<div class="btn-group">
+				<a class="btn btn-sm btn-primary" onclick="edit{{model_name}}(this)">
+					<i class="icon-edit"></i>编辑
+				</a>
+				<a data-toggle="dropdown" class="btn btn-sm  btn-primary dropdown-toggle">
+					<span class="icon-caret-down icon-only"></span>
+				</a>
+				<ul class="dropdown-menu">
+					<li>
+						<a  class=""  onclick="remove{{model_name}}(this)">
+							<i class="icon-trash "></i>
+							删除
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<!--  -->
+	<table class="table  table-bordered datatable" data-toolbar='datatable_toolbar' data-group-by-index='[3]'>
+		<thead>
+		<tr trid='{{item.id}}'>
+			<th width="60">
+				<input type="checkbox"  checkbox-area='{{model_name}}_area'  >
+			</th>
+			<th >ID</th>
+			<th>角色名</th>
+			<th>角色类型</th>
+
+		</tr>
+		</thead>
+		<tbody id="{{model_name}}_area">
+		{%for item in list_record%}
+		<tr trid='{{item.id}}'>
+			<td>
+				<input type="checkbox"  value="{{item.id}}" name="id">
+			</td>
+			<td>{{item.id}}</td>
+			<td title="{{item.remark}}"><a href="{{url_prefix}}edit?id={{item.id}}" class="openDialog">{{item.name}}</a></td>
+			<td>{{item.get_type_display}}</td>
+		</tr>
+		{%endfor%}
+		</tbody>
+	</table>
+</div>
+{% endwith %}
+{% endblock %}

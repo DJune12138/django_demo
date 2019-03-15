@@ -1,0 +1,21 @@
+<!DOCTYPE html PUBLIC "-//W3C//Dtd XHTML 1.0 Transitional//EN" "http://www.w3.org/tr/xhtml1/Dtd/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>GashPlus儲值</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=yes;" />
+<link rel="stylesheet" type="text/css" href="/static/skin/mobile.css" />
+
+
+</head>
+
+<body>
+	<h1>頁面跳轉中...請等待</h1>
+	<form class="myForm" id="myForm" action="{{url}}" method="post">
+		<input type="hidden" name="data" value="{{data}}">
+		<!-- <input type="submit"  class='button'  value="確認送出"> -->
+	</form>
+	<script type="text/javascript">
+		document.forms["myForm"].submit();
+	</script>
+</body>
+</html>

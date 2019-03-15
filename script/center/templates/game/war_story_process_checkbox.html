@@ -1,0 +1,211 @@
+
+<!-- 征战进度控件 -->
+<script type="text/template" id="war_story_process_checkbox-tpl">
+<table class="table table-bordered">
+	<thead>
+	<tr><th>
+		<label><input type="checkbox"  checkbox-area='npc_map_area'>全选</label>
+		</th>
+		<td>
+		星级:
+		<input type="number" name="star_level" class="input-samll input-number" min=0 max=5 step=1 maxlength=1 value="<%=it.data.star%>">
+		<input type="button" id="modify_war_story_process_btn" class="btn btn-sm btn-success" value="确定">
+		</td>
+		</tr>
+	</thead>
+
+	<tbody id="npc_map_area"  >
+	<%var npc_map_dict=it.data.npc_map_dict;%>
+	<%var npc_dict=it.data.npc_dict;%>
+	<%var checked_id_obj=it.data.checked_id_obj;%>
+    <%var charpter_map_dict=it.data.charpter_map_dict;%>
+	<% for (var k in npc_map_dict) {%>
+		<%var map_id=k;%>
+		<%var npc_list=npc_map_dict[k];%>
+        <%var map_name=charpter_map_dict[map_id];%>
+	<tr>
+
+	<th>                       
+		 <label><input type="checkbox" name="map"  checkbox-area="map_<%=map_id%>_area" value="<%=map_id%>"><%=map_name%>(<%=map_id%>)</label>
+	</th>
+
+	<td id="map_<%=map_id%>_area">
+		<%for (var kk in npc_list){%>
+			<%var npc_id=npc_list[kk];%>
+			<%var npc_name=npc_dict[npc_id];%>
+			<label><input type="checkbox" name="npc"  value="<%=npc_id%>"  <%?checked_id_obj.hasOwnProperty(npc_id)%>checked="checked"<%?%>><%=npc_name%></label>
+		<%}%>
+	</td>
+
+	</tr>
+	<%}%>
+	</tbody>
+</table>
+</script>
+
+
+<!-- 远征进度控件 -->
+<script type="text/template" id="expedition_progress_checkbox-tpl">
+<table class="table table-bordered">
+	<thead>
+	<tr>
+        <th>
+		</th>
+		<input type="button" id="modify_expedition_progress_btn" class="btn btn-sm btn-success" value="确定">
+		</td>
+	</tr>
+	</thead>
+
+	<tbody id="npc_map_area"  >
+	<%var npc_map_dict=it.data.npc_map_dict;%>
+	<%var npc_dict=it.data.npc_dict;%>
+	<%var checked_id_obj=it.data.checked_id_obj;%>
+    <%var charpter_map_dict=it.data.charpter_map_dict;%>
+	<% for (var k in npc_map_dict) {%>
+		<%var map_id=k;%>
+		<%var npc_list=npc_map_dict[k];%>
+        <%var map_name=charpter_map_dict[map_id];%>
+	<tr>
+
+	<th>
+		 <%=map_name%>(<%=map_id%>)</label>
+	</th>
+
+	<td id="map_<%=map_id%>_area">
+		<%for (var kk in npc_list){%>
+			<%var npc_id=npc_list[kk];%>
+			<%var npc_name=npc_dict[npc_id];%>
+			<label><input type="checkbox" name="npc"  value="<%=npc_id%>"  <%?checked_id_obj.hasOwnProperty(npc_id)%>checked="checked"<%?%>><%=npc_name%></label>
+		<%}%>
+	</td>
+
+	</tr>
+	<%}%>
+	</tbody>
+</table>
+</script>
+
+
+<script>
+
+var war_story_process_cont = $('#war_story_process_cont')
+
+var expedition_progress_cont = $('#expedition_progress_cont')
+
+function PlayerWarStoryProcessEditor(war_story_process_cont){
+	var This = this
+	this.get_npc_dict_url = '/log/dict/interface?key=warpath_map'
+    this.get_charpter_map_dict_url = '/log/dict/interface?key=warpath_charpter'
+	this.modify_war_story_process_btn = null
+	this.war_story_process_cont = war_story_process_cont
+	this.charpter_map_dict = {}
+	this.npc_dict = {}
+    this.npc_map_dict = {}
+
+	this.init = function(callback,checked_id_obj){
+        $.get(This.get_charpter_map_dict_url,function(data){
+            This.charpter_map_dict = $.parseJSON(data)
+        })
+
+		$.get(This.get_npc_dict_url,function(data){
+			var npc_dict = $.parseJSON(data)
+			This.npc_dict = npc_dict
+            for (k in npc_dict){
+				var npc_id = k
+				var npc_name = npc_dict[k]
+				var map_id = parseInt(k / 100) // npcID / 100 得到 地图ID
+				if (!This.npc_map_dict.hasOwnProperty(map_id)){
+					This.npc_map_dict[map_id] = []
+				}
+				This.npc_map_dict[map_id].push(npc_id)
+			}
+
+            This.show(checked_id_obj)
+            $(document).on('click','#modify_war_story_process_btn',function(){
+                    return callback()
+            })
+
+		})
+
+	}
+	this.show = function(checked_id_obj){
+		checked_id_obj = checked_id_obj ? checked_id_obj : {}
+		var star = 0
+
+		for(var k in checked_id_obj){
+			star = checked_id_obj[k]
+		}
+		console.dir(star)
+
+		var msg = {"npc_map_dict":This.npc_map_dict,"npc_dict":This.npc_dict,"checked_id_obj":checked_id_obj,'star':star,'charpter_map_dict':This.charpter_map_dict}
+		var html = get_views('war_story_process_checkbox-tpl',msg)
+		This.war_story_process_cont.html( html )
+		This.modify_war_story_process_btn = $('#modify_war_story_process_btn')
+	}
+
+	this.get_json_msg = function(){
+		var star_level = parseInt($('[name="star_level"]').val())
+		star_level = star_level ? star_level : 0
+		var msg_array = []
+		This.war_story_process_cont.find('[name="npc"]:checked').each(function(i,ele){
+			var checked_npc_id = parseInt(ele.value)
+			msg_array.push([checked_npc_id,star_level])
+		})
+		return msg_array.length >0 ? JSON.stringify(msg_array) : ''
+	}
+}
+
+function ExpeditionProgressEditor(expedition_progress_cont){
+    var This = this
+    this.get_expedition_map = '/log/dict/interface?key=expedition_map'
+    this.expedition_progress_cont = expedition_progress_cont
+    this.modify_expedition_progress_btn = null
+    this.npc_dict = {}
+    this.npc_map_dict = {}
+    this.charpter_map_dict = {"0":"南蛮","1":"西凉","2":"匈奴","3":"西域"}
+
+    this.init = function(callback,checked_id_obj){
+        $.get(This.get_expedition_map,function(data){
+            var npc_dict = $.parseJSON(data)
+            This.npc_dict = npc_dict
+            for (k in npc_dict){
+                var npc_id = k
+                var npc_name = npc_dict[k]
+                var map_id = parseInt(k/100)
+                if (!This.npc_map_dict.hasOwnProperty(map_id)){
+                    This.npc_map_dict[map_id] = []
+                }
+                This.npc_map_dict[map_id].push(npc_id)
+            }
+
+            This.show(checked_id_obj)
+            $(document).on('click','#modify_expedition_progress_btn',function(){
+                return callback()
+            })
+        })
+    }
+
+    this.show = function(checked_id_obj){
+        checked_id_obj = checked_id_obj ? checked_id_obj : {}
+
+		var msg = {"npc_map_dict":This.npc_map_dict,"npc_dict":This.npc_dict,"checked_id_obj":checked_id_obj,'charpter_map_dict':This.charpter_map_dict}
+		var html = get_views('expedition_progress_checkbox-tpl',msg)
+		This.expedition_progress_cont.html( html )
+		This.modify_expedition_progress_btn = $('#modify_expedition_progress_btn')
+    }
+
+    this.get_json_msg = function(){
+		var msg_array = []
+		This.expedition_progress_cont.find('[name="npc"]:checked').each(function(i,ele){
+            var val = ele.value
+			var checked_npc_id = parseInt(val[1]+val[2])
+			msg_array.push(checked_npc_id)
+		})
+		return msg_array.length >0 ? JSON.stringify(msg_array) : ''
+    }
+}
+
+
+
+</script>
+

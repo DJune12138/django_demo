@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}礼包卡抽奖活动列表{% endblock %}
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	礼包卡抽奖
+</div>
+{% if result_code == 0 %}
+{{msg}}
+{% else %}
+<div class="sub-menu-1">{{msg}}</div>
+{% endif %}
+
+{% endblock %}
+

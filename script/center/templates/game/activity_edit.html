@@ -1,0 +1,167 @@
+
+{% extends "base.html" %}
+
+{% block header%}
+<title>活动编辑</title>
+
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+     <a href="/game/activity/activity_list">游戏活动列表</a>
+     - 活动编辑
+
+</div>
+
+
+
+<ul  id="nav-list"  class="nav nav-tabs padding-12 tab-color-blue background-blue" >
+    <li class="active">
+        <a href="/game/activity/activity_edit?activity_id={{model.id}}">
+            <i class="icon-edit bigger-110"></i>活动信息
+        </a>
+    </li>
+    {% if model.id %}
+    <li class="tab-li">
+        <a  href="/game/activity/activity_setting?activity_id={{model.id}}">
+            <i class="icon-cog bigger-110"></i>参数配置
+        </a>
+    </li>
+    <li class="tab-li">
+        <a  href="/game/activity/activity_status?activity_id={{model.id}}">
+            <i class="icon-align-justifybigger-110"></i>活动状态
+        </a>
+    </li>
+    {% endif %}
+</ul>
+<div class="hr"></div>
+<script type="text/javascript">
+//  tab切换
+$(function(){
+    var iframe = $('#iframe')
+    $('.tab-li a').click(function(){
+        var This = $(this)
+        $('#nav-list li').removeClass('active')
+        var url = $(this).attr('href')
+        if (url) {
+            $('#activity-edit-cont').hide()
+            iframe.attr('src',url)
+            This.parent('li').addClass('active')
+        }
+        return false
+    })
+
+})
+</script>
+
+<div id="activity-edit-cont" >
+<form id="activity_form" action="/game/activity/activity_save?activity_id={{model.id}}" method="post" >
+    <table class="form">    
+            <tr>
+                <th>活动类型:</th>
+                <td>
+                    
+                    <select name="type"  {% if model.id %}disabled="disabled" style="background: rgb(228, 228, 228);"{%endif%}>
+                        {% for t in model.TYPE_MAP.keys%}
+                            <option value="{{t}}" {% if t == model.type %}selected="selected"{%endif%}>{{t}}</option>
+                        {%endfor%}
+                    </select>
+                    {% if model.id %}
+                    <input type="hidden" name="type" value="{{model.type}}">
+                    {%endif%}
+                
+                </td>
+            </tr>
+            {% ifnotequal model.is_temp 1%}
+            <tr><th>参与的服务器:</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th></th>
+                <td  width="90%">
+                    <div class="">
+                        {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids %}
+                    </div>
+                </td>
+            </tr>
+            {%endifnotequal%}
+            <tr>
+                <th>活动名称:</th>
+                <td><input type="text" name="name" value="{{model.name}}" class="not-empty"/></td>
+            </tr>
+            <tr>
+                <th>活动描述:</th>
+                <td><textarea name="info" class="not-empty">{{model.info}}</textarea></td>
+            </tr>
+            <tr>
+              <th>是否开服模版</th>
+              <td>
+                <label class="inline">
+                    <input type="checkbox"  value="1" {%ifequal model.is_temp 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="is_temp" role="checkbox" class="FormElement ace ace-switch ace-switch-5">
+                    <span class="lbl"></span>
+                    </label>
+                    * 说明:开服模版开始时间使用服务器的开服时间.
+                </td>
+            </tr>
+            <tr>
+              <th>自动开启:</th>
+              <td>
+                <label class="inline">
+                    <input type="checkbox"  value="1" {%ifequal model.is_auto 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="is_auto" role="checkbox" class="FormElement ace ace-switch ace-switch-5">
+                    <span class="lbl"></span>
+                    </label>
+                    * 说明:只支持到分钟级,如果活动有时间参数设置 下面开始时间必须早几秒.
+                </td>
+            </tr>
+            <tr>
+              <th>自动关闭:</th>
+              <td>
+                <label class="inline">
+                    <input type="checkbox"  value="1" {%ifequal model.is_auto_off 1%} checked="checked"{%endifequal%} offval="No" id="stock" name="is_auto_off" role="checkbox" class="FormElement ace ace-switch ace-switch-5">
+                    <span class="lbl"></span>
+                    </label>
+                    * 说明:只支持到分钟级,如果活动有时间参数设置 下面开始时间必须早几秒.
+                </td>
+            </tr>
+
+            <tr>
+                <th>活动时段:</th>
+                <td><input  type="text"  class="Wdate4 not-empty" id="sdate" name="sdate" value="{{model.sdate|date:"Y-m-d H:i:00"}}" >
+                    - 
+                    <input type="text" class="Wdate4 not-empty" name="edate" value="{{model.edate|date:'Y-m-d H:i:00'}}">
+                </td>
+            </tr>
+
+            {% if model.id or is_copy%}
+            <tr>
+                <th>参数配置:</th>
+                <td >
+                  <textarea name="msg" class="check_json not-empty" placeholder="">{{model.msg}}</textarea>
+              </td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th></th>
+                <td>
+                        <a id="save_btn" class="btn btn-app btn-grey btn-xs radius-4">保存</a>
+                </td>
+            </tr>
+    </table>
+    </form>
+</div>
+
+<div id="iframe_cont" >
+    <iframe id="iframe" frameborder='0' width='100%' height='100%' src=''  onload='$(this).height($(this).contents().find("body").height()+200)' ></iframe>
+</div>
+
+
+<script type="text/javascript">
+$('#save_btn').click(function(event) {
+   if(check_input_empty() ){
+    $('#activity_form').submit();
+    }
+});
+</script>
+
+
+{% endblock %}

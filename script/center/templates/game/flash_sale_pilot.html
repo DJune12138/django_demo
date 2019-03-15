@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block header%}
+<title>限时抢购武将面板信息</title>
+<style>
+</style>
+{% endblock %}
+
+{% block content %}
+
+
+<div id="bar">
+    限时抢购武将面板信息列表
+	<div class="buttons" > <a href="/game/shop/flash_sale_pilot_edit?ty=0" >添加</a> </div>
+</div>
+
+<form class="form-horizontal" id="activity_form" role="form" action="/game/shop/flash_sale_pilot" method="POST">
+  <div class="form-group">
+    <label class="control-label col-sm-3">服务器:</label>
+    <div class="col-sm-8">
+    {% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids %}
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-sm-offset-3 col-sm-8">
+      <button type="submit" class="btn btn-default btn-sm btn-primary" id="query_btn">查询</button>
+    </div>
+  </div>
+</form>
+
+<table class="list">
+	<tr>
+		<th>服务器ID</th>
+        <th>开始时间</th>
+		<th>结束时间</th>
+        <th>贩卖武将ID</th>
+        <th>销售价格</th>
+        <th>图片名</th>
+		<th width="80" >操作</th>
+	</tr>
+
+	{% for k,v in result_dict.items %}
+	<tr>
+		<td>{{ k }}</td>
+		<td>{{ v.0 | timestamp2datetime}}</td>
+		<td>{{ v.1 | timestamp2datetime }}</td>
+		<td>{{ v.2 }}</td>
+        <td>{{ v.3 }}</td>
+        <td>{{ v.4 }}</td>
+        <td>
+            <a href="/game/shop/flash_sale_pilot_edit?ty=1&sid={{ k }}" class="openDialog">编辑</a>
+            &nbsp;&nbsp;
+            <a href="/game/shop/flash_sale_pilot_edit?ty=2&sid={{ k }}" class="del">删除</a>
+        </td>
+	</tr>
+	{% endfor %}
+
+</table>
+
+<div id="dialog_div">
+</div>
+
+<script>
+
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% include 'game/resource_editor.html' %}
+<!-- 表功工具条 -->
+<div id="datatable_toolbar" class="row">
+<script>
+function ajax_do(key){
+    if (sessionStorage[key] == undefined){
+        $.ajax({
+               type : "GET",
+               url : "/log/dict/interface?key=" + key,
+               datatype : "json",
+               cache : false,
+               async : false,
+        })
+        .done(function (data) {
+              sessionStorage[key]=data
+        })
+    }
+}
+
+var key_l = ["world_level"]
+for (var i in key_l){
+    ajax_do(key_l[i])
+}
+
+var charge_map = $.parseJSON(sessionStorage["recharge_type"])
+var charge_id_money = $.parseJSON(sessionStorage["charge_id_money"])
+var day_level = $.parseJSON(sessionStorage['world_level'])
+</script>
+
+<script type="text/javascript">
+$(function(){
+    hideSearchToolbar()
+    flushDataTable()
+})
+
+$QUERY_TABLE.find('tbody:first').attr('id','checkbox-area')
+$QUERY_TABLE.find('thead th').eq(TH['-']).html('<input type="checkbox" checkbox-area="checkbox-area">')
+
+function resetPlayerCheckbox(){
+	$QUERY_TABLE.find('tbody :checkbox[value]').prop('checked',false)
+}
+function getPlayerIds(){
+	return $QUERY_TABLE.find('tbody :checked').serialize()
+}
+
+// 获取已服务器ID分组的角色ID列表
+function getServerPlaterIdArray(){
+    var server_player_id_dict = {},
+        tol_server_num = 0
+    $QUERY_TABLE.find('tbody :checked').each(function(i,ele){
+        var check_box_ele = $(ele)
+        var player_id = check_box_ele.val()
+        player_id = !isNaN(player_id) ? parseInt(player_id) : 0
+        if (player_id>0){
+            var server_id = player_id >> 20
+            if (!server_player_id_dict.hasOwnProperty(server_id) ){
+                 server_player_id_dict[server_id] = []
+                 tol_server_num += 1
+            }
+            server_player_id_dict[server_id].push(player_id)
+        }
+    })
+    return [server_player_id_dict,tol_server_num]
+}
+
+function getServerIds(){
+    return $('[name=server_id]').val()
+}
+function getServerId(){
+	return $('[name=server_id]').val()
+}
+
+var SERVER_ID = 0
+var LIST_DATA = null
+//输入处理
+dataTableOption.convertInputDataFuncs.push(function(data){
+    return data
+})
+//输出处理
+dataTableOption.convertOutputDataFuncs.push(function(data) {
+
+    LIST_DATA = data.list_data
+	var new_list_data = []
+    //获取禁言玩家列表
+	for (var i in LIST_DATA) {
+		var row = LIST_DATA[i]
+		var new_row = row.concat()
+
+        var server_level = TH['世界等级']
+        var create_time = parseInt(row[TH['开服天数']])
+        var top_power = TH["最高战力"]
+        var ten_power = TH["前10战力平均"]
+        var avg_power = TH["平均战力"]
+        var avg_level = TH["平均等级"]
+        var sub_server = TH["子服务器"]
+
+        // {39: "1", 49: "3", 59: "8", 69: "15", 79: "25", 89: "39", 99: "61"}
+        for(var i in day_level){
+            var _l = parseInt(day_level[i]);
+            if(_l <= create_time){
+            new_row[server_level] = i
+            } 
+        }
+
+            if(row[top_power] && row[top_power].length >= 64){
+                var game_data = JSON.parse(row[top_power])
+                new_row[top_power] = game_data.top_power
+                new_row[ten_power] = game_data.ten_power ? parseFloat(game_data.ten_power).toFixed(2) : ""
+                new_row[avg_power] = game_data.avg_power ? parseFloat(game_data.avg_power).toFixed(2) : ""
+                new_row[avg_level] = game_data.avg_level ? parseFloat(game_data.avg_level).toFixed(2) : ""
+                new_row[sub_server] = game_data.sub_server ? game_data.sub_server : ""
+        		new_list_data.push(new_row)
+            }else{
+                new_list_data.push(new_row)
+            }
+	}
+    data.list_data = new_list_data
+	return data
+}
+)
+</script>
+
+
+
+
+
+
+
+
+
+
+
+

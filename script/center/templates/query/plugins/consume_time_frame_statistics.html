@@ -1,0 +1,26 @@
+<script>
+dataTableOption.page_size=100
+dataTableOption.page_size_list=[100,200]
+
+var $first_thead = $QUERY_TABLE.find('thead tr:first')
+
+
+$first_thead.find('th').each(function(i,ele){
+	var $ele = $(ele)
+	//$ele.text($ele.text().replace(/[\d]+/,''))
+	//console.dir($(ele).text())
+})
+
+$first_thead.before('<tr><th>时间段</th>'
+	                +'<th colspan=3>4:00-7:59</th>'
+	                +'<th colspan=3>8:00-11:59</th>'
+	                +'<th colspan=3>12:00-15:59</th>'
+	                +'<th colspan=3>16:00-19:59</th>'
+	                +'<th colspan=3>20:00-23:59</th>'
+	                +'<th colspan=3>0:00-4:00</th>'
+	                +'</tr>'
+	                );
+
+
+
+</script>

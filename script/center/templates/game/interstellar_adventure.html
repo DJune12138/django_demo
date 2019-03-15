@@ -1,0 +1,247 @@
+
+
+<!-- 模版开始 -->
+<script id="explore-setting-tpl" type="text/template">
+<div id="explore-activity-cont">
+<table class="form">
+    <%var data=it.data;%>
+    <tr>
+        <th>活动时段:</th>
+        <td>
+            <input type="text" class="Wdate" name="st" value="<%=data.st ? it.w.timestamp_to_datetime_str(data.st ? data.st : Date.parse(new Date())/1000) : "{{model.sdate|date:"Y-m-d H:i:30"}}" %>">
+            到
+            <input type="text" class="Wdate" name="et" value="<%=data.et ? it.w.timestamp_to_datetime_str(data.et ? data.et : Date.parse(new Date())/1000) : "{{model.edate|date:"Y-m-d H:i:s"}}" %>">
+        </td>
+    </tr>
+    <tr>
+        <th>普通物资获取每日上限:</th>
+        <td >
+            <input type="number" name="wz" class="input-small" value="<%=data.wz ? data.wz :600 %>" >
+        </td>
+       
+    </tr>
+    <tr><th>母虫巢穴奖励参数:</th>
+
+        <td style="text-align: right;">
+        每次偏移概率:<input type="number" allow_zero=true name="ptpy" step=0.01 class="input-small" value="<%=data.ptpy ? data.ptpy :0 %>" >
+        保底次数:<input type="number" allow_zero=true name="ptbd" class="input-small" value="<%=data.ptbd ? data.ptbd :0 %>" >
+
+        每次普通物资消耗:<input type="number" name="ptwzxh" class="input-small" value="<%=data.ptwzxh ? data.ptwzxh :300 %>" >
+        </td>
+    </tr>
+    <tr>
+        <th></th>
+        <td>
+        <div id="general-params-cont">
+            <%var res=it.data.general_params;%>
+            <% for (var i in res){%>
+                 <%var re=res[i];%>
+                 <div  class="item">
+                 <span>奖励<b class="re_id"><%=re.ID + 1%></b>:</span>
+                 <%=it.w.ri.get_item_html(re.re[0],null,false)%>
+                 奖励几率:<input type="number" class="pr input-small" maxlength=8 min=0 max=1 step="0.01" value="<%=re.pr%>">
+                 </div>
+            <%}%>
+        </div>
+
+        </td>
+    </tr>
+    </tr>
+    <tr><th>古神遗迹奖励参数:</th>
+        <td style="text-align: right;">
+        每次偏移概率:<input type="number" allow_zero=true name="gjpy" step=0.01 class="input-small" value="<%=data.gjpy ? data.gjpy :0 %>" >
+        保底次数:<input type="number" allow_zero=true name="gjbd" class="input-small" value="<%=data.gjbd ? data.gjbd :0 %>" >
+        每次高级物资消:<input type="number" name="gjwzxh" class="input-small" value="<%=data.gjwzxh ? data.gjwzxh :30 %>" >
+        </td>
+    </tr>
+    <tr><th></th>
+            <td>    
+            <div id="high-params-cont">
+            <%var res=it.data.high_params;%>
+            <% for (var i in res){%>
+                 <%var re=res[i];%>
+                 <div class="item">
+                 <span>奖励<b class="re_id"><%=re.ID + 1%></b>:</span>
+                 <%=it.w.ri.get_item_html(re.re[0],null,false)%>
+                 奖励几率:<input type="number" class="pr input-small" min=0 max=1 step="0.01" value="<%=re.pr%>">
+
+                 </div>
+            <%}%>
+            </div>
+            </td>
+    </tr>
+</table>
+</div>
+</script>
+<!-- 模版结束 -->
+
+
+
+<!-- 这里重写商城活动的参数配置 -->
+<script type="text/javascript">
+// 奖励几率之和必须为1
+// 有参数的数组不等于8组或古神遗迹奖励有参数的数组不等于6组，则无法保存，并弹出提示“普通/高级数组数量不正确”
+
+var ri = new ResourceInput()
+
+function get_number_for_input(contEle,name_str,defualt){
+     var v = contEle.find('[name="' + name_str + '"]').val()
+     v = !isNaN(v) && v ? parseFloat(v) : defualt ? defualt : 0
+     return v
+}
+
+// 这里重写 从控件获取值的函数
+activitySetting.get_json = function(){
+    if (!this.check_empty_input()){return false}
+    var msg =  []
+    var date_array = []
+    //开启时间
+    var st = datetime_str_to_timestamp( this.contEle.find('[name="st"]').val() ),
+        et = datetime_str_to_timestamp( this.contEle.find('[name="et"]').val() )
+
+
+     if ( st <= this.system_timestamp ) {
+        alert('开始时间不能早于当前服务器时间!')
+        return false
+     }
+     if ( et <= st) {
+        alert('结束时间不能早于开始时间!')
+        return false
+     }
+     if ( et <= this.system_timestamp) {
+        alert('结束时间不能早于当前服务器时间')
+        return false
+     }
+
+     date_array.push( st )
+     date_array.push( et )
+
+     msg.push( date_array )
+
+     var ptwzxh = get_number_for_input(this.contEle,'ptwzxh')
+     msg.push( ptwzxh )
+
+     var gjwzxh = get_number_for_input(this.contEle,'gjwzxh')
+     msg.push( gjwzxh )
+
+     var wz = get_number_for_input(this.contEle,'wz')
+     msg.push( wz )
+
+
+     var general_pr = 0,
+         high_pr = 0
+     var max_pr = 100000
+
+     var general_re = [],
+         high_re = []
+     var general_ele = this.contEle.find('#general-params-cont')
+     var high_ele = this.contEle.find('#high-params-cont')
+
+     general_ele.find('.item').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.ID =  parseInt( $ele.find('.re_id').text() ) -1
+        obj.pr = $ele.find('.pr').val()
+        obj.pr = obj.pr && !isNaN(obj.pr) ? parseFloat(obj.pr) : 0.0
+        general_pr += obj.pr * max_pr
+        obj.re = []
+        obj.re.push( ri.to_json($ele.find('.equipitem')) )
+        general_re.push( obj )
+        console.dir(obj.pr)
+     })
+
+     msg.push( general_re )
+
+     var ptpy = get_number_for_input(this.contEle,'ptpy')
+     var ptbd = get_number_for_input(this.contEle,'ptbd')
+     msg.push( [ptpy,ptbd] )
+
+     high_ele.find('.item').each(function(i,ele){
+        var $ele = $(ele)
+        var obj = {}
+        obj.ID =  parseInt( $ele.find('.re_id').text() ) -1
+        obj.pr = $ele.find('.pr').val()
+        obj.pr = obj.pr && !isNaN(obj.pr) ? parseFloat(obj.pr) : 0.0
+        high_pr += obj.pr * max_pr
+        obj.re = []
+        obj.re.push( ri.to_json($ele.find('.equipitem')) )
+        high_re.push( obj )
+     })
+     msg.push( high_re )
+
+     var gjpy = get_number_for_input(this.contEle,'gjpy')
+     var gjbd = get_number_for_input(this.contEle,'gjbd')
+     msg.push( [gjpy,gjbd] )
+     console.dir(general_pr)
+     console.dir(high_pr)
+   
+     if ( general_pr != max_pr ){
+        alert('母虫巢穴 奖励几率之和必须为1,小数位最多4位!')
+        return false
+     }
+     if ( high_pr != max_pr){
+        alert('古神遗迹 奖励几率之和必须为1,小数位最多4位!')
+        return false
+     }
+     
+     return JSON.stringify(msg)
+}
+
+var default_msg = {{default_params|safe}}
+// 这里重写值到控件的函数
+activitySetting.to_html = function(msg){
+
+    msg = $.isEmptyObject(msg) ? default_msg : msg
+    console.dir(msg)
+
+    var new_msg = {}
+    new_msg.st = msg[0][0]
+    new_msg.et = msg[0][1]
+    
+    new_msg.ptwzxh = msg[1]
+    new_msg.gjwzxh = msg[2]
+
+
+    new_msg.wz = msg[3]
+
+
+
+    new_msg.general_params = msg[4]
+
+    new_msg.ptpy = msg[5][0] //母虫巢穴保底每次偏移概率【】
+    new_msg.ptbd = msg[5][1] //母虫巢穴保底每次保底次数【】
+
+    new_msg.high_params = msg[6]
+
+    new_msg.gjpy = msg[7][0] //古神遗迹保底每次偏移概率【】
+    new_msg.gjbd = msg[7][1] //古神遗迹保底每次保底次数【】
+    console.dir(new_msg)
+    var html = get_views("explore-setting-tpl",new_msg)
+    this.contEle.html(html)
+}
+
+
+activitySetting.get_status = function(data){
+    var status = ''
+    var date_array = data[0]
+    var st = date_array[0]
+    var et = date_array[1]
+
+    console.dir(data)
+
+    var in_time_range =   this.system_timestamp >= st  && this.system_timestamp <=et 
+    if (in_time_range) {
+        status = '<span class="label label-success">已开启</span>'
+    } else if (st == 0 && et == 0 ) {
+        status = '<span class="label label-danger">已关闭</span>'
+    } else if ( !in_time_range) {
+        status = '<span class="label label-primary" title="开启时段'+timestamp_to_datetime_str(st)+'- '+ timestamp_to_datetime_str(et)+'">未开始</span>'
+    }
+    return status
+}
+
+
+</script>
+
+
+

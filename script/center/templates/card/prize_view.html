@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}礼包卡抽奖活动列表{% endblock %}
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+	礼包卡抽奖
+</div>
+{% if model %}
+<form method="post" action="/card/prize/get/{{model.id}}/{{model.code}}">
+	<div>
+		<h3>{{model.name}}</h3>
+		<div>
+			<input type="submit" value="抽奖"/>
+		</div>
+	</div>
+</form>
+{% else %}
+<div class="sub-menu-1">没有符合条件的结果！</div>
+{% endif %}
+
+{% endblock %}
+

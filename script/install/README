@@ -1,0 +1,38 @@
+安装指南:
+1.上传db目录到/data/www/目录,并导入card.sql和center.sql
+
+2.上传script目录内文件到linux机器的/data/www/yxgl目录
+
+3.安装python包
+cd install && sh ./install_packets.sh
+
+4.创建static目录
+mkdir -p /data/www/yxgl/static/md5
+mkdir -p /data/www/yxgl/static/notice
+mkdir -p /data/www/yxgl/static/server
+mkdir -p /data/www/yxgl/static/operations
+
+5.配置nginx,前提已安装nginx
+cd install
+cp game.conf /etc/nginx/conf.d/game_analys.conf
+service nginx restart
+
+按以前的方法安装会报以下错误
+unavailable modifier requested: 0
+https://blog.csdn.net/sinat_21302587/article/details/74841397
+
+添加了以下操作:
+yum install uwsgi-plugin-python2
+uwsgi启动时添加--plugins=python
+
+跨域问题处理配置:
+在nginx的对应端口站点配置内加上以下
+location / {
+    add_header Access-Control-Allow-Origin *;
+    add_header Access-Control-Allow-Methods 'GET, POST, OPTIONS';
+    add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization';
+
+    if ($request_method = 'OPTIONS') {
+        return 204;
+    }
+}

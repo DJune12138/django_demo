@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load mytags %} 
+{% block header%}
+<title>背包道具信息</title>
+{% include 'game/resource_editor.html' %}
+{% endblock %}
+{% block content %}
+
+ <script>
+ var server_id = '{{server_id}}'
+ var player_id = '{{player_id}}'
+ </script>
+
+<div class="col-xs-12 widget-container-span ui-sortable">
+        <div class="widget-box ">
+            <div class="widget-header widget-header-small">
+                <h5>背包道具({{tol_equio_num}})</h5>
+                <div class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="widget-body">
+                <div class="widget-body-inner" >
+                <div class="widget-main no-padding">
+                    <table class="table table-bordered equip-info-table eq">
+                        <tr>
+                            <th>道具名称</th>
+                            <th>道具数量</th>
+                        </tr>
+                        {% for eq in equip_item%}
+                        <tr>
+                            <td>{{ eq.0 }}</td>
+                            <td>{{ eq.1 }}</td>
+                        </tr>
+                        {%endfor%}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+var equip_modify_url = '/game/equip/equip_modify?player_id={{player_id}}&server_id={{server_id}}&player_name={{player_name}}'
+$(function(){
+	function ajaxDo(url,data,callback,err_callback){
+		$.ajax({
+			url: url,
+			type: 'POST',
+			dataType: 'json',
+			data: data,
+		})
+		.done(function(data) {
+			callback(data)
+		})
+		.fail(function(a,b,c) {
+			err_callback(a,b,c)
+		})
+	}
+
+    $('td.change,td.append').each(function(i,ele){
+        var This = $(ele)
+        var is_append = This.hasClass('append') ? true : false
+        var value = is_append ? '' : This.text(),
+            key = This.attr('key'),
+            class_str = This.attr('class')
+        class_str += is_append ? ' input-mini' : ''
+        var placeholder = is_append ? '增减' : ""
+
+        var input = $('<input>',{"type":"number","key":key,"class":class_str ,"placeholder":placeholder,"val":value,"maxlength":11,"old_value":value,"change":function(){
+            var This = $(this)
+            if (This.attr('old_value')!=This.val()) {
+                This.attr('name',This.attr('key'))
+                This.css("background",'yellow')
+            } else {
+                This.removeAttr('name')
+                This.css("background",'white')
+            }
+        }})
+        if (is_append) {
+            This.append(input)
+        } else {
+            This.html(input)
+        }
+
+        This.removeAttr('class')
+        //This.css('text-align','center')
+    })
+
+    //数量增减
+
+    $('#equip-save-btn').click(function(){
+        var less_l = []
+        var greater_l = []
+        $('.append ').each(function(i,ele){
+            var _l1 = []
+            var _l2 = []
+            var $ele = $(ele)
+            var value = parseInt($ele.val())
+            var old_value = parseInt($ele.attr('old_value'))
+            var id = parseInt($ele.parent().prev().find('.del').attr('num'))
+            if (value && ! isNaN(value) && id && value > 0) {
+                _l1.push(id/1000,value)
+                greater_l.push(_l1)
+            }
+            else if (value && ! isNaN(value) && id && value < 0) {
+                _l2.push(id,Math.abs(value))
+                less_l.push(_l2)
+            }
+        })
+        console.dir(greater_l)
+        console.dir(less_l)
+        if (!$.isEmptyObject(greater_l)){
+            var msg = JSON.stringify(greater_l)
+            var data = {req_type:'equip-add_nums','msg':msg}
+            ajaxDo(equip_modify_url,data,function(data){
+                $('#equip_add_tmp').dialog().hide()
+                if (data.code == 0) {
+                    alert('添加成功!')
+                    location.reload()
+                } else {
+                    art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+                }
+            },function(a,b,c){
+                alert('错误！')
+            })
+        }
+        if (!$.isEmptyObject(less_l)){
+            var msg = JSON.stringify(less_l)
+            var data = {req_type:'equip-del_nums','msg':msg}
+            ajaxDo(equip_modify_url,data,function(data){
+                $('#equip_add_tmp').dialog().hide()
+                if (data.code == 0) {
+                    alert('删除成功!')
+                    location.reload()
+                } else {
+                    art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+                }
+            },function(a,b,c){
+                alert('错误！')
+            })
+        }
+    })
+
+    //添加装备或道具
+    $('#equip-add-btn').click(function(){
+        $('#equip_add_tmp').dialog({"title":"添加装备&道具"})
+    })
+
+    $('#equip-add-sure-btn').click(function(){
+        var iid_list = []
+        var num_list = []
+        $('[name="iid"]').each(function(i,ele){
+            var value = $(ele).val()
+            if (value && ! isNaN(value)){
+                iid_list.push(parseInt(value))
+            }
+        })
+
+        $('[name="num"]').each(function(i,ele){
+            var value = $(ele).val()
+            if (value && ! isNaN(value)){
+                num_list.push(parseInt(value))
+            }
+        })
+
+        if (iid_list.length != num_list.length){
+            alert('数值错误！')
+            return
+        }else{
+            var msg = JSON.stringify({'iid_list':iid_list,'num_list':num_list})
+            var data = {req_type:'equip-add','msg':msg}
+            ajaxDo(equip_modify_url,data,function(data){
+                $('#equip_add_tmp').dialog().hide()
+                if (data.code == 0) {
+                    alert('添加成功!')
+                    location.reload()
+                } else {
+                    art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+                }
+            },function(a,b,c){
+                alert('错误！')
+            })
+        }
+    })
+
+})
+
+//删除装备或道具
+function del_equips(ele){
+    if (confirm("确认要删除道具吗 ?")) {
+        var msg_list = []
+        msg_list.push(parseInt($(ele).attr('num')))
+        if (!$.isEmptyObject(msg_list)){
+        msg_list.push(parseInt($(ele).parent().next().text()))
+        }
+        var msg_l = []
+        msg_l.push(msg_list)
+        var msg = JSON.stringify(msg_l)
+        var data = {req_type:'equip-del','msg':msg}
+        $.ajax({
+            url: equip_modify_url,
+            type: 'POST',
+            dataType: 'json',
+            data: data,
+        })
+        .done(function(data) {
+            if (data.code == 0) {
+                alert('删除成功!')
+                location.reload()
+            } else {
+                art.dialog( {"title":"错误","content":data.msg.replace(/\n/g,'<br>')})
+            }
+        })
+        .fail(function(a,b,c) {
+            err_callback(a,b,c)
+        })
+    }
+}
+
+</script>
+
+
+{% endblock %}

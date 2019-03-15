@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+
+{% block header%}
+<title>{{gm_def.title}} 配置</title>
+{% include 'game/resource_editor.html' %}
+<script type="text/javascript">
+	var current_page = "gm_form"; 
+	var now_time_str = "{{now_time_str}}";
+	var system_timestamp = Date.parse(now_time_str.replace(/-/g,"/")) / 1000;
+	var field_key_dic = {}
+	setInterval(function(){system_timestamp++;}, 1000);
+	
+	function field_focus(target){
+		var value = $(target).val();
+		var old_val = $(target).attr('old_value');
+		if (old_val == undefined || old_val == ''){
+			$(target).attr('old_value', value);
+		}
+		 
+	}
+	
+	function field_blur(target){
+		 
+		var value = $(target).val();
+		var old_val = $(target).attr('old_value');
+		
+		var field_key = $(target).attr('field_key');
+		var tip_class = 'tip_' + field_key;
+		var tip = $("."+tip_class);
+		if (value != old_val){
+			$(target).attr('name', field_key);
+			var _tip = $('<span class="'+tip_class+'" style="color:red;" >有修改</span>');
+			if(!tip.length){
+				$(target).after(_tip);
+			}
+            field_key_dic[field_key] = value;
+		}else{
+			if(tip.length){
+				tip.remove();
+			}
+		}
+		 
+	}
+
+	function datetime_str_to_timestamp(s){
+		return Date.parse(s.replace(/-/g,"/")) / 1000;
+	}
+	
+</script> 
+{% endblock %}
+
+{% block content %}
+
+<div id="bar">
+	{{gm_def.title}}
+	<div class="buttons" >
+		<a href="/game/gm/list" >返回列表</a>
+	</div>
+</div>
+
+ <div>
+ 	{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=select_server_ids %}
+ </div>
+<div class="hr"></div>
+<form id="gm_form" action="{{def_result.form_action}}" method="post"  >
+
+	<table class="form">
+	{%for key,item in result %}
+	<tr>
+		<th width="160px">{{item.name}}:</th>
+		<td data-target="{{item.key}}" >
+			{% ifequal item.attr_type 'auto_timestamp' %}
+				<input type="text" data-field-flag="auto_timestamp" field_key="{{item.key}}" value="{{item.get_value|safe}}" old_value="" onfocus="field_focus(this);"  onblur="field_blur(this);"  style="width:325px;"  />
+			{% endifequal %}
+			
+			{% ifequal item.attr_type 'text' %}
+				{%if item.is_modify%}
+					<input type="text" field_key="{{item.key}}" value="{{item.get_value|safe}}" old_value="" onfocus="field_focus(this);"  onblur="field_blur(this);"  style="width:325px;"  />
+				{%else%}
+					{{item.get_value|safe}}
+				{%endif%}
+			{% endifequal %}
+			
+			{% if item.attr_type == 'number' or item.attr_type == 'int' %}
+				{%if item.is_modify%}
+					<input type="text" field_key="{{item.key}}" value="{{item.get_value|safe}}" old_value="" onfocus="field_focus(this);"  onblur="field_blur(this);"  style="width:125px;"  />
+				{%else%}
+					{{item.get_value|safe}}
+				{%endif%}
+			{% endif %}
+			 
+			{% ifequal item.attr_type 'textarea' %}
+				{% if item.is_modify %}
+					<textarea cols="20" rows="5" field_key="{{item.key}}" onfocus="field_focus(this);"  onblur="field_blur(this);"></textarea>
+				{%else%}
+					{{item.get_value|safe}}
+				{% endif %}
+			
+			{% endifequal %}
+			
+			{% ifequal item.attr_type 'array' %}
+				{% if item.is_modify %}
+					<textarea cols="20" rows="5" field_key="{{item.key}}" onfocus="field_focus(this);"  onblur="field_blur(this);"></textarea>
+				{%else%}
+					{{item.get_value|safe}}
+				{% endif %}
+			
+			{% endifequal %}
+			
+			
+			{% ifequal item.attr_type 'json' %}
+				{% if item.is_modify %}
+					<textarea cols="20" rows="5" field_key="{{item.key}}" old_value="" onfocus="field_focus(this);"  onblur="field_blur(this);">{{item.get_value|safe}}</textarea>
+				{%else%}
+					{{item.get_value|safe}}
+				{% endif %}
+			
+			{% endifequal %}
+			
+			{% ifequal item.attr_type 'timestamp' %}
+				{% if item.is_modify %}
+					<input class="Wdate" type="text" field_key="{{item.key}}" value="{{item.get_value|safe}}" old_value="" onfocus="field_focus(this);"  onblur="field_blur(this);"   />
+				{% else %}
+					{{item.get_value|safe}}
+				{% endif %}
+			{% endifequal %}
+			
+			<script type="text/javascript">
+
+				field_key_dic['{{item.key}}'] = '{{item.get_value|safe}}';
+			</script>
+		</td>
+	</tr>
+	{%endfor%}
+	
+	<script type="text/javascript" >
+			
+			$(document).ready(function(){
+				for(key in field_key_dic){
+				var attr_value = field_key_dic[key]; 
+				var attr_item = $('[field_key="' + key + '"]'); 
+				console.log(attr_item);
+				if (0 != attr_item.length){
+					attr_item.attr('old_value',attr_value);
+					attr_item.val(attr_value);
+				}
+			}
+			
+			
+			var timestamp = Date.parse(new Date()) / 1000;
+			$('[data-field-flag="auto_timestamp"]').each(function(){
+				var field_key = $(this).attr("field_key");
+				var old_value = field_key_dic[field_key];
+				if(old_value){
+					if(old_value == '0' || old_value == 0 || old_value == ''){
+						$(this).val(timestamp);
+						$(this).attr('old_value',timestamp);
+						$(this).attr('name', field_key);
+					}
+				}
+			});
+			
+			
+		});
+	 
+	</script>
+
+	 <tr>
+	 	<th>
+	 		
+	 	</th>
+	 	<td>
+	 		<input id="btn_save" type="button" value="保存" onclick="return loopComit()"><div class="msg_tip_div" >&nbsp;</div>
+	 	</td>
+	 </tr>
+	</table>
+</form> 
+<script type="text/javascript" > 
+
+
+var the_form = $("#gm_form");
+var post_url = $("#gm_form").attr('action')
+var is_running = false
+var server_process = new ServerProcess()
+var post_count = 0
+function ajaxDo(server_id,post_data,err_count){
+	var err_count = err_count ? err_count : 0
+	var post_data = $.extend({"server_id":server_id}, post_data);
+	post_count++
+	var server_status_cont = server_process.get_server_status_cont(server_id)
+	if (is_running) {
+		server_status_cont.html('提交中...')
+		$.ajax({
+			url: post_url,
+			dataType:'json',
+			type: 'POST',
+			data: post_data,
+			timeout:30000,
+		})
+		.done(function(data) {
+				msg = data.code==0 ? '成功!': data.msg 
+				server_status_cont.html(linebreaksbr(msg))
+		})
+		.fail(function(o,x,text) {
+
+			if (err_count<=1) {
+				ajaxDo(server_id,post_data,err_count + 1)
+			} else {
+				server_status_cont(linebreaksbr(o.responseText))
+			}
+		})
+
+	} else {
+		server_status_cont('停止!')
+	}
+}
+
+// 重新这个方法
+function get_post_data(){
+	var msg = []
+	return {"msg":msg,"player_id":0}
+}
+
+
+
+function loopComit() {
+	var server_ids = get_server_ids(true)
+	var post_data = get_post_data()
+	if (! post_data) {
+		alert('没有修改!')
+		return 
+	}
+	if ( server_ids.length<=0 ) {
+		alert('没有勾选服务器!')
+		return 
+	}
+	var tol_count = server_ids.length
+	server_process.show({"title":"服务器状态:","top":0,"close":function(){
+		if (post_count == tol_count) {
+			return true
+		}
+		if ( confirm('是否关闭状态,将停止发送!') ) {
+			is_running = false
+			return true
+		} else {
+			return false
+		}
+	}})
+
+	is_running = true
+	post_count = 0
+	for (var i in server_ids) {
+
+		var server_id = server_ids[i]
+		server_process.make_tr_for_server_id(server_id)
+		ajaxDo(server_id,post_data)
+	}
+}
+
+server_process.process_bar.append(
+	$('<a>',{"html":"停止","class":"btn btn-sm btn-primary pull-right","click":function(){
+		if ( confirm('是否停止发送!') ) {
+			is_running = false
+		} 
+	}})
+)
+
+
+		
+
+</script> 
+
+{% if other_templates %}
+	{% for tpl in other_templates%}
+	{% include tpl %}
+	{%endfor%}
+{% endif %}
+
+{% endblock %}

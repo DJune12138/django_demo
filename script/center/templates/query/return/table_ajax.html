@@ -1,0 +1,29 @@
+<table  class="table table-bordered datatable" data-flag='data-list' >
+	 <thead>
+		<tr>
+		{%for field in fields%}
+		<th>{{field}}</th>
+		{%endfor%}
+		</tr>
+ 	</thead>
+ 	<tbody>
+		{%for items in list_data%}
+		<tr>
+			{%for item in items%}
+			<td>{{item}}</td>
+			{%endfor%}
+		</tr>
+		{%endfor%}
+	</tbody>
+	{% if tfoot_data%}
+	<tfoot style="font-weight: bold;">
+		{%for tr in tfoot_data%}
+		<tr>
+			{% for td in tr%}
+			<td>{{td}}</td>
+			{%endfor%}
+		</tr>
+		{%endfor%}
+	</tfoot>
+	{%endif%}
+</table>

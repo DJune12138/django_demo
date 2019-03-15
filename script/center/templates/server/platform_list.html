@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>游戏平台列表</title>
+
+{% endblock %}
+
+{% block content %}
+
+
+
+<div class="bar">
+     <h3>游戏平台列表</h3>
+     <div class="buttons"> 
+        <a href="{{self.url_prefix}}/update_server_channel_file" class="openDialog">更新服务器-渠道文件</a> 
+         <a href="{{self.url_prefix}}/edit" class="openDialog">添加</a> 
+    </div>
+</div>
+
+    <table class="table table-bordered datatable">    
+    <thead>
+        <tr>
+            <th>平台名</th>
+            <th>平台key</th>
+            <th>接口地址</th>
+             <th>json文件</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in record%}
+        <tr>
+            <td>
+                {{item.name}}
+               
+            </td>
+            <td>{{item.key}}</td>
+          <td>
+            数据:<a href="{{item.address}}" class="openDialog">{{item.address}}</a><br>
+            服务器:<a href="{{item.server_address}}" class="openDialog">{{item.server_address}}</a><br>
+            渠道:<a href="{{item.channel_address}}" class="openDialog">{{item.channel_address}}</a><br>
+          </td>
+
+          <td>
+            <a href="/static/platform/{{item.key}}/server.json" class="openDialog">server</a><br>
+            <a href="/static/platform/{{item.key}}/channel.json" class="openDialog">channel</a>
+          </td>
+            <td>
+                <a href="{{self.url_prefix}}/edit?id={{item.id}}" class="openDialog">[编辑]</a>
+                <a href="{{self.url_prefix}}/edit_copy?id={{item.id}}" class="openDialog">[复制]</a>
+                <a href="{{self.url_prefix}}/remove?id={{item.id}}" class="ask">[删除]</a>
+            </td>
+        </tr>
+        {%endfor%}
+    </tbody>
+    </table>
+</div>
+
+
+
+
+
+{% endblock %}

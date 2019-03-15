@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>充值流水</title>
+<script type="text/javascript" >
+
+	$(document).ready(function(){
+		$("#process_errorOrder").dialog('close');
+		$("#process_errorOrder").hide();
+	});
+
+	function search_list(){
+		url = '/pay/list?pay_type=' + $("[name='pay_type']").val()+"&pay_id=" + $("#input_userId").val()+ "&user_id=" + $("#input_userId").val();
+		document.location.href = url;
+	}
+	
+	/* 处理错误订单 */  
+	
+	function showProceOrderDialog(pay_id){ 
+		$("[name='pay_id']").val(pay_id);
+		$("#process_errorOrder").dialog({"title":'订单ID: ' + pay_id});
+		return false; 
+	}
+	function payConfirm(pay_id){
+		if (!confirm('确定已到帐?')){return false}
+		art.dialog.open('/pay/confirm/?pay_id='+pay_id)
+	}
+
+	function proceOrder(ele){
+		enter = confirm('确认提交');
+		if (enter){
+			ajaxPost(ele);
+		}
+		return false;
+	}
+	
+	function ajaxPost(ele){
+		var param = $("#proceOrderForm").serialize()
+		var url = $("#proceOrderForm").attr("action");
+		$(ele).attr('disabled',"disabled")
+		var options = {
+			type : "post",
+			url : url,
+		    contentType : "application/x-www-form-urlencoded; charset=utf-8",
+			data : param,
+			success : function(result) {
+				if (result == -1 ){
+					alert('失败!');
+				} else {
+					var json_item = eval('('+result+')');
+					if (json_item.pay_status == 2){
+						alert('成功!');
+						var item_id = $("[name='pay_id']").val();
+						var tmp_id = json_item.id;
+						$("#item_"+tmp_id).hide();
+						$("#item_order_id_" + tmp_id).html(json_item.order_id);
+						$("#item_pay_amount_" + tmp_id).html(json_item.pay_amount);
+						$("#item_pay_gold_" + tmp_id).html(json_item.pay_gold);
+						$("#item_pay_status_" + tmp_id).html('已补单');
+						$(ele).removeAttr('disabled')
+					}
+				}
+				$("input").attr('disabled', false);
+			},
+			cache : false,
+			timeout : 15000,
+			error : function() {
+				$("#tip_box").html("链接超时！请重试");
+				$("#tip_box").dialog();
+				$("input").attr('disabled', false);
+				$(ele).removeAttr('disabled')
+			}
+		}
+		$.ajax(options);
+		return false;
+	}
+	
+	$(document).ready(function(){
+		$("a.domain").each(function(){
+			var h = $(this).attr('href');
+			$(this).attr('href', 'http://' + document.domain + h);
+		});
+		
+		$('[data-flag="payaction-list"] tr').each(function(){
+			var pay_type_name = $($(this).find('[data-flag="pay_type_name"]'));
+			if(!pay_type_name)
+				return;
+			pay_type_name = pay_type_name.text();
+			if(-1 == pay_type_name.toLowerCase().indexOf('gash'))
+				return;
+			
+			var options_bar = $($(this).find('[data-flag="options"]'));
+			if(!options_bar)
+				return;
+			
+			var data_item_id = options_bar.attr('data-item-id');
+			
+		});	
+	});
+	
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="bar">
+充值日志 {%ifequal table_name "old"%}
+	历史数据(二月前)
+	{%endifequal%} 
+<!-- <div class="buttons"> 
+	{%ifequal table_name "old"%}
+	<a href="/pay/list">新数据</a> 
+	{%else%}
+	<a href="/pay/list/old">历史数据(二月前)</a>
+	{%endifequal%} 
+</div> -->
+</div>
+<form action="/pay/list" method="get" >
+<div class="sub-menu-1">
+		{%include 'widgets/group_server_select.html' with has_all=True %}
+</div>
+<div class="sub-menu-1">
+
+		<select name="status">
+			<option value="0" {% ifequal pay_status  0 %}  selected="selected" {% endifequal %} >全部</option>
+			<option value="3" {% ifequal pay_status  3 %}  selected="selected" {% endifequal %}  >异常订单</option>
+			<option value="-4" {% ifequal pay_status  -4 %}  selected="selected" {% endifequal %} >失败订单</option>
+		</select>
+	
+		<select name="pay_type" class="pay_channel_list" >
+			<option value="0" >全部支付通道</option>
+			{% for payChannel  in payChannel_list %}
+				<option value="{{payChannel.id}}" {% ifequal pay_type payChannel.id  %} selected="selected" {% endifequal %} >{{payChannel.name}}-{{payChannel.func_name}}</option>
+			{% endfor %}
+		</select>
+		<input type="text" class="search_channel_list" style="width:50px;" onchange="search_dbl_list('pay_channel_list', 'search_channel_list')" />
+		<div>
+		<select name="key_type" >
+			<option value="0" {% ifequal key_type 0 %} selected="selected" {% endifequal %} >订单号</option>
+			<option value="2" {% ifequal key_type 2 %} selected="selected" {% endifequal %}  >合作方订单号</option>
+			<option value="1" {% ifequal key_type 1 %} selected="selected" {% endifequal %}  >玩家ID</option>
+			<option value="3" {% ifequal key_type 3 %} selected="selected" {% endifequal %}  >卡号</option>
+			<option value="4" {% ifequal key_type 4 %} selected="selected" {% endifequal %}  >备注</option>
+		</select>
+
+		<input type="text" name="key" value="{{key}}" />
+		
+		<input type="submit" id="btn_search" value="查询" />
+		<a href="/pay/list?status=3">异常等处理的订单</a>
+		<a href="/pay/list?status=-4">失败订单</a>
+        <input type="button" value="导出Excel" id="btnExport">
+    	</div>
+        <!--a href="/query/view?name=订单导出" class="dialog">订单导出</a-->
+
+</div>
+</form>
+<div id="tableExcel">
+<table id="testTable" class="table table-bordered" data-flag="payaction-list" >
+	<thead>
+	<tr>
+		<th width="50"> 编号 </th>
+		<th width="150">提交时间<br>完成时间</th>
+		<th width="85">玩家ID<br/>关联账号</th>
+		<th width="150" align="center">订单号<br/>合作方订单号</th>
+		<th width="55" style="text-indent:0em;">提交金额</th>
+		<th width="55" style="text-indent:0em;">实充金额</th>
+		<th width="55" style="text-indent:0em;">获得钻石</th>
+		<th width="55" style="text-indent:0em;">获得返利</th>
+		<th width="85" >充值通道</th>
+		<th width="120"  >服务器</th>
+		<th width="120"  >备注</th>
+		<th width="150">充值状态</th>
+	</tr>
+	</thead>
+	<tbody>
+	{%for item in list_record%}
+	<tr>
+		<td>{{item.id}}</td>
+		<td>{{item.post_time|date:"Y-m-d H:i:s"}}<br>
+			{{item.last_time|date:"Y-m-d H:i:s"}}
+		</td>
+		<td><a href="/pay/list?key_type=1&key={{item.pay_user}}" >{{item.playerName}}  {{item.pay_user}} </a>
+			<br/>
+			{{item.open_id}}
+		</td>
+		<td align="center">
+			{{item.query_id}}<br/>
+			<a href="#" id="item_order_id_{{item.id}}" title="卡号:{{item.card_no}}">
+				{{item.order_id}}
+			</a>
+		</td>
+		<td>{{item.post_amount}}</td>
+		<td id="item_pay_amount_{{item.id}}">{{item.pay_amount}}</td>
+		<td id="item_pay_gold_{{item.id}}">{{item.pay_gold}}</td>
+		<td >{{item.extra}}</td>
+		<td data-flag="pay_type_name" title="充值通道ID: {{item.pay_type}}">{{item.pay_type_name}}</td>
+		<td title="服务器ID: {{item.server_id}}">{{item.server_name}}({{item.server_id}})</td>
+		<td >{{item.remark}}</td>
+		<td id="item_pay_status_{{item.id}}" data-flag="options" data-item-id="{{item.id}}">{{item.pay_status_name}}
+
+			{%if item.pay_status == 2 or item.pay_status == -2%}
+				{%if request.allow_menu.补单%}
+				<a href="/pay/reissue?pay_id={{item.id}}" class="openDialog">[补发]</a>
+				{%endif%}
+			{%endif%}
+
+			{%if item.pay_status < 2 %}
+			{%if request.allow_menu.人工审核%}
+			<br>
+			<a id="item_{{item.id}}" href="javascript:void(0)" onclick="return showProceOrderDialog({{item.id}})" >[人工补单]</a><br>
+			<a  href="javascript:void(0)" onclick="return payConfirm({{item.id}})" >[已到帐]</a>
+			<br>
+			<a  href="/query/view/钻石流水?&server_id={{item.server_id}}&log_user={{item.pay_user}}&sdate={{item.post_time|date:"Y-m-d H:i:s"}}&log_type=3108" class="openDialog" >[金币流水]</a>
+			{%endif%}
+			{%endif%}
+			
+		</td>
+	</tr>
+	{%endfor%}
+	</tbody>
+</table>
+</div>
+<div id="process_errorOrder" type="display:none">
+	<form id="proceOrderForm"  action="/pay/pay_fix" method="post">
+		合作方订单号:<input type="text" name="order_id" />
+		充值金额:<input type="text" name="pay_amount" />
+		<input type="hidden" name="pay_id" value="" />
+		<input type="button" value="补单" onclick="return proceOrder(this);" />
+	</form>
+</div>
+
+
+{% include "pager.html" %}
+
+{%if request.admin.is_root%}
+<div class="sub-menu-1 update_channel" >
+	<label>更新充值渠道ID:</label>
+	开始日期：<input type="text" class="Wdate1" name="sdate" />
+	结束日期：<input type="text" class="Wdate1" name="edate" />
+	<input type="button" class="btn_update_channel" value="更新" />
+</div>
+{%endif%}
+
+<script type="text/javascript" >
+
+
+	var close_update = false;
+	var max_id = 0, min_id = 0;
+	
+	$(document).ready(function(){
+		$(".btn_update_channel").bind('click', function(){
+			var sdate = $(".update_channel input[name='sdate']").val();
+			var edate = $(".update_channel input[name='edate']").val();
+			close_update = false;
+			max_id = 0;
+			min_id = 0;
+			do_update_channel(0,0, sdate, edate);
+		});
+	});
+	
+	function do_update_channel(sid, eid, sdate, edate){
+		var url = '/pay/update_channel';
+		param = {"sid":sid, "eid":eid, "sdate":sdate, "edate":edate};
+		var options = {
+			type : "get",
+			url : url,
+			contentType : "application/x-www-form-urlencoded; charset=utf-8",
+			data : param,
+			success : function(result) {
+				result = eval('(' + result + ')');
+				check_state(result, sdate, edate);
+			},
+			cache : false,
+			timeout : 10000,
+			error : function() {
+				$("#tip_box").html("链接超时！请重试");
+				$("#tip_box").dialog({ modal: true });
+				$("input").attr('disabled', false);
+			}
+		}
+		$.ajax(options);
+	}
+	
+	function check_state(result, sdate, edate){
+		
+		if (close_update){
+			$("#tip_box").html("已关闭更新"); 
+			$("input").attr('disabled', false);
+			close_update = false;
+			return;
+		}
+		
+		if (max_id + min_id <= 0){
+			max_id = result.max_id;
+			min_id = result.min_id;
+		}
+		
+		if (result.sid > max_id){ 
+			$("#tip_box").html("全部完成");
+			$("input").attr('disabled', false);  
+		}else{
+			 
+			var bar_html = get_progress_bar(result.sid, result.eid);
+			
+			$("#tip_box").html(bar_html);
+			
+			do_update_channel(result.sid, result.eid, sdate, edate);
+		}
+		$("#tip_box").dialog({ modal: true,  
+			close: function(event, ui) {
+				  close_update = true;
+			}
+		});
+	}
+	
+	function get_progress_bar(sid, eid){
+		
+		var width = 0;
+		if (max_id == 0 || min_id == 0){
+			width = 100;
+		}else{
+			
+			var total_record = max_id - min_id;
+			
+			var str = '<div style=" background-color:#F5F5F5; width:100%;" >';
+			
+			width = (total_record - (max_id-sid)) / total_record * 100;
+		}
+		str += '<div style=" background-color:#476B9C; width:' + width + '%;" >&nbsp;</div>';
+		
+		str += '</div>';
+		
+		return str;
+	}
+
+
+  var tableToExcel = (function() {
+      var uri = 'data:application/vnd.ms-excel;base64,'
+        , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'
+        , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+        , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+      return function(table, name) {
+        if (!table.nodeType) table = document.getElementById(table)
+        var ctx = {worksheet: name || 'Worksheet', table: table.innerHTML}
+        window.location.href = uri + base64(format(template, ctx))
+      }
+})()
+
+$(function(){
+    $("#btnExport").click(function (e) {
+        tableToExcel('testTable', 'W3C Example Table')
+    });
+});
+</script>
+<div id="dialog">
+
+</div>
+
+{% endblock %}

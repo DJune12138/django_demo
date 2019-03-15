@@ -1,0 +1,16 @@
+{% load mytags %} 
+{
+    "code":{%if not msg%}0{%else%}1{%endif%},
+    "exec_time":{{exec_time}},
+    "msg":"{{err_msg|safe}}",
+    "session_id": "{{session_id}}",
+    "page_num":{{page_num}},
+    "page_size":{{page_size}},
+    "fields":{{fields|json_dumps|safe}},
+    "server_id":"{{server_id}}",
+    "query_name": "{{query_analysis.query.name}}",
+    "total_record": {{total_record}},
+    "result_cache_time":"{{result_cache_time}}",
+    "tfoot_data":{{tfoot_data|json_dumps|safe}},
+    "list_data": {{list_data|json_dumps|safe}}
+}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load mytags%}
+{% block header%}
+<title>日志类型编辑</title>
+{% endblock %}
+
+{% block content %}
+
+<div class="bar">
+	<a href="/log/log/log_list">日志类型列表</a> -> 日志类型编辑
+	<div class="buttons">
+		<a id="save_btn" class="btn btn-app btn-grey btn-xs radius-4 pull-right submit">保存</a>
+	</div>
+</div>
+
+
+
+<form action="/log/log/log_save?id={{model.id}}" method="post" >
+<div class="row">
+	<div class="tabbable">
+		<ul class="nav nav-tabs padding-12 tab-color-blue background-blue">
+			<li class="active"><a data-toggle="tab" href="#tab1">基本配置</a></li>
+			<li class=""><a data-toggle="tab" href="#tab2">字段管理</a></li>
+		</ul>
+		<div class="tab-content">
+			<div id="tab1" class="tab-pane active">
+				
+				<table class="form">
+					{% if model.id%}
+					<tr>
+						<th>ID:</th><td><input type="text" name="id" value="{{model.id}}" />没事别改我</td>
+					</tr>
+					{%endif%}
+					<tr>
+						<th>类型名称：</th><td><input type="text" name="name" value="{{model.name}}" /></td>
+					</tr>
+
+					<tr>
+						<th>类型标识：</th><td><input type="text" name="key" value="{{model.key}}" />可输入：字母，数字，下划线</td>
+					</tr>
+					<tr>
+						<th>数据存放位置:</th>
+						<td>
+							{% for v,k in model.TYPE_CHOICES %}
+							<label>
+							<input type="radio" name="status" value="{{v}}" {% if model.status = v %} checked="checked" {% endif %} />{{k}}</label>
+							{%endfor%}
+							<label>
+						</td>
+					</tr>
+					<tr>
+						<th>备注：</th><td><textarea name="remark">{{model.remark}}</textarea></td>
+					</tr>
+					<tr>
+						<th>触发器SQL:</th>
+						<td><textarea id="code"  name="trigger" rows="10" cols="10" >{{model.trigger}}</textarea>
+							<pre>
+*注意先使用 DROP TRIGGER IF EXISTS triggerName 删除旧触发器,使用{{server_id}}代表服务器ID,使用分号 ';'分割sql语句
+* ALTER TABLE tablename ADD UNIQUE 索引的名字 (列的列表); 
+触发器语法:
+create trigger triggerName
+after/before insert/update/delete on #表名
+for each row                         #这句话在mysql是固定的
+sql语句;
+	</pre>
+						</td>
+					</tr>
+					</table>
+			</div>
+			<div id="tab2" class="tab-pane">
+				<a></a>
+				<table class="list">
+				<thead>
+					<th>字段名</th>
+					<th>描述</th>
+					<th>索引</th>
+				</thead>
+				{% for k,v in model.config.items %}
+				<tr class="config">
+				<td class="field" field="{{k}}">{{k}}</td>
+					<td><input type="text" name="verbose_name" value="{{v.verbose_name}}" ></td>
+					<td><label><input type="checkbox" name="db_index" {%if v.db_index%}checked="checked"{%endif%}>索引</label></td>
+				</tr>
+				{%endfor%}
+				</table>
+				
+				<textarea id="config_input" name="config" class="check_json" style="display:none">{{model.config|json_dumps|safe}}</textarea>
+			</div>
+		</div>
+	</div>
+</div>
+
+</form>
+
+<script type="text/javascript">
+	function convertConfigToJson(){
+		var config = {}
+		$('.config').each(function(i,ele){
+			var This = $(ele)
+			var filedName = This.find('.field').attr('field')
+			config[filedName] = {}
+			This.find(':text').each(function(ii,_ele){
+				config[filedName][$(_ele).attr('name')] =$(_ele).val()
+			})
+			This.find(':checkbox').each(function(ii,_ele){
+				config[filedName][$(_ele).attr('name')] =$(_ele).is(':checked')?true:false
+			})
+
+		})
+		return JSON.stringify(config)
+	}
+
+	$('#save_btn').click(function(){
+		$('#config_input').val(convertConfigToJson())
+	})
+
+
+</script>
+{% with '/static/js/codemirror' as URL %}
+<script src={{URL}}/lib/codemirror.js></script>
+<link rel="stylesheet" href="{{URL}}/lib/codemirror.css" />
+<script src="{{URL}}/mode/sql/sql.js"></script>
+<script type="text/javascript">
+
+window.onload = function() {
+  var mime = 'text/x-mariadb';
+  if (window.location.href.indexOf('mime=') > -1) {
+    mime = window.location.href.substr(window.location.href.indexOf('mime=') + 5);
+  }
+  var editor = CodeMirror.fromTextArea(document.getElementById('code'), {
+    mode: mime,
+    indentWithTabs: true,
+    smartIndent: true,
+    lineNumbers: true,
+    matchBrackets : true,
+    //autofocus: true,
+    tabSize: 4,
+  });
+  //editor.setSize(100,100)
+  
+};
+</script>
+{%endwith%}
+{% endblock %}

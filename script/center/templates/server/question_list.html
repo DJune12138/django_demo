@@ -1,0 +1,738 @@
+{% extends "base.html" %}
+
+{% block header%}
+<title>用户提问</title>
+
+
+<style >
+	.gmb{
+		position: absolute;
+		top: -6px;
+		font-size: 10px;
+		color: white;
+		right: -7px;
+		background: red;
+		text-align: center;
+		border-radius: 10px;
+		width: 15px;
+		height: 15px;
+		text-indent: 0px;
+		line-height: 15px;
+	}
+/*	.qusetion_desc,.answer_desc{
+		margin:0 10px;word-wrap: break-word; word-break: normal; width:300px;
+	}*/
+	.hand{
+		cursor:pointer;
+	}
+	.txt-danger{
+		color:red;
+	}
+	.txt-lg{
+		font-size:120%;
+	}
+	.share_text{
+		width:400px;
+	}
+
+
+	.divselect {
+        display: inline-block;
+		width:120px;
+		font-size: 14px;
+		text-indent: 1em;
+		line-height: 28px;
+		margin-bottom: 3px;
+        margin-left: 5px;
+		}
+	.divselect label{
+		cursor:pointer;
+		font-style:normal;
+		display: block;
+		text-align: left;
+		border: 1px solid #AAAAAA;
+		border-radius: 2px 2px 2px 2px;
+		/*background-color:white;*/
+        margin-bottom: -1px!important;
+	}
+	.divselect label:hover{
+		border: 1px solid #7FA0BE
+	}
+	.divselect ul{
+        margin: 0!important;
+		/*padding:1px;*/
+		list-style: none;
+		border:1px solid #AAAAAA; 
+		background-color:#ffffff; 
+		position:absolute; 
+		z-index:20000;
+		display:none;
+	}
+	.divselect ul li{height:24px; line-height:24px;width: 118px; text-align: left;}
+	.divselect ul li a{height:24px; 
+		color:#333333; 
+		text-decoration:none;
+		display: block; 
+		padding: 0px;
+		float: left;
+		width:120px;
+		margin: 0px;}
+	.divselect ul li a:hover{background-color:#CCC;}
+	.divselect ul li:hover ul{
+		display: inline;
+		position:absolute;
+		left: -90px;
+	}
+	.divselect ul li:hover ul li,.divselect ul li:hover ul li a{
+		width: 100px;
+	}
+    .cate_save{ height: 24px!important; width: 42px!important; line-height: 24px!important; padding: 0!important;}
+
+    .my_btn_style{
+        background-color: #DDDDDD; border-radius: 5px; border: 1px solid #AAAAAA; height: 26px; margin-left: 10px;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="bar">
+<a href="#">客服系统</a> -> 问题列表
+    <div class="buttons">
+       <!--  <a href="javascript:;" id="alias_name" onclick="setNickName()">设置客服别名</a> -->
+        {% if request.allow_menu.编辑问题分类 %}
+    	<a href="/log/dict/edit/?key=question_category" class="openDialog">编辑问题分类</a>
+    	{%endif%}
+    </div>
+</div>
+
+<!-- <div style="position: absolute; top: -15px;font-size: 4px;color: red;right: -1px;">1</div> -->
+<form method="post">
+<table class="table">
+	<tr><th>服务器选择:</th>
+		<td>
+	{% include "widgets/group_server.html" with group_servers_dict=group_servers_dict select_server_ids=server_ids%}
+	</td>
+</tr>
+<tr><th>渠道选择:</th><td>
+
+	{% include "widgets/agent_channel.html" with agent_channels_dict=agent_channels_dict select_channel_ids=channel_ids%}
+</td>
+<tr>
+	</table>
+
+<div class="sub-menu-1">
+	
+状态:<select name="status" svalue="{{status}}" >
+	<option value='-1' >全部</option>
+	<option value='0' >未回复</option>
+	<option value="1" >已回复</option>
+	<option value="2" >已查看</option> 
+</select>
+VIP:<input type="text" name="vip" style="width:30px;" />
+类别:<select name="question_type" svalue="{{question_type}}" >
+	<option value='-1' >全部</option>
+	{% for k,v in  TYPE_MAP%}
+	<option value='{{k}}' >{{v}}</option>
+	{%endfor%}
+</select>
+
+<div class="divselect" default-value="{{question_category}}">
+      <label></label>
+      <ul class="menuUl">
+      	 <li><a href="javascript:;" selectid="">全部</a>
+      	 <li><a href="javascript:;" selectid="未分类">未分类</a>
+      	{% for k,v in question_category_list.items %}
+		 <li><a href="javascript:;" selectid="{{k}}">{{k}}</a>
+		 			{%if v%}
+				<ul>
+				{%for c in  v%}
+					 <li><a href="javascript:;" selectid="{{c}}">{{c}}</a></li>
+				{%endfor%}
+				</ul>
+			{%endif%}
+		</li>
+		{%endfor%}
+
+      </ul>
+        <input name="question_category" type="hidden" value="{{question_category}}" class="inputselect"/>
+</div>
+
+
+<select name="search_type" svalue="{{search_type}}" >
+	<option value='1' >用户id</option>
+	<option value='3' >评分</option>
+	<option value='2' >内容</option>
+</select>
+<input type="text" name="user_id" value='{{user_id}}' />
+<br>
+开始时间:
+<input type="text" name="sdate" value="{{sdate}}" class="Wdate">
+结束时间:
+<input type="text" name="edate" value="{{edate}}" class="Wdate">
+客服帐号:
+<input type="text" name="kefu_name" value='{{kefu_name}}' />
+<input id="queryQuestion" type="submit" value="查询"  />
+
+{% if  is_myqustion and not is_query %}
+	<select name="order_num">
+	<option value="-1" {%if order_num == '-1'%}selected="selected"{%endif%}>不接单</option>
+	<option value="1" {%if order_num == '1'%}selected="selected"{%endif%}>接单</option>
+<!-- 	<option value="3" {%if order_num == '3'%}selected="selected"{%endif%}>3条</option>
+	<option value="5" {%if order_num == '5'%}selected="selected"{%endif%}>5条</option> -->
+	</select>
+{% if kefu_not_reply_num%}
+未回数:{{kefu_not_reply_num}}
+{%endif%}
+{%endif%} 
+
+
+</div>
+</form>
+<div id="list_{{page_num}}" name="list_{{page_num}}">
+	<table class="table ">
+        <thead>
+        <tr>
+            <th width="15"><input type="checkbox" checkbox-area="question_area"></th>
+            <th width="15">ID</th>
+			<th width="80">服务器</th>
+			<th width="30">角色ID</th>
+			<th width="150">问题</th>
+			<th width="30">提交时间</th>
+			<th width="150">回复</th>
+			<th width="30">回复时间</th>
+			<th width="30">回复人</th>
+			<th width="30">状态</th>
+			<th width="30">评分</th>
+			<th width="30">操作</th>
+		</tr>
+        </thead>
+        <tbody id="question_area">
+        {%for item in list_record%}
+		<tr>
+            <td><input type="checkbox" name="question_id" value="{{item.id}}"></td>
+            <td>{{item.id}}<br>
+            	{% if item.session_id%}
+            		追加({{item.session_id}})
+            	{%endif%}
+            </td>
+			<td>
+				{{item.serverName}}<br />
+				<span class="txt-danger txt-lg" >vip{{item.post_user_id}}</span>
+			</td>
+			<td>
+				<a  href="/question/list?server_id={{item.server_id}}&user_id={{item.post_user}}&search_type=1" class="openwindow">{{item.post_user}} </a>
+				
+				<br/>
+				{{item.channel}} |
+				{% if item.question_type == 4 and item.br_url %}
+				 <a title="点我下载战报" href="{{item.br_url}}" target="_blank">{{item.get_question_type_display}}</a>
+				 {%else%}
+				 {{item.get_question_type_display}}
+				 {%endif%}
+			</td>
+
+			<td style="word-break: break-all;">
+
+				<!-- {%if   request.admin.is_kefu and not item.order_user %}
+					<div>
+					<a class="question_order" href="javascript:void(0)" question="{{item.question|safe}}" qid="{{item.id}}"> 查看问题</a>
+					<div style="display:none">
+						<div class="qusetion_desc"  id="question_{{item.id}}" >{{item.question}}</div>
+						<span style="color: gray">({{item.info}})</span>
+					</div>
+					</div>
+				{%else%} -->
+				<!-- {%endif%} -->
+				<div >
+					<div class="qusetion_desc" id="question_{{item.id}}" >{{item.question}}</div>
+					<span style="color: gray">({{item.info}})</span>
+					{%if item.order_time %}
+					<div style="">
+						接单时间:{{ item.order_time|date:"Y-m-d H:i:s"}} 接单人:{{item.order_user}}
+					</div>
+					{%endif%}
+				</div>
+				
+			</td>
+			<td>{{item.post_time_str}}
+			</td>
+			<td style="word-break: break-all;">
+				<div class="answer_desc" id="reply_{{item.id}}">{{item.answer|safe}}</div>
+			</td>
+			<td><div id="reply_time_{{item.id}}">{{item.reply_time_str}}</div>
+			</td>
+			<td><div id="reply_user_{{item.id}}">{{item.reply_user}}</div></td>
+			<td>{%if item.status == 2%}查看时间:{{ item.check_time|date:"Y-m-d H:i:s"}} {% endif %}</td>
+			<td>{%if item.score != None and item.score != 'None' and item.score > -1 %}{{item.score}}{%endif%}</td>
+			<td class="control" align="right" data-status={{item.status}} data-category="{{item.category}}">
+				{% if item.session_id %}
+					<a style="font-size: 15px;" href="?route=query_parent_question&sid={{item.session_id}}" follow="true" class="dialog">[详情]</a>
+				{%endif%}
+				{%if item.status == 1 %}
+				<a style="font-size: 15px;" href="javascript:;" onclick="ignore({{item.id}},this)">[忽略]</a>
+				<a style="font-size: 15px;" href="javascript:;" onclick="replyQuestion({{item.id}},this)">[修改]</a>
+				{%elif item.status == 0%}
+				<a style="font-size: 15px;" href="javascript:;" onclick="ignore({{item.id}},this)">[忽略]</a>
+				<a style="font-size: 15px;color:red"  href="javascript:;" onclick="replyQuestion({{item.id}},this)">[回复]</a>
+				{% elif item.status >= 3%}
+				<a style="font-size: 15px;" href="javascript:;" onclick="removeIgnore({{item.id}},this)">[取消忽略]</a>
+				{% else %}
+				<a style="font-size: 15px;" href="javascript:;" onclick="ignore({{item.id}},this)">[忽略]</a>
+				<a style="font-size: 15px;" href="javascript:;" onclick="replyQuestion({{item.id}},this)">[修改]</a>
+				{%endif%}
+				<br/>
+				{% if usm.is_manager %}
+				<div class="divselect" default-value="{{item.category}}">
+				      <label></label>
+				      <ul class="menuUl">
+				      	<li><a href="javascript:;" selectid="未分类">未分类</a>
+				      	{% for k,v in question_category_list.items %}
+						 <li><a href="javascript:;" selectid="{{k}}">{{k}}</a>
+						 		{%if v%}
+								<ul>
+								{%for c in  v%}
+									 <li><a href="javascript:;" selectid="{{c}}">{{c}}</a></li>
+								{%endfor%}
+								</ul>
+							{%endif%}
+						</li>
+						{%endfor%}
+				      </ul>
+				        <input id="category_{{item.id}}"  name="category" type="hidden" value="{{item.category}}" class="inputselect"/>
+				</div>
+				{%else%}
+					分类:{{item.category}}
+				{% endif %}
+				{% if share_env%}
+				<!--<a href='javascript:void(0);' class='show_share'>案例分享</a>-->
+				{% endif %}
+			</td>
+		</tr>
+
+		{%endfor%}
+        </tbody>
+
+	</table>
+</div>
+
+{% if usm.is_manager %}
+<div class="sub-menu-1">
+	<label><input type="checkbox" checkbox-area="question_area">全选</label>
+	操作:
+	<input type="button" value="批量回复" id="batch_reply" class="my_btn_style" onclick="batchReplyQuestion()" />
+	<input type="button" value="批量忽略" id="ignore_reply" class="my_btn_style" onclick="manyIgnore()" />
+	<input type="button" value="分配" id="allocation-btn" class="my_btn_style" onclick="allocationQuestion()" />
+</div>
+
+
+<div id="allocation-question-div" style="display: none">
+	<select name="order_user">
+	{%for item in kefu_list%}
+	<option value="{{item.alias}}">{{item.alias}}</option>
+	{%endfor%}
+	</select>
+	<input type="button" value="确定" id="allocation-btn-sure" class="my_btn_style" />
+</div>
+{% endif %}
+<div id="question_reply" style="display:none">
+	<form id="msgbox" action="/question/answer" method="post">
+        <input type="hidden" name="question_id" value="0" />
+        <input type="hidden" name="is_admin" value="true" />
+        <input type="hidden" name="reply_user" value="{{kefu_name}}" />
+		<table>
+			<tr><td></td><td class="question"></td></tr>
+			<tr>
+                <td>问题分类</td>
+                <td>
+                    <div class="divselect" default-value="{{item.category}}">
+                        <label></label>
+                        <ul class="menuUl">
+                        <li><a href="javascript:;" selectid="">未分类</a>
+                        {% for k,v in question_category_list.items %}
+                         <li><a href="javascript:;" selectid="{{k}}">{{k}}</a>
+                                {%if v%}
+                                <ul>
+                                {%for c in  v%}
+                                     <li><a href="javascript:;" selectid="{{c}}">{{c}}</a></li>
+                                {%endfor%}
+                                </ul>
+                            {%endif%}
+                        </li>
+                        {%endfor%}
+                        </ul>
+
+                        <input name="answer_category" type="hidden" value="{{item.category}}" class="inputselect"/>
+                    </div>
+                </td>
+            </tr>
+			<tr><td>回复内容</td><td><textarea class="share_text" name="answer"></textarea></td></tr>
+
+			<tr><td></td>
+			<td id="reply"><input type="submit" value="立即回复" style="margin-left: 6px;"></td></tr>
+		</table>
+	</form>
+</div>
+
+<div id="set_nickname" style="display: none">
+    <div>
+        <p>
+            目前使用别名: <b></b>
+        </p>
+        <p>
+            客服别名:&nbsp;&nbsp;
+            <input type="hidden" name="old_kefu_id" value="{{user_id}}" />
+            <input type="text" name="nickname" placeholder="输入别名" style="padding: 3px;" />
+            <input type="button" value="确定" class="my_btn_style" id="alias_do" />
+        </p>
+    </div>
+</div>
+<script type="text/javascript">
+var server_group_dict = {};
+{% for item in list_group %}
+{% for server in item.server.all %}
+server_group_dict[{{server.id}}] = {{item.id}};
+{% endfor %}
+{% endfor %}
+
+
+function allocationQuestion(){
+	$('#allocation-question-div').dialog({title:"选择指派客服"})
+
+	$('#allocation-btn-sure').unbind('click').click(function(event) {
+			var question_id_params = $("#question_area [name='question_id']:checked").serialize();
+			var order_user = $('[name="order_user"]').val()
+			if(!question_id_params){
+				alert('选择问题列表!')
+				return 
+			}
+			$.ajax({
+				url: '?route=allocation_question',
+				type: 'POST',
+				dataType: 'json',
+				data: question_id_params + '&order_user=' + order_user,
+			})
+			.done(function(data) {
+				if (data.code==0){
+					alert('指派 ' + order_user + ' 成功!')
+				}
+				
+			})
+			.fail(function(o,x,text) {
+					$.dialog( {"title":"错误","content":o.responseText.replace(/\n/g,'<br>'),"top":0})
+			})
+
+
+	})
+}
+
+var reply_num = 0
+var order_num = parseInt('{{kefu_not_reply_num}}')
+{% if  is_myqustion and not is_query %}
+if ((!order_num||order_num<=0)){
+	window.setTimeout(function(){
+		if(parseInt($('[name=order_num]').val())>0 ){
+			$('#query-question-btn').trigger('click')
+		}
+
+	},60000)
+}
+{%endif%}
+
+function replyQuestion(questionId,ele) {
+	var msgbox = $("#msgbox");
+	msgbox.find("input[name='question_id']").val(questionId);
+	var question_ele = msgbox.find('.question')
+    var answer_ele = msgbox.find("textarea[name='answer']");
+    var category_ele = msgbox.find("[name='answer_category']");
+
+    if(category_ele.length>0){
+    	var value = $("#category_" + questionId).val();
+    	category_ele.val(value)
+    	category_ele.parent('div').find('label').html(value)
+    }
+
+
+	answer_ele.val($("#reply_" + questionId).text());
+    
+	
+
+    msgbox.submit(function(e) {
+		if (e && e.stopPropagation) {
+			//W3C取消冒泡事件
+			e.stopPropagation();
+		} else {
+			//IE取消冒泡事件
+			window.event.cancelBubble = true;
+		}
+		return false;
+	});
+	var _dialog = $("#question_reply").dialog({'title':'问题回复',follow:ele});
+
+    msgbox.find(':submit').unbind('click').click(function(){
+        var category = category_ele.val()
+        if (category_ele.length>0&&(category=='未分类'||category=='')){
+            alert('未选择问题分类')
+            return
+        }
+        var is_alias = $("[name='is_alias']").val();
+        if(is_alias == 1){
+            $("[name='reply_user']").val(localStorage.getItem('{{user_id}}'));
+        }else{
+            $("[name='reply_user']").val('{{kefu_name}}');
+        }
+        $("#queryQuestion").trigger('click')
+        replyQuestionDo(msgbox[0],false,function(){
+        	_dialog.close()
+        });
+    })
+}
+
+
+
+function ignore(questionId,ele){
+	var data = {"question_ids":questionId,"type":"ignore"};
+	ignoreDo(data,function(msg){
+			var msg = $.parseJSON(msg);
+			if(msg.code == 0){
+				var html = '<a style="font-size: 15px;" href="javascript:;" onclick="removeIgnore('+questionId+',this)">[取消忽略]</a>'
+				$(ele).parent().html(html)
+			}
+		})
+}
+
+function removeIgnore(questionId,ele){
+	var data = {"question_ids":questionId,"type":"removeIgnore"}
+	ignoreDo(data,function(msg){
+		var msg = $.parseJSON(msg);
+		if(msg.code == 0){
+			var html = ""
+			html += '<a style="font-size: 15px;" href="javascript:;" onclick="ignore('+ questionId+',this)">[忽略]</a>'
+			html += '<a style="font-size: 15px;color:red"  href="javascript:;" onclick="replyQuestion('+questionId+',this)">[回复]</a>'
+			$(ele).parent().html(html);
+		}
+	})
+}
+
+function manyIgnore(){
+	questionIds = []
+	$("#question_area [name='question_id']:checked").each(function(){
+        questionIds.push($(this).val())
+    });
+    var search = false
+    for(var i in questionIds){
+	var post_data = {"question_ids":questionIds[i],"type":"ignore"}
+	ignoreDo(post_data,function(data){
+		var data = $.parseJSON(data);
+		if(data.code == 0){
+			search = true;
+		}
+	})
+	}
+	if(search == true){
+		$("#queryQuestion").trigger('click')
+	}
+}
+
+function ignoreDo(data,callback){
+	var url = '/question/remove';
+	$.ajax({
+		url:url,
+		type:"post",
+		async:false,
+		data:data,
+		success:function(msg){
+			if(callback){
+				callback(msg)
+			}
+		}
+	})
+}
+
+function replyQuestionDo(the_form, is_async, callback) {
+    var post_data = $(the_form).serialize()
+    
+    var questionId = $(the_form).find("[name='question_id']").val()
+    if(typeof is_async == 'undefined'){
+        is_async = true;
+    }
+    
+	$.ajax({
+		url : the_form.action,
+		type : the_form.method,
+		cache : false,
+        async : is_async,
+		data : post_data,
+		success : function(data) {
+			var data = $.parseJSON(data)
+			if (data.code == 0) {
+				$("#reply_" + the_form.question_id.value).html(the_form.answer.value);
+				$("#reply_user_" + the_form.question_id.value).html(data.reply_user);
+				$("#reply_time_" + the_form.question_id.value).html(data.reply_time);
+                $("tbody").find(":checked[value='"+questionId+"']").prop('checked', false)
+			}
+			if (callback){
+				callback(data)
+			}
+		},
+		error : function() {
+			alert('发生错误啦!');
+		}
+	});
+}
+
+function batchReplyQuestion(){
+    var questionIds = [];
+    $("#question_area [name='question_id']:checked").each(function(){
+        questionIds.push($(this).val())
+    });
+    console.dir(questionIds)
+    if(questionIds.length == 0){
+        alert("请选择需要回复的问题!");
+        return false
+    }
+    var msgbox = $("#msgbox");
+    var _dialog = $("#question_reply").dialog({'title':'批量回复',center:true});
+
+    var is_alias = $("[name='is_alias']").val();
+    if(is_alias == 1){
+        $("[name='reply_user']").val(localStorage.getItem('{{user_id}}'));
+    }
+
+    msgbox.submit(function(e) {
+		if (e && e.stopPropagation) {
+			//W3C取消冒泡事件
+			e.stopPropagation();
+		} else {
+			//IE取消冒泡事件
+			window.event.cancelBubble = true;
+		}
+		return false;
+	});
+
+    msgbox.find(':submit').unbind('click').click(function(){
+
+    	var category_ele = $("[name='answer_category']");
+    	var category = category_ele.val()
+        if (category_ele.length>0&&(category=='未分类'||category=='')){
+            alert('未选择问题分类')
+            return
+        }
+        $("[name='reply_user']").val('{{kefu_name}}');
+        
+        for(var i=0; i<questionIds.length; i++){
+            msgbox.find("[name='question_id']").val(questionIds[i]);
+            replyQuestionDo(msgbox[0], false);
+        }
+        alert('回复已完成.');
+        _dialog.close();
+    });
+
+
+
+}
+
+function setNickName(){
+    var login_user = $("[name='old_kefu_id']").val();
+    $("#alias_do").click(function(){
+        var alias_name = $("[name='nickname']").val();
+        try{
+           localStorage.setItem(login_user+'', alias_name)
+        }catch (ex){
+            alert("设置失败:"+ex);
+            return false;
+        }
+        alert("设置成功.")
+    });
+
+    var local_alias = localStorage.getItem(login_user);
+    $("#set_nickname b").html(typeof local_alias != 'null' ? local_alias : '未使用别名');
+
+    var _dialog = $("#set_nickname").dialog({'title':'客服别名设置',center:true});
+
+}
+
+</script>
+
+<script>
+jQuery.divselect = function() {
+	$(".divselect").each(function(i,ele){
+		var This = $(this)
+		var defaulfValue = This.attr("default-value"), value ='',text=''
+		if (defaulfValue){
+			value = defaulfValue
+			text = This.find('ul li a[selectid="'+defaulfValue+'"]').text()
+			text =  text?text:defaulfValue
+		}else{
+			var firstEle = This.find('.menuUl li a:first')
+			value = firstEle.attr('selectid')
+			text = firstEle.text()
+		}
+		This.find('label').html(text)
+		This.find('.inputselect').val(value)
+	})
+
+	$(".divselect label").click(function(){
+		var ul = $(this).next(".menuUl");
+		if(ul.css("display")=="none"){
+			 $(".divselect .menuUl:visible").hide()
+			ul.show()
+			//ul.css('left',$(this).offset().left)
+		}else{
+			ul.hide()
+		}
+	});
+	$(".divselect ul li a").click(function(){
+        var This = $(this)
+        var divSelect = This.closest('.divselect')
+		var txt = This.text();
+        divSelect.find('label').html(txt)
+		var value = This.attr("selectid");
+		divSelect.find(".inputselect").val(value);
+		divSelect.find(".menuUl:first").hide();
+	});
+
+	$(document).click(function(e){
+		var target = $(e.target).closest('.divselect ul')
+		if(!$(e.target).is('.divselect label')){
+		 $(".divselect .menuUl:visible").hide();
+		}
+	});
+};
+
+$.divselect()
+// 接单
+$(function(){
+$('.question_order').click(function(){
+	var  This = $(this)
+	$.ajax({
+		url: '?route=order_question',
+		type: 'POST',
+		dataType: 'json',
+		data: {"qid": This.attr('qid')},
+		success:function(data){
+			var questionDiv = This.next('div')
+			if (data.code==0){
+				var questionModel = data.data[0]
+				questionDiv.append('<div style="font-style:italic;">\
+									接单时间:'+questionModel.order_time+' 接单人:'+ questionModel.order_user+'\
+									</div>'
+					)
+				questionDiv.show()
+			}
+			This.remove()
+		},
+		error:function(data){
+			alert('查看错误')
+		}
+	})
+	})
+})
+
+// $(document).on('click','.replyQuestion',function(){
+// 	replyQuestion($(this).attr('qid'),this)
+// })
+</script>
+{% include "page_post.html" %}
+{% endblock %}
+
